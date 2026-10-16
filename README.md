@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current working release:** Windows **v0.9** user-tested alpha. **In implementation, CI pending:** v0.12 redesigned WPF Home/Reminders/My Pets/Pet Studio/Settings. Last merged walking-pet alpha is v0.11. GitHub Actions passed 86 core checks and compiled both installer and portable build; real laptop visual/voice QA is pending. This is unsigned and not a production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current working release:** Windows **v0.9** user-tested alpha. **Available as unsigned Windows test build:** v0.12 redesigned WPF Home/Reminders/My Pets/Pet Studio/Settings. Final GitHub Windows CI passed 91 core checks, compiled portable x64 and optional installer, and verified installer preserves user data. Actual on-device UI acceptance still pending. GitHub Actions passed 86 core checks and compiled both installer and portable build; real laptop visual/voice QA is pending. This is unsigned and not a production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -155,4 +155,4 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Reminders includes functional date/time/one-time/daily/weekly creation and editing, list filters, Done/Snooze/Delete and existing keyboard shortcuts. Settings retains optional Windows speech, login startup and Open data folder.
 - My Pets shows Milo as the active original cat, with Dog and Bunny explicitly marked coming in v0.13. Pet Studio provides existing real motion/arrival options and pet preview; new species/action customization will be implemented in subsequent versions.
 - The walking v0.11 pet experience and reminder JSON data remain unchanged. No paid services or external Canva dependency is added to the compiled app.
-- CI artifacts are named `PetPing-Windows-v0.12-unsigned` and `PetPing-Installer-v0.12-unsigned`; they are not yet verified at this checkpoint.
+- CI artifacts: `PetPing-Windows-v0.12-unsigned` (ID 12042344606) and `PetPing-Installer-v0.12-unsigned` (ID 12043370603), verified intact. Installer `PetPing-Setup-v0.12-unsigned.exe` SHA-256: `53a381461f24996d7f93dc979a31b435cc65742892cca1a93250f66492222dd6`.
