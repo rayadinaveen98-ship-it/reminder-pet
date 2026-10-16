@@ -223,3 +223,10 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Added visible high-contrast WPF keyboard focus border on reminder buttons, assembly v0.15 version metadata and installer 0.15.0 label.
 - Expanded CI to rebuild pinned v0.14 original release source from Git history and execute a real v0.14→v0.15 installer upgrade with SHA-256 data checks for synthetic reminders and pet profiles; existing same-version preservation checks remain. CI has NOT yet passed at this checkpoint.
 - No new pet species, app redesign or cloud services; Windows v1.0 remains dependent on QA and user signoff.
+
+## 2026-10-16 — v0.15 integration merged, actual predecessor upgrade passed
+- PR #14 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/14 merged into `main` at squash commit `3ec779352c0a35f83981ac01d01a7947429b0e2f`.
+- Windows Actions https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38903316350 **success**, **122** core checks, static XAML validation, self-contained win-x64 WPF publish and unsigned Inno Setup compiled.
+- New upgrade test: `git worktree` checked out pinned v0.14 commit `4f8be7cae20651161651bbec444f412fa34902df`, rebuilt old app+installer, installed old, wrote valid synthetic `reminders.json` and 3-species `pet-profile.json`, upgraded to v0.15, asserted actual upgraded executable file version 0.15.0*, and verified files were **byte-for-byte unchanged by SHA-256 across upgrade and uninstall**. Existing v0.15 same-version install/reinstall/uninstall sentinel test also passed. No user data was accessed.
+- Verified downloaded ZIPs by CRC: portable `PetPing-Windows-v0.15-unsigned` ID 12046563227 (~71.5 MB), installer `PetPing-Installer-v0.15-unsigned` ID 12046104323 (~51.4 MB). Extracted `PetPing-Setup-v0.15-unsigned.exe` 51,927,228 bytes, SHA-256 `d37e434ed7428a412021c74e2abb31af8bf89f86d4b2d0cbfdc15823ae2377cb`.
+- User still needs real device voice-off and narrator-repeat test, keyboard focus, overlay hit test, multi-DPI, lock/wake and reinstall. Unsigned preview is not public signed stable. Next gate Windows v1.0 RC quality/branding/signing decision, after user confirms v0.15.

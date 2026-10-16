@@ -176,3 +176,8 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 8. Installer uninstall should not erase reminder/profile backups. New v0.15 installer remains unsigned, so SmartScreen warnings are possible.
 
 **Known limitation:** CI tests real upgrade file-preservation and application compilation, not full graphical automation, CPU/battery profile, Windows Authenticode signing or physical assistive-technology use.
+
+## v0.15 CI result (not a substitute for laptop QA)
+- Run 38903316350 passed **122 core smoke checks**, static XAML and WPF executable build.
+- Actual pinned v0.14 installer was compiled and installed, then upgraded to v0.15; upgraded FileVersion checked, synthetic reminder and pet-profile SHA-256 preserved through upgrade and uninstall. The regular v0.15 same-version repair/uninstall sentinel also passed.
+- No user-supplied real reminder files were opened or migrated in CI. Actual on-device voice/animation/keyboard/DPI and power-cycle QA remain open.

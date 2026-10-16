@@ -190,6 +190,6 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Keep Done/Snooze actionable and show inline text if write fails
 - [x] Pet action button keyboard focus outline and consistent v0.15 version labels
 - [x] CI true prior v0.14→v0.15 upgrade verification defined, including synthetic reminder/pet profile SHA preservation
-- [ ] v0.15 full CI green, unsigned portable/setup built and merged into main
+- [x] v0.15 full CI green (122 checks), real v0.14→v0.15 upgrade test passed, both unsigned archives CRC-verified, PR #14 merged
 - [ ] v0.15 hands-on reminder/voice/reactions/accessibility/multi-monitor/power testing
 - [ ] Windows v1.0 RC checklist, code signing/distribution decision and user approval

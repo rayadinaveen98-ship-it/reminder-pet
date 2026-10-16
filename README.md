@@ -180,8 +180,13 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Portable unsigned ZIP: `PetPing-Windows-v0.14-unsigned` artifact ID 12045033789. Installer ZIP: `PetPing-Installer-v0.14-unsigned` ID 12044899354; contains `PetPing-Setup-v0.14-unsigned.exe`, SHA-256 `47414e3f92db6c52f2f5c6887f996de98f5d77f8a7b671340571c1f3b235ec77`.
 - Back up `%LOCALAPPDATA%\PetPing`, quit previous tray copy, then install. Test Pet Studio effects previews before trying a live reminder. Real device visuals and accessibility are pending; installer remains unsigned.
 
-## v0.15 integration quality (in development)
+## v0.15 integration quality (CI verified; user QA pending)
 - Focused quality milestone, not a new pet pack. Immediate voice-off also stops the repeat timer; successful saved Done/Snooze no longer looks failed because dashboard refresh had an error; failed saves leave visible retry guidance.
 - Reminder action chips have visible keyboard focus outlines; version metadata and unsigned setup label v0.15.
-- GitHub Windows CI is extended to rebuild actual pinned v0.14, perform real v0.14→v0.15 installer upgrade and compare synthetic reminder/pet-profile SHA hashes across upgrade and uninstall. No real user files involved. Same-version install/reinstall smoke retained.
+- GitHub Windows CI rebuilt actual pinned v0.14 and **passed** real v0.14→v0.15 installer upgrade with matching synthetic reminder/pet-profile hashes through upgrade and uninstall. No real user files involved. Same-version install/reinstall smoke retained.
 - On-device audio, pet overlay, mixed DPI and screen-reader QA pending. v1.0 release candidate needs a separate sign-off and code-signing plan.
+
+### Verified v0.15 Windows packages
+- PR #14: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/14 ; Windows run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38903316350 passed 122 tests and actual v0.14→v0.15 upgrade.
+- Portable unsigned ZIP artifact ID 12046563227; installer ZIP artifact ID 12046104323. CRCs good, standalone `PetPing-Setup-v0.15-unsigned.exe` SHA-256 `d37e434ed7428a412021c74e2abb31af8bf89f86d4b2d0cbfdc15823ae2377cb`.
+- Back up `%LOCALAPPDATA%\PetPing` and quit previous tray app before upgrade. Real laptop, screen reader, scaling/monitor, power and signing QA still required for v1.0.

@@ -11,6 +11,7 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - No paid APIs or mandatory hosted services for alpha.
 
 ## Verified build status
+- **v0.15 Windows integration preview:** PR #14 merged `3ec779352c0a35f83981ac01d01a7947429b0e2f`. GitHub Actions https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38903316350 **success**, 122 core smoke checks and Windows x64 compile. Rebuilt real predecessor v0.14, installed/updated to v0.15 (confirmed new FileVersion) and verified synthetic reminders + three pet profiles by SHA-256 before/after upgrade/uninstall. Same-version repair/uninstall sentinel preserved. Portable `PetPing-Windows-v0.15-unsigned` artifact ID 12046563227; installer `PetPing-Installer-v0.15-unsigned` ID 12046104323; both ZIP CRCs good. Standalone setup SHA-256 `d37e434ed7428a412021c74e2abb31af8bf89f86d4b2d0cbfdc15823ae2377cb`. Physical laptop acceptance pending.
 - **v0.14 expressive pets:** PR #13 merged as `4f8be7cae20651161651bbec444f412fa34902df`. Windows CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38900092320 passed **122 core tests**, WPF win-x64 publish and unsigned installer smoke (same-version install/reinstall/uninstall without removing LocalAppData test data). Portable artifact `PetPing-Windows-v0.14-unsigned` ID 12045033789; installer artifact `PetPing-Installer-v0.14-unsigned` ID 12044899354. Both ZIP CRCs passed. Extracted `PetPing-Setup-v0.14-unsigned.exe`, SHA-256 `47414e3f92db6c52f2f5c6887f996de98f5d77f8a7b671340571c1f3b235ec77`. Physical UI/motion test pending.
 - **v0.13 multi-pet Windows preview:** PR #12 merged as `6410b4400651c8a6ac473dafa6331aa8f0f1217c`. Windows run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38897525278 passed **105 core checks**, WPF compile and install/reinstall/uninstall storage-preservation smoke. Portable artifact `PetPing-Windows-v0.13-unsigned` ID 12044223333, installer `PetPing-Installer-v0.13-unsigned` ID 12045065431; downloaded both ZIPs and CRC verified; setup EXE SHA-256 `fbb7e06bac08ec1f5d600a529a127cba289759b213d26c953b56f5e40c71944f`. Laptop visual QA pending.
 - **v0.12 redesigned dashboard preview:** PR #11 merged 8d5b0ba00d41aea2d76e94ea4de86361a3c0076a. CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38893597316 green, 91 core checks and Windows installer smoke. Artifacts 12042344606 (portable) and 12043370603 (setup). UI physical testing open.
@@ -26,15 +27,15 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**PetPing 2.0 v0.15 — Windows integration and upgrade reliability. Source committed; CI/Windows release artifact pending.**
+**PetPing 2.0 v0.15 — Windows integration and upgrade reliability. MERGED + CI VERIFIED (122 checks); real laptop QA pending.**
 
 - User reported **"all good"** for v0.14 and authorized v0.15. Record as broad user-reported working confirmation, not proof of separately witnessed lock/sleep, screen-reader or mixed-DPI cases.
 - v0.14 remains previous merged/CI-verified fallback: PR #13, run 38900092320, 122 checks; expressive cat/dog/bunny motion and effects.
-- Development branch `feature/v015-reliability`. This is a release-quality checkpoint, **not** Windows v1.0 and not a new feature pack.
+- Development branch `feature/v015-reliability` merged to main via PR #14, squash commit `3ec779352c0a35f83981ac01d01a7947429b0e2f`. This is an unsigned release-quality test build, **not** Windows v1.0.
 - Fixes: turning Speech Off immediately stops both the active Windows utterance and any pending post-speech repeat; a dashboard/tray refresh exception after a successfully saved Done/Snooze can no longer cause the pet to report that persisted action as failed.
 - A failed Done/Snooze save leaves the pet controls available and now displays an unboxed inline "Couldn't save" message instead of relying only on tray notifications.
 - Reminder action chips have visible focus borders; app assembly and installer consistently identify as v0.15 preview.
-- Windows Actions will pin and rebuild **actual v0.14** at commit `4f8be7cae20651161651bbec444f412fa34902df`, install its unsigned setup, seed valid synthetic reminders and three pet profiles, **upgrade** to v0.15 and verify hashes through uninstall. This is separate from the existing same-version reinstall and data-sentinel check. No actual user reminders are used.
+- Windows Actions **passed a pinned real v0.14 to v0.15 upgrade**, rebuilding **actual v0.14** at commit `4f8be7cae20651161651bbec444f412fa34902df`, install its unsigned setup, seed valid synthetic reminders and three pet profiles, **upgrade** to v0.15 and verify hashes through uninstall. This passed alongside the existing same-version install/reinstall/uninstall data-sentinel check. No actual user reminders were used. Verified run 38903316350.
 - Core reminders and profile JSON schemas remain unchanged. No new accounts, analytics, network dependency, background updater or paid services.
 
 ## Known constraints and risks
