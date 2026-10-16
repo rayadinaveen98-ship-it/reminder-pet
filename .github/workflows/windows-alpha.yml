@@ -55,15 +55,16 @@ jobs:
           New-Item -ItemType Directory -Force $dataDir | Out-Null
           $sentinel = Join-Path $dataDir "ci-preserve-test.txt"
           Set-Content -LiteralPath $sentinel -Value "retain reminder data"
-          & $installer "/VERYSILENT" "/SUPPRESSMSGBOXES" "/NORESTART" "/DIR=$installDir"
-          if ($LASTEXITCODE -ne 0) { throw "Silent installer returned $LASTEXITCODE" }
+          $installArgs = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=`"$installDir`"")
+          $installed = Start-Process -FilePath $installer -ArgumentList $installArgs -Wait -PassThru
+          if ($installed.ExitCode -ne 0) { throw "Silent installer returned $($installed.ExitCode)" }
           if (!(Test-Path (Join-Path $installDir "PetPing.Windows.exe"))) {
             throw "Installer failed to lay down executable"
           }
           $uninstaller = Join-Path $installDir "unins000.exe"
           if (!(Test-Path $uninstaller)) { throw "Uninstaller missing" }
-          & $uninstaller "/VERYSILENT" "/SUPPRESSMSGBOXES" "/NORESTART"
-          if ($LASTEXITCODE -ne 0) { throw "Silent uninstaller returned $LASTEXITCODE" }
+          $uninstalled = Start-Process -FilePath $uninstaller -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
+          if ($uninstalled.ExitCode -ne 0) { throw "Silent uninstaller returned $($uninstalled.ExitCode)" }
           if (!(Test-Path $sentinel)) { throw "Installer removed user reminder data" }
           Remove-Item $sentinel -Force
       - name: Upload Windows installer
