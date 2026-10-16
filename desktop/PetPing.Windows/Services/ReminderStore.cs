@@ -253,7 +253,7 @@ public sealed class ReminderStore
     {
         if (!ReminderRules.CanSnooze(reminder))
             throw new InvalidOperationException("Only reminders that need attention can be snoozed.");
-        if (duration <= TimeSpan.Zero) throw new ArgumentException("Snooze must be positive.");
+        SnoozePolicy.Validate(duration);
         Change(reminder, () =>
         {
             reminder.DueAt = DateTimeOffset.UtcNow.Add(duration);
