@@ -12,6 +12,7 @@ namespace PetPing.Windows;
 public partial class PetCharacter : System.Windows.Controls.UserControl
 {
     private PetProfile _profile = new();
+    private int _effectsGeneration;
 
     public PetCharacter()
     {
@@ -21,6 +22,7 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
     public void Apply(PetProfile profile)
     {
         PetProfileCatalog.Validate(profile);
+        Stop();
         _profile = profile;
         CatEars.Visibility = profile.Species == PetSpecies.Cat ? Visibility.Visible : Visibility.Collapsed;
         CatTail.Visibility = CatEars.Visibility;
@@ -259,6 +261,7 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
     {
         // At most ten short-lived shapes; never allocate particles on a frame
         // tick, and do not add a fullscreen or click-catching effect layer.
+        var generation = ++_effectsGeneration;
         EffectStage.Children.Clear();
         var colors = _profile.Species switch
         {
@@ -294,13 +297,18 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
                 new DoubleAnimation(0, Math.Sin(angle) * distance - 17, time));
             var fade = new DoubleAnimation(1, 0, time);
             if (i == plan.ParticleCount - 1)
-                fade.Completed += (_, _) => EffectStage.Children.Clear();
+                fade.Completed += (_, _) =>
+                {
+                    if (_effectsGeneration == generation)
+                        EffectStage.Children.Clear();
+                };
             particle.BeginAnimation(OpacityProperty, fade);
         }
     }
 
     public void Stop()
     {
+        _effectsGeneration++;
         ResetCharacterMotion();
         MouthSpeak.BeginAnimation(OpacityProperty, null);
         MouthSpeak.Visibility = Visibility.Collapsed;
