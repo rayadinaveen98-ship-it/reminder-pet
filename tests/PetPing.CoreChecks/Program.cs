@@ -480,6 +480,24 @@ try
           PetProfileCatalog.Name(PetSpecies.Bunny),
         "selected dog and bunny are distinct real character identities");
 
+    // Profiles are independent: changing Buddy must not overwrite Milo or Luna.
+    initialPet.Select(PetSpecies.Cat);
+    Check(initialPet.Current.Species == PetSpecies.Cat &&
+          initialPet.Current.Palette == PetPalette.Apricot,
+        "switching back to Milo restores his own original coat choices");
+    initialPet.Select(PetSpecies.Dog);
+    Check(initialPet.Current == dogProfile,
+        "switching back to Buddy restores his individually saved scarf/actions");
+    initialPet.Select(PetSpecies.Bunny);
+    Check(initialPet.Current == bunnyProfile &&
+          new PetProfileSettings(petsFolder).Get(PetSpecies.Dog) == dogProfile,
+        "switching Luna back preserves Buddy's separate profile across restart");
+    bool unknownPetRejected = false;
+    try { initialPet.Select((PetSpecies)999); }
+    catch (ArgumentException) { unknownPetRejected = true; }
+    Check(unknownPetRejected && initialPet.SelectedSpecies == PetSpecies.Bunny,
+        "unknown species cannot replace the chosen pet");
+
     var petFile = Path.Combine(petsFolder, "pet-profile.json");
     var originalProfile = File.ReadAllText(petFile);
     bool invalidSpeciesRejected = false;
