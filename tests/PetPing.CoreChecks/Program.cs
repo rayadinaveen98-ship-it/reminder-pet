@@ -619,6 +619,100 @@ try
     Check(new ReminderStore(repeatFolder).Reminders.Count == reminderCountBefore,
         "v0.14 effects configuration leaves reminder data unchanged");
 
+    // R2-B isolated custom recurrence previews. Zero schema / UI migration.
+    var r2bAnchor = new DateTime(2026, 10, 12); // Monday
+    var r2bNow = new DateTimeOffset(2026, 10, 13, 10, 0, 0, TimeSpan.Zero);
+    var monWedFri = new [] { DayOfWeek.Monday, DayOfWeek.Wednesday, DayOfWeek.Friday };
+    var midWeekNext = AdvancedRepeatRules.NextWeekdayOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0), monWedFri, 1, TimeZoneInfo.Utc, r2bNow);
+    Check(midWeekNext == new DateTimeOffset(2026, 10, 14, 9, 0, 0, TimeSpan.Zero),
+        "custom Mon/Wed/Fri recurrence chooses the next selected local weekday");
+    var afterFriday = new DateTimeOffset(2026, 10, 16, 12, 0, 0, TimeSpan.Zero);
+    var nextMonday = AdvancedRepeatRules.NextWeekdayOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0), monWedFri, 1, TimeZoneInfo.Utc, afterFriday);
+    Check(nextMonday == new DateTimeOffset(2026, 10, 19, 9, 0, 0, TimeSpan.Zero),
+        "custom weekdays wrap correctly from Friday into the next week");
+    var everyTwoWeeks = AdvancedRepeatRules.NextWeekdayOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0),
+        [DayOfWeek.Monday, DayOfWeek.Wednesday], 2, TimeZoneInfo.Utc, afterFriday);
+    Check(everyTwoWeeks == new DateTimeOffset(2026, 10, 26, 9, 0, 0, TimeSpan.Zero),
+        "selected days every second week retain the original Monday-week anchor");
+    var anchorInsideWeek = AdvancedRepeatRules.NextWeekdayOccurrence(
+        new DateTime(2026, 10, 15), new TimeSpan(9, 0, 0),
+        [DayOfWeek.Monday, DayOfWeek.Wednesday], 2, TimeZoneInfo.Utc, afterFriday);
+    Check(anchorInsideWeek == everyTwoWeeks,
+        "custom repeat never schedules a selected weekday before the anchor date");
+    var uniqueWeekday = AdvancedRepeatRules.NextWeekdayOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0),
+        [DayOfWeek.Wednesday, DayOfWeek.Wednesday], 1, TimeZoneInfo.Utc, r2bNow);
+    Check(uniqueWeekday == midWeekNext,
+        "duplicate weekday selections are normalized without duplicate schedules");
+
+    var dayThree = AdvancedRepeatRules.NextDayIntervalOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0), 3, TimeZoneInfo.Utc, r2bNow);
+    Check(dayThree == new DateTimeOffset(2026, 10, 15, 9, 0, 0, TimeSpan.Zero),
+        "every-three-day schedule advances from its original local anchor");
+    var longOffline = new DateTimeOffset(2045, 4, 19, 8, 0, 0, TimeSpan.Zero);
+    var jumpedWeek = AdvancedRepeatRules.NextWeekdayOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0), [DayOfWeek.Tuesday], 3,
+        TimeZoneInfo.Utc, longOffline);
+    var jumpedDay = AdvancedRepeatRules.NextDayIntervalOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0), 15, TimeZoneInfo.Utc, longOffline);
+    Check(jumpedWeek > longOffline && jumpedWeek <= longOffline.AddDays(22) &&
+          jumpedDay > longOffline && jumpedDay <= longOffline.AddDays(16),
+        "years of downtime jump directly to a bounded future selected occurrence");
+
+    bool missingDayRejected = false, invalidWeekRejected = false,
+         invalidDayStepRejected = false, invalidClockRejected = false,
+         invalidWeekdayRejected = false;
+    try { AdvancedRepeatRules.NextWeekdayOccurrence(r2bAnchor, TimeSpan.FromHours(9),
+        Array.Empty<DayOfWeek>(), 1, TimeZoneInfo.Utc, r2bNow); }
+    catch (ArgumentException) { missingDayRejected = true; }
+    try { AdvancedRepeatRules.NextWeekdayOccurrence(r2bAnchor, TimeSpan.FromHours(9),
+        [DayOfWeek.Monday], 53, TimeZoneInfo.Utc, r2bNow); }
+    catch (ArgumentOutOfRangeException) { invalidWeekRejected = true; }
+    try { AdvancedRepeatRules.NextDayIntervalOccurrence(r2bAnchor,
+        TimeSpan.FromHours(9), 0, TimeZoneInfo.Utc, r2bNow); }
+    catch (ArgumentOutOfRangeException) { invalidDayStepRejected = true; }
+    try { AdvancedRepeatRules.NextDayIntervalOccurrence(r2bAnchor,
+        TimeSpan.FromDays(1), 2, TimeZoneInfo.Utc, r2bNow); }
+    catch (ArgumentOutOfRangeException) { invalidClockRejected = true; }
+    try { AdvancedRepeatRules.NextWeekdayOccurrence(r2bAnchor, TimeSpan.FromHours(9),
+        [(DayOfWeek)999], 1, TimeZoneInfo.Utc, r2bNow); }
+    catch (ArgumentException) { invalidWeekdayRejected = true; }
+    Check(missingDayRejected && invalidWeekRejected && invalidDayStepRejected &&
+          invalidClockRejected && invalidWeekdayRejected,
+        "custom repeat rejects no weekdays, invalid weekdays, invalid intervals/time");
+
+    var r2bDstStart = TimeZoneInfo.TransitionTime.CreateFloatingDateRule(
+        new DateTime(1, 1, 1, 2, 0, 0), 3, 2, DayOfWeek.Sunday);
+    var r2bDstEnd = TimeZoneInfo.TransitionTime.CreateFloatingDateRule(
+        new DateTime(1, 1, 1, 2, 0, 0), 11, 1, DayOfWeek.Sunday);
+    var r2bRule = TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
+        new DateTime(2020, 1, 1), new DateTime(2035, 12, 31),
+        TimeSpan.FromHours(1), r2bDstStart, r2bDstEnd);
+    var r2bZone = TimeZoneInfo.CreateCustomTimeZone("PetPing-Repeat-DST-Test",
+        TimeSpan.FromHours(-5), "Synthetic US timezone", "Winter", "Summer", [r2bRule]);
+    var springDue = AdvancedRepeatRules.NextWeekdayOccurrence(
+        new DateTime(2026, 3, 1), new TimeSpan(2, 30, 0), [DayOfWeek.Sunday],
+        1, r2bZone, new DateTimeOffset(2026, 3, 7, 16, 0, 0, TimeSpan.Zero));
+    Check(springDue.Date == new DateTime(2026, 3, 8) &&
+          springDue.TimeOfDay == new TimeSpan(3, 0, 0) &&
+          springDue.Offset == TimeSpan.FromHours(-4),
+        "custom weekly DST spring gap moves just this occurrence to first valid minute");
+    var followingSpring = AdvancedRepeatRules.NextWeekdayOccurrence(
+        new DateTime(2026, 3, 1), new TimeSpan(2, 30, 0), [DayOfWeek.Sunday],
+        1, r2bZone, new DateTimeOffset(2026, 3, 8, 16, 0, 0, TimeSpan.Zero));
+    Check(followingSpring.Date == new DateTime(2026, 3, 15) &&
+          followingSpring.TimeOfDay == new TimeSpan(2, 30, 0),
+        "DST spring recovery restores the originally requested weekly wall time");
+    var overlapDue = AdvancedRepeatRules.NextWeekdayOccurrence(
+        new DateTime(2026, 10, 25), new TimeSpan(1, 30, 0), [DayOfWeek.Sunday],
+        1, r2bZone, new DateTimeOffset(2026, 10, 31, 16, 0, 0, TimeSpan.Zero));
+    Check(overlapDue.Date == new DateTime(2026, 11, 1) &&
+          overlapDue.Offset == TimeSpan.FromHours(-4),
+        "custom recurrence chooses the earlier instant at the fall DST overlap");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
