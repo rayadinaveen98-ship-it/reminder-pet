@@ -146,5 +146,5 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Pure movement planning and cancellation rules; regression smoke tests added
 - [x] New pet-sized WPF walking animation and no filled text bubble in source
 - [x] Session-tagged local speech repeat after 60s of silence; interrupted on action/lock/suspend
-- [ ] Windows WPF / Installer CI pass on v0.11 branch
+- [x] Windows WPF / Installer CI passed with 86 checks; PR #10 merged
 - [ ] User verifies screen-sized walking, text legibility, correct controls and voice on physical Windows device

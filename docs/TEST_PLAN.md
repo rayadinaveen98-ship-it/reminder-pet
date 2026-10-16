@@ -134,3 +134,7 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Test at Windows 100%, 125%, 150%, 200%, and on multiple monitors if available: pet should never disappear off monitor or block whole desktop clicks.
 - Simultaneous reminder due times should queue and not overlap voices. Delete a queued reminder from dashboard and verify it does not show after its predecessor.
 - No app startup, pet texture or animation tests can be inferred solely from .NET/XAML compilation; physical QA required.
+
+### v0.11 Windows automated verification (manual QA still open)
+- GitHub run 38890848806 succeeded: 86 smoke checks including geometry/voice repeat rules, compiled Windows WPF and unsigned Inno installer, verified install/reinstall/uninstall preserved test data.
+- No claim that real pet crossing animation, button visibility/hit testing, speech repeat exact timing or Windows sleep behavior is verified by CI. User testing required.

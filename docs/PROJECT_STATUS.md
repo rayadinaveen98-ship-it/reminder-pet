@@ -26,12 +26,12 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 **PetPing 2.0 — v0.11 walking companion and voice-repeat engine.**
 
 - User approved new design direction in Canva (https://www.canva.com/d/26YBWLCIc7nE3nk) and asked to proceed with implementation.
-- Development branch: `feature/windows-v0.11-walking-narration`. PR/CI pending. Last merged stable Windows build remains **v0.9**.
+- PR #10 **merged to main**, commit `caf61816534e6bb2fd2cc0eaa6c6bdbea2d8bcd5`. Automated Windows CI run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38890848806 **passed 86 core checks**, published the unsigned v0.11 portable Windows build and installer; the physical laptop test for walking, transparent controls and TTS is still pending.
 - Transparent pet-sized WPF window walks from either monitor edge to approximately the middle of the active monitor; existing manual left/right placement overrides random, Motion Off skips walking. Movement only uses a pet-sized window, not a fullscreen interactive overlay.
 - Old colored reminder speech bubble removed; reminder text floats with a shadow, separate **Done / Snooze 10m / Mute / Hide** controls. Hide retains Needs Attention.
 - Talking begins at **Arrived** rather than before travel. Local Windows TTS is tagged to the active pet's session and repeats 60 seconds after an utterance completes. Mute/Done/Snooze/Hide/lock/suspend cancel narration. No overlapping pet session voices.
 - ReminderScheduler/Store, recurring reminder schema, recovery and privacy unaffected. Old appearance settings still work; species selection and new dashboard UI are upcoming v0.13/0.14.
-- Regression checks added for walking coordinates on multiple screen origins and speech repeat/cancellation eligibility. Physical DPI, transparent hit testing, controls and TTS timings need user testing before release.
+- Regression checks passed (86) covering walking geometry, negative monitor origins, and voice repeat safeguards. Windows self-contained x64 and installer smoke (install/reinstall/uninstall preserving LocalAppData) passed. Portable ZIP artifact ID 12042450420, installer ZIP artifact ID 12041443215, both verified intact; standalone setup EXE extracted for user. Physical DPI, transparent hit testing, controls and TTS timings need user testing before beta.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -43,7 +43,8 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Never store reminder text in diagnostics unnecessarily.
 
 ## Release path
-- Latest CI-verified alpha: **v0.9**, unsigned Windows installer and portable ZIP (CI 38881511852; portable artifact 12038021245, installer 12037687579). User confirmed earlier releases generally work, but detailed v0.9 recovery/upgrade/laptop QA remains pending.
+- **Latest CI-verified test preview: v0.11** (86 automated core checks, unsigned portable + setup), laptop QA pending. Prior user-tested baseline is v0.9.
+- Latest previously user-verified alpha: **v0.9**, unsigned Windows installer and portable ZIP (CI 38881511852; portable artifact 12038021245, installer 12037687579). User confirmed earlier releases generally work, but detailed v0.9 recovery/upgrade/laptop QA remains pending.
 - After v0.5: v0.6 daily/weekly repeat, edit reminders and better dashboard; v0.7 expressive characters; v0.8–1.0 Windows packaging/QA; then Android foundation.
 - Keep `docs/ROADMAP.md`, `docs/TEST_PLAN.md`, `README.md`, this file and `docs/ENGINEERING_LOG.md` synchronized at milestone boundaries.
 
@@ -76,4 +77,4 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Open PR on the v0.11 branch and run Windows CI. Fix compile/XAML or installer issues before merging. After green CI, download the portable Windows ZIP, test it on the user's laptop: 1-minute reminder, walking edge→center, unboxed words, Done/Snooze/Mute/Hide, repeated narration after one minute, lock/unlock, speech disabled, Motion Off, multiple screen scales. Only then move to v0.12 pet action effects and original species rigs. Don't call the current unreviewed branch a completed release.
+Have the user install/test **v0.11** after quitting v0.9 and backing up `%LOCALAPPDATA%\PetPing`. Verify on Windows: a 1-minute reminder walks from left/right toward center, no bubble behind text, Done/Snooze/Mute/Hide operate correctly, repeating TTS after ~60 seconds once voice finishes, Motion Off, lock/unlock and sleep/wake, optional secondary monitor. Check if the transparency blocks unrelated application clicks and report any issues. Record actual pass/fail; fix P0 issues before v0.12 reactions/effects. PR #10 and CI are green, but actual visual/voice behavior has not been observed by the assistant.

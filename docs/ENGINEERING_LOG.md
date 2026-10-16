@@ -156,3 +156,10 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Added speech session tagging in VoiceService, a single 60-second post-utterance dispatcher repeat timer, speech cancellation on action/hide/mute/sleep/lock and safe stale-callback filtering.
 - Existing reminder storage and recurrence preserved. Corrected stale queued deleted reminder edge case before displaying pet. Added pure geometry/speech tests. New visual modes do NOT mean multi-pet or full dashboard redesign are implemented yet.
 - Windows CI and physical usability tests pending at this checkpoint. No v0.11 user QA claimed.
+
+## 2026-10-16 — v0.11 Windows CI, merge and packages verified
+- PR #10: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/10 merged to main at squash commit `caf61816534e6bb2fd2cc0eaa6c6bdbea2d8bcd5`.
+- Windows Actions https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38890848806 — **success**; **86 core smoke checks passed**, static XAML verified, Windows x64 WPF compiled/published; Inno Setup compiled and silent install/reinstall/uninstall preserved CI data sentinel.
+- Portable artifact `PetPing-Windows-v0.11-unsigned` ID 12042450420; installer artifact `PetPing-Installer-v0.11-unsigned` ID 12041443215. Both GitHub ZIPs downloaded and checked for CRC corruption. Standalone `PetPing-Setup-v0.11-unsigned.exe` extracted from installer ZIP (~52 MB).
+- Walking/unboxed text and speech-repeat features are implemented, but actual Windows full-window transparency hit-testing, visual layout and voice timing **not yet physically observed**. User v0.9 working baseline remains backed up; no data migrations.
+- Next: user tests v0.11; fix issues, then v0.12 celebration and action effects. Leave v1.0 deferred and Android after Windows maturity.

@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current working release:** Windows **v0.9** user-tested alpha. **In development:** v0.11 PetPing 2.0 walking pet experience, pending Windows CI and manual validation. This is unsigned and not a production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current working release:** Windows **v0.9** user-tested alpha. **Available as unsigned Windows test build:** v0.11 PetPing 2.0 walking pet experience. GitHub Actions passed 86 core checks and compiled both installer and portable build; real laptop visual/voice QA is pending. This is unsigned and not a production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -142,3 +142,9 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Motion Gentle glides briefly; Motion Off appears in place. Previous Top/Bottom/Left/Right settings still influence direction/vertical placement.
 - The first v0.11 uses our original orange cat. New dog/rabbit and Pet Studio are later milestones; the Canva redesign is only a design reference until implemented in WPF.
 - Reminder JSON/history and existing local preferences are intentionally unchanged. Back up `%LOCALAPPDATA%\PetPing` before installing dev builds. Final live-device behavior not guaranteed by CI alone.
+
+### v0.11 verified build / user instructions
+- Merged PR #10: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/10 . Green CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38890848806 — 86 core checks, Windows compilation, optional installer build and preserved-data smoke passed.
+- Downloadable unsigned v0.11 artifacts: `PetPing-Windows-v0.11-unsigned` (ID 12042450420) and `PetPing-Installer-v0.11-unsigned` (ID 12041443215), containing `PetPing-Setup-v0.11-unsigned.exe`.
+- Back up `%LOCALAPPDATA%\PetPing`, quit previous app from tray, install or extract v0.11, then test edge-to-center walk and on-arrival narration. No data migrations. Click **Hide** to dismiss popup without completing; **Mute** stops narration but leaves pet.
+- CI does NOT verify physical per-pixel WPF click passthrough, DPI/multi-monitor fit or actual local TTS latency. Report those results before v0.12.
