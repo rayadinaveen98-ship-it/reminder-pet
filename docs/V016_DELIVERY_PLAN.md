@@ -21,7 +21,7 @@
 
 ## 2. Critical path and dependencies
 
-\`\`\`text
+```text
 v0.16 product requirements + acceptance criteria
   ├─ v0.17 brand + tokens + navigational UX
   │    ├─ v0.19 original pet rig asset pipeline
@@ -33,7 +33,7 @@ v0.17 + v0.18 + v0.19 + v0.20
   → Windows v1.0 RC review
   → Windows stable release
   → Android A1
-\`\`\`
+```
 
 **Never modify the scheduling domain just to repaint the dashboard.** Keep reminder schema changes isolated in v0.18 and test migrations from v0.15; UI and pet upgrades should not silently mutate reminders.
 
