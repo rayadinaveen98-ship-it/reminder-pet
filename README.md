@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current deliverable:** Windows **v0.9** alpha with optional user-approved recovery of validated older reminder backups and installer repair validation. GitHub CI passed **72 core checks**, Windows x64 publish, and installer install/reinstall/uninstall data-preservation smoke. This is unsigned, not a production-certified release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current working release:** Windows **v0.9** user-tested alpha. **In development:** v0.11 PetPing 2.0 walking pet experience, pending Windows CI and manual validation. This is unsigned and not a production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -135,3 +135,10 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Portable `PetPing-Windows-v0.9-unsigned` (artifact ID 12038021245), installer `PetPing-Installer-v0.9-unsigned` (artifact ID 12037687579), containing `PetPing-Setup-v0.9-unsigned.exe`. Both archives verified and installer extracted.
 - Upgrade: quit previous PetPing from the tray; install normally, then confirm reminders, recurring schedule, sound/pet preferences and Start with Windows. Data at `%LOCALAPPDATA%\PetPing` is designed to remain after uninstall.
 - **Important:** recovery uses a backup from before the latest save, so some newer changes may not be present. Consent is required. Back up actual data before deliberate corruption tests; use disposable test data only. Unsigned installer may trigger Windows security prompts. Physical v0.8→v0.9 upgrade and sleep/lock/mixed-DPI tests remain open.
+
+## PetPing 2.0 v0.11 developer preview
+- New small transparent walking window enters from a random left/right edge on the active monitor, ends near screen center, then shows **unboxed** readable reminder text and Done, Snooze 10m, Mute and Hide action chips.
+- Speech begins after arrival and repeats approximately 60 seconds after it finishes, until an action, Mute, Hide, lock/sleep or close stops it. No voice overlap or fullscreen click-catching overlay intended.
+- Motion Gentle glides briefly; Motion Off appears in place. Previous Top/Bottom/Left/Right settings still influence direction/vertical placement.
+- The first v0.11 uses our original orange cat. New dog/rabbit and Pet Studio are later milestones; the Canva redesign is only a design reference until implemented in WPF.
+- Reminder JSON/history and existing local preferences are intentionally unchanged. Back up `%LOCALAPPDATA%\PetPing` before installing dev builds. Final live-device behavior not guaranteed by CI alone.

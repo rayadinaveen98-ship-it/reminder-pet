@@ -124,3 +124,13 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Green run: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38881511852 (72 core checks, installer install/reinstall/uninstall smoke passed).
 - The CI reinstall test used the SAME v0.9 installer twice, not a v0.8→v0.9 transition. Do not claim real upgrade compatibility until device evidence exists.
 - The recovery rules were covered in isolated temp directories; actual Windows recovery dialogs should be tested with a disposable account/reminders, not production reminder files.
+
+## v0.11 walking companion / narration QA
+- Test a 1-minute reminder: pet walks in from left/right edge (Auto random), stops near mid-screen, THEN reads title. Text should have **no colored speech bubble**.
+- Check all four controls. Done persists completion then reacts, Snooze schedules 10 minutes later and reacts, Mute silences repeat while pet remains, Hide stops voice and leaves Needs Attention.
+- Leave a reminder unanswered after speech finishes: next announcement should begin around 60 seconds **after previous utterance ends**, not overlap it. Sound toggle Off prevents subsequent speech.
+- Use Motion Off: pet appears directly at center with accessible controls; Gentle glides more quickly without steps.
+- During speech, lock Windows or suspend laptop: narration must stop and PetPing must not display on secure lock screen; unanswered reminder reappears safely after unlock/wake.
+- Test at Windows 100%, 125%, 150%, 200%, and on multiple monitors if available: pet should never disappear off monitor or block whole desktop clicks.
+- Simultaneous reminder due times should queue and not overlap voices. Delete a queued reminder from dashboard and verify it does not show after its predecessor.
+- No app startup, pet texture or animation tests can be inferred solely from .NET/XAML compilation; physical QA required.
