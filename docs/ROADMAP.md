@@ -182,3 +182,14 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] v0.14 Windows WPF/test/installer CI passed 122 checks, PR #13 merged and unsigned ZIPs verified
 - [ ] v0.14 on-device cat/dog/bunny rendering, effects, accessible controls and power QA
 - [ ] v0.15 integration/battery/multi-DPI and Windows release QA
+
+## v0.15 — Windows integration and upgrade reliability
+- [x] v0.14 user reports general functionality good; detailed test case evidence still unrecorded
+- [x] Stop active TTS + repeat timer immediately on voice Off
+- [x] Separate durable Done/Snooze writes from dashboard refresh failures
+- [x] Keep Done/Snooze actionable and show inline text if write fails
+- [x] Pet action button keyboard focus outline and consistent v0.15 version labels
+- [x] CI true prior v0.14→v0.15 upgrade verification defined, including synthetic reminder/pet profile SHA preservation
+- [ ] v0.15 full CI green, unsigned portable/setup built and merged into main
+- [ ] v0.15 hands-on reminder/voice/reactions/accessibility/multi-monitor/power testing
+- [ ] Windows v1.0 RC checklist, code signing/distribution decision and user approval

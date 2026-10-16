@@ -201,18 +201,36 @@ public partial class PetWindow : Window
         _reactionTimer.Start();
     }
 
+    private void ShowSaveFailure()
+    {
+        // No success animation or dismissal after a failed disk write.
+        // The floating, unboxed reminder and action chips remain available.
+        ReminderTitle.Text = "Couldn't save that. Please try again.";
+        ReminderTitle.ToolTip = _reminder.Title;
+        System.Windows.Automation.AutomationProperties.SetName(
+            ReminderTitle, "Couldn't save reminder. Please try again. " + _reminder.Title);
+    }
+
     private void OnDone(object sender, RoutedEventArgs e)
     {
         if (!AwaitingResponse) return;
-        if (Completed?.Invoke(_reminder) != false)
-            ReactAndLeave("Nice work! ✓", true);
+        if (Completed?.Invoke(_reminder) == false)
+        {
+            ShowSaveFailure();
+            return;
+        }
+        ReactAndLeave("Nice work! ✓", true);
     }
 
     private void OnSnooze(object sender, RoutedEventArgs e)
     {
         if (!AwaitingResponse) return;
-        if (Snoozed?.Invoke(_reminder) != false)
-            ReactAndLeave("Okay, I'll remind you later.", false);
+        if (Snoozed?.Invoke(_reminder) == false)
+        {
+            ShowSaveFailure();
+            return;
+        }
+        ReactAndLeave("Okay, I'll remind you later.", false);
     }
 
     private void AnimateAway()

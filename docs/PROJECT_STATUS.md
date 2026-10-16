@@ -26,17 +26,16 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**PetPing 2.0 v0.14 — expressive pet actions and celebration effects. MERGED + WINDOWS CI VERIFIED (122 checks); laptop QA pending.**
+**PetPing 2.0 v0.15 — Windows integration and upgrade reliability. Source committed; CI/Windows release artifact pending.**
 
-- The user accepted v0.13 and explicitly authorized the next milestone. v0.13 baseline remains merged, installer built and CI-verified (105 core checks), though no detailed UI acceptance transcript has been recorded.
-- Development branch `feature/windows-v0.14-expressive-animations` merged into main via PR #13, commit `4f8be7cae20651161651bbec444f412fa34902df`. Both v0.14 unsigned Windows artifacts were downloaded and integrity checked. This is a test build, not a signed production release.
-- Extended shared WPF `PetCharacter` rig with independent animated paws, dog ear tilt, bunny ear wiggle, cat/dog tail behavior, and bounded short-lived sparkle/star burst stage. Pet actor still uses a **small transparent Window**; effects do not place click-catching overlays across the desktop.
-- Real action reaction now honors pet-specific Done Hop/Wave and Snooze Yawn/Stretch choices. Bunny hops visibly higher than puppy, puppy's tail wags faster, cat uses smaller careful steps. Dog ears droop for yawn and bunny ears react.
-- Added configurable **Effects Off / Gentle / Playful** per companion, versioned in existing `pet-profile.json` without destructive migration. Legacy v0.13 JSON missing the new property loads with Playful default.
-- Global motion modes are honored: Motion Off = no walk, no particle bursts or animated reactions; Gentle = shorter/smaller movement without particles; Full allows per-pet effects intensity.
-- Pet Studio offers non-destructive **Try Done effect / Try Snooze effect** buttons, plus an Effects picker that saves per species. Only actual reminder events update the reminder database.
-- Pure motion rules `PetAnimationRules` define deterministic gait and finite particle/duration budget (<=10 per reaction); old animation timers are stopped on close/lock/suspend and transient effects cleaned.
-- **122 regression checks passed**, including species differences, reduced motion, bounded particles, pet-profile round-trip and v0.13 compatibility. WPF compile and installer data preservation CI passed. Physical appearance, DPI, pet controls and voice QA remain unverified.
+- User reported **"all good"** for v0.14 and authorized v0.15. Record as broad user-reported working confirmation, not proof of separately witnessed lock/sleep, screen-reader or mixed-DPI cases.
+- v0.14 remains previous merged/CI-verified fallback: PR #13, run 38900092320, 122 checks; expressive cat/dog/bunny motion and effects.
+- Development branch `feature/v015-reliability`. This is a release-quality checkpoint, **not** Windows v1.0 and not a new feature pack.
+- Fixes: turning Speech Off immediately stops both the active Windows utterance and any pending post-speech repeat; a dashboard/tray refresh exception after a successfully saved Done/Snooze can no longer cause the pet to report that persisted action as failed.
+- A failed Done/Snooze save leaves the pet controls available and now displays an unboxed inline "Couldn't save" message instead of relying only on tray notifications.
+- Reminder action chips have visible focus borders; app assembly and installer consistently identify as v0.15 preview.
+- Windows Actions will pin and rebuild **actual v0.14** at commit `4f8be7cae20651161651bbec444f412fa34902df`, install its unsigned setup, seed valid synthetic reminders and three pet profiles, **upgrade** to v0.15 and verify hashes through uninstall. This is separate from the existing same-version reinstall and data-sentinel check. No actual user reminders are used.
+- Core reminders and profile JSON schemas remain unchanged. No new accounts, analytics, network dependency, background updater or paid services.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -82,4 +81,4 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Share verified v0.14 installer and portable ZIP. User should back up `%LOCALAPPDATA%\PetPing`, quit previous tray app, then test Pet Studio on all 3 pets, checking ears/paws/tails, Try Done/Snooze, effects Off/Gentle/Playful and global Motion Off. Try an actual due reminder, Done/Snooze persistence, TTS cancellation, Windows desktop click pass-through and optionally 125–200% DPI and lock/sleep. Record actual pass/fail and fix P0 issues. If stable, v0.15 is release-quality integration and battery/multi-display QA; Windows v1.0 still requires acceptance.
+Run v0.15 PR Windows CI, resolve XAML/C#/PowerShell/Inno issues until green. Verify real v0.14→v0.15 upgrade and existing same-version repair/uninstall data preservation, core smoke checks and portable Windows EXE. After green checks, merge PR, download/CRC verify both packages, record IDs and hashes, update handoff. User should back up `%LOCALAPPDATA%\PetPing`, quit the previous tray app, install v0.15 and check live voice Off/On, repeated announcements, failed-save UI if test data, pets/effects, saved reminder persistence and reinstall. Physical Windows 100–200% scaling, multi-monitor, lock/sleep, keyboard focus/screen reader and SmartScreen signing still require separate manual results. Plan Windows v1.0 RC only after these are reviewed.

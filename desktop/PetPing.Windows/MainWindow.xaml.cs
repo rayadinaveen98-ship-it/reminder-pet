@@ -20,6 +20,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _studioReactionReset = new();
     private bool _loadingAppearance;
     private readonly Action _testPet;
+    private readonly Action _stopNarration;
     private readonly Action<Reminder> _reminderChanged;
     private bool _reallyQuit;
     private Reminder? _editing;
@@ -29,7 +30,7 @@ public partial class MainWindow : Window
 
     public MainWindow(ReminderStore store, VoiceService voice, SpeechSettings speechSettings,
         PetAppearanceSettings appearance, PetProfileSettings petProfiles,
-        Action testPet, Action<Reminder> reminderChanged)
+        Action testPet, Action stopNarration, Action<Reminder> reminderChanged)
     {
         InitializeComponent();
         _store = store;
@@ -43,6 +44,7 @@ public partial class MainWindow : Window
             StudioCharacter.Stop();
         };
         _testPet = testPet;
+        _stopNarration = stopNarration;
         ReminderDate.SelectedDate = DateTime.Today;
         ReminderTime.Text = DateTime.Now.AddMinutes(5).ToString("HH:mm");
         VoiceToggle.IsChecked = _speechSettings.Enabled;
@@ -555,6 +557,9 @@ public partial class MainWindow : Window
             var enabled = VoiceToggle.IsChecked == true;
             _speechSettings.SetEnabled(enabled);
             _voice.Enabled = enabled;
+            // A disabled voice must stop the current utterance immediately,
+            // not only prevent the next scheduled repetition.
+            if (!enabled) _stopNarration();
             ErrorToast.Visibility = Visibility.Collapsed;
         }
         catch (IOException ex)
