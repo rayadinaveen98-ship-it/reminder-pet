@@ -171,3 +171,10 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Added original reusable WPF vector CatPortrait. Only Milo the Cat is selectable today; Dog and Bunny are future scope, clearly labelled rather than faked. Existing arrival and Playful/Gentle/Off motion preferences remain functional via Pet Studio.
 - Added DashboardSummaryRules and deterministic smoke tests for accurate Home counts and no fake data. Installer/portable artifact bumped to v0.12.
 - Windows compilation, executable output and hands-on user testing PENDING at this checkpoint.
+
+## 2026-10-16 — v0.12 final Windows build and merge
+- PR #11 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/11 merged to `main`, squash commit `8d5b0ba00d41aea2d76e94ea4de86361a3c0076a`.
+- First 2 CI builds caught WPF/WinForms type ambiguity in CatPortrait.UserControl and WPF Color; corrected fully qualified WPF types. Third run **success**: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38893597316 (91 core tests, WPF win-x64 publish, Inno Setup compile, install/reinstall/uninstall preservation smoke).
+- Portable ZIP artifact `PetPing-Windows-v0.12-unsigned` (12042344606), installer ZIP artifact `PetPing-Installer-v0.12-unsigned` (12043370603). Both downloaded and ZIP CRC verified; installer setup extracted `PetPing-Setup-v0.12-unsigned.exe`, SHA-256 `53a381461f24996d7f93dc979a31b435cc65742892cca1a93250f66492222dd6`.
+- Updated Home/Reminders/My Pets/Pet Studio/Settings UI now compiles; dog and bunny still future, current cat remains. Real laptop UI/Windows accessibility and DPI testing not claimed passed by CI.
+- Next: user hands-on v0.12 validation, remediate UI/runtime bugs, then v0.13 real multi-pet characters + customization and v0.14 expressive reactions.
