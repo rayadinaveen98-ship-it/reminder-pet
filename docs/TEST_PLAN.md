@@ -119,3 +119,8 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Click Open data and diagnostics folder: Windows Explorer opens user LocalAppData PetPing. Confirm log files contain no reminder text; no uploads are triggered.
 - Perform an **actual v0.8 installer → v0.9 installer upgrade** from a backed-up live account. Verify Start with Windows when selected, recurrence history, voice, pet settings and uninstall does not remove data.
 - Test screen-reader focus, DPI 125–200%, second monitor, lock/sleep/wake and multiple overdue reminders. These remain unverified by CI alone.
+
+## v0.9 CI-verified, device tests pending
+- Green run: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38881511852 (72 core checks, installer install/reinstall/uninstall smoke passed).
+- The CI reinstall test used the SAME v0.9 installer twice, not a v0.8→v0.9 transition. Do not claim real upgrade compatibility until device evidence exists.
+- The recovery rules were covered in isolated temp directories; actual Windows recovery dialogs should be tested with a disposable account/reminders, not production reminder files.

@@ -113,6 +113,6 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Dashboard opens local data/diagnostics folder for manual backup and inspection
 - [x] Core regressions for valid/invalid backup and non-destructive recovery
 - [x] Installer same-version repair/reinstall smoke (not a cross-version test)
-- [ ] GitHub Windows CI verified, v0.9 artifacts uploaded, source merged to main
+- [x] GitHub Windows CI green: 72 core checks, portable ZIP and installer, reinstall/uninstall data smoke; PR #8 merged
 - [ ] Real laptop test recovery with test data, installer upgrade from v0.8, lock/sleep and mixed DPI
 - [ ] Windows beta/v1.0 release gating: signer, accessibility and actual device reliability

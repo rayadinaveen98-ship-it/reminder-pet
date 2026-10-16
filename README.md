@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current deliverable:** Windows **v0.9** recovery and installer-quality update under development. v0.8 was compiled and installer smoke-tested in Windows CI (64 core checks). v0.9 source/CI must pass before download; this is not a signed production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current deliverable:** Windows **v0.9** alpha with optional user-approved recovery of validated older reminder backups and installer repair validation. GitHub CI passed **72 core checks**, Windows x64 publish, and installer install/reinstall/uninstall data-preservation smoke. This is unsigned, not a production-certified release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -128,3 +128,10 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - A broken/absent backup is not offered for restoration; manual support/inspection is required.
 - The dashboard's **Open data and diagnostics folder** opens Windows Explorer so a user can make their own copies; no reminder texts are sent anywhere.
 - Installer CI now also checks same-version reinstall/repair before uninstall, preserving a local data file. Upgrading an actual v0.8 installation to v0.9 remains a physical Windows acceptance test.
+
+## Final v0.9 CI and download verification
+- Merged PR #8: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/8 ; final CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38881511852 .
+- **72** core smoke checks, WPF win-x64 build, and unsigned Inno Setup installer compile succeeded. Silent install, reinstall, uninstall and local data sentinel preservation passed.
+- Portable `PetPing-Windows-v0.9-unsigned` (artifact ID 12038021245), installer `PetPing-Installer-v0.9-unsigned` (artifact ID 12037687579), containing `PetPing-Setup-v0.9-unsigned.exe`. Both archives verified and installer extracted.
+- Upgrade: quit previous PetPing from the tray; install normally, then confirm reminders, recurring schedule, sound/pet preferences and Start with Windows. Data at `%LOCALAPPDATA%\PetPing` is designed to remain after uninstall.
+- **Important:** recovery uses a backup from before the latest save, so some newer changes may not be present. Consent is required. Back up actual data before deliberate corruption tests; use disposable test data only. Unsigned installer may trigger Windows security prompts. Physical v0.8→v0.9 upgrade and sleep/lock/mixed-DPI tests remain open.

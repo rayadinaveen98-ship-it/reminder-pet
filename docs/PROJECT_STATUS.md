@@ -11,6 +11,7 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - No paid APIs or mandatory hosted services for alpha.
 
 ## Verified build status
+- **v0.9 Windows alpha (merged and CI verified, laptop QA pending):** PR #8 merged into main as `946e90be775afda0b06946f4b5331761942b9f58`. GitHub Actions https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38881511852 passed **72 core checks**, compiled win-x64 WPF, built Inno Setup 6 installer, and passed silent install, same-version reinstall, uninstall and preservation of a test reminder-data file. Artifact IDs: portable 12038021245, installer 12037687579. Both ZIP archives verified intact and `PetPing-Setup-v0.9-unsigned.exe` extracted.
 - **v0.8 Windows alpha (merged, CI-verified; laptop installation QA pending):** PR #7 squash-merged to `main` at `fc33f2264141ae71f20f582e1b9ad4bfd9344592`. Windows CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38877847189 — **64 core checks**, WPF publish, free Inno Setup installer compilation and successful **silent install -> installed EXE check -> silent uninstall -> user-data sentinel retained**. Artifacts: portable `PetPing-Windows-v0.8-unsigned` (ID 12035474939), installer `PetPing-Installer-v0.8-unsigned` (ID 12036600668). Both GitHub ZIPs checked for integrity; installer archive contains `PetPing-Setup-v0.8-unsigned.exe`.
 - **v0.7 Windows alpha (merged, CI-verified, hands-on QA pending):** Windows run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38872547917 passed 56 core tests, compiled and uploaded `PetPing-Windows-v0.7-unsigned` (artifact 12034680037); ZIP extracted and checked for `PetPing.Windows.exe`.
 - **v0.6 Windows alpha (CI-verified, manual QA pending):** Windows x64 compilation and **49** core regression checks passed. GitHub CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 ; artifact `PetPing-Windows-v0.6-unsigned` (final artifact ID 12032645056; CI run 38868752195).
@@ -22,9 +23,9 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**v0.9 — safe reminder recovery and beta-quality checks**, feature branch `feature/windows-v0.9-recovery-quality`.
+**v0.9 — safe reminder recovery and beta-quality checks**, merged to `main` via PR #8.
 
-Status: **SOURCE + REGRESSION TESTS COMMITTED, PR/CI NOT YET VERIFIED**. Last confirmed merged build is v0.8 (64 core checks, installer install/uninstall smoke). User asked to continue; v0.8 interactive installer/sleep/lock QA remains unverified.
+Status: **MERGED + CI VERIFIED — 72 core checks and both unsigned Windows artifacts ready.** The user's physical v0.9 recovery and installer QA remains pending. v0.8 interaction was not formally measured.
 
 Planned v0.9 scope:
 1. On unreadable `reminders.json`, offer a **user-confirmed** restore of `reminders.json.bak` only if its contents pass validation. The backup may be older and can omit recent changes. Cancel must leave all files unchanged. On restore, preserve unreadable primary as a separately named file.
@@ -43,7 +44,7 @@ Planned v0.9 scope:
 - Never store reminder text in diagnostics unnecessarily.
 
 ## Release path
-- Latest CI-verified alpha: **v0.8**, optional per-user unsigned setup EXE and Windows portable ZIP (CI 38877847189, artifacts 12036600668 and 12035474939). User said v0.7 is good; no v0.8 hands-on QA yet.
+- Latest CI-verified alpha: **v0.9**, unsigned Windows installer and portable ZIP (CI 38881511852; portable artifact 12038021245, installer 12037687579). User confirmed earlier releases generally work, but detailed v0.9 recovery/upgrade/laptop QA remains pending.
 - After v0.5: v0.6 daily/weekly repeat, edit reminders and better dashboard; v0.7 expressive characters; v0.8–1.0 Windows packaging/QA; then Android foundation.
 - Keep `docs/ROADMAP.md`, `docs/TEST_PLAN.md`, `README.md`, this file and `docs/ENGINEERING_LOG.md` synchronized at milestone boundaries.
 
@@ -76,6 +77,9 @@ Planned v0.9 scope:
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Open PR from `feature/windows-v0.9-recovery-quality`, run Windows CI, inspect failure logs and correct source/installer as required. Merge only with green core tests, portable Windows compile, per-user installer build, reinstall/uninstall storage-preservation smoke. Update this handoff with the final commit/run/artifact IDs and share a testable v0.9 build. User device QA: corrupt-file prompt Yes/No paths (with test data only), open-data-folder action, installer upgrade from v0.8, recurring reminders, tray, lock/unlock and sleep/wake.
+User should install v0.9 from the validated unsigned installer `PetPing-Setup-v0.9-unsigned.exe` or portable ZIP after quitting the previous tray process. Check Today/Upcoming/Attention/History dashboard, Run at Login preference, saved recurring reminders, Open data folder, pet motion/voice and restart persistence.
 
-**Release warning:** an automated CI pass does NOT prove that real laptop recovery or OS-specific notification behavior works. Windows v1.0 remains pending device acceptance; Android starts later.
+**Data recovery QA:** Back up actual reminders before any fault tests. Simulate malformed primary with a known valid backup only on disposable test data. Verify No leaves both files unchanged; Yes restores the older backup, preserves unreadable original under `reminders.unreadable-*.json` and warns of potentially lost recent edits. No valid backup must not reset to blank.
+
+**Release gate:** real v0.8 → v0.9 upgrade, accessible keyboard/screen reader, DPI 125–200%, lock/sleep/wake and multiple-monitor tests have NOT been verified. Fix P0 issues before Windows v1.0. Otherwise plan a focused Windows v1.0 release-quality phase (signing strategy, reliability validation, UI accessibility, no auto-update promise) and then Android.
+

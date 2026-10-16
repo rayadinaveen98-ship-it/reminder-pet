@@ -118,3 +118,12 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Dashboard includes **Open data and diagnostics folder** to let users inspect and copy local JSON/logs when troubleshooting. No automatic collection/upload.
 - Added deterministic regression scenarios: backup eligibility, damaged original preserved, earlier version restored, invalid backup refused. Installer CI repair/reinstall now runs a second install before uninstall to test data preservation.
 - Reminder schema and pet design remain unchanged. PR and CI still pending at checkpoint.
+
+## 2026-10-16 — v0.9 final build, merge and verified packages
+- PR #8 merged: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/8 ; squash commit `946e90be775afda0b06946f4b5331761942b9f58`.
+- Green GitHub Actions run: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38881511852 — **72 core smoke checks passed**, XAML validation passed, WPF Windows x64 compiled.
+- Inno Setup installer compiled. Windows CI silently installed, *reinstalled the same version*, uninstalled and verified the LocalAppData sentinel remained intact. This is NOT proof that an actual v0.8→v0.9 upgrade works on user's device.
+- Portable artifact: `PetPing-Windows-v0.9-unsigned` (ID 12038021245); installer artifact: `PetPing-Installer-v0.9-unsigned` (ID 12037687579). Downloaded both, checked ZIP archive CRCs, verified `PetPing.Windows.exe`, extracted `PetPing-Setup-v0.9-unsigned.exe` as standalone installer (~50 MB).
+- Backup feature is explicitly opt-in and warns earlier backup may omit recent entries; restores only a validated `.bak` and keeps unreadable primary. No cloud uploads.
+- Physical Windows acceptance still pending: on-screen recovery prompts, real cross-version installer upgrade, Windows SmartScreen, accessible font/DPI, lock/sleep/multi-monitor and voice interactions. Do not call this production-ready.
+- Resume from `docs/PROJECT_STATUS.md` and this engineering log on main. Next: user QA, P0 defect fixes or Windows v1.0 quality milestone; Android after Windows release gate.
