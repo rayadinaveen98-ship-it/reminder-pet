@@ -23,11 +23,17 @@
           <RowDefinition Height="*"/>
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <StackPanel Margin="7,0,0,32">
-          <TextBlock Text="● PetPing" FontSize="25" FontWeight="Bold"
-                     Foreground="{StaticResource InkBrush}"/>
-          <TextBlock Text="A companion for your day" FontSize="11"
-                     Foreground="{StaticResource MutedBrush}" Margin="3,6,0,0"/>
+        <StackPanel Margin="1,0,0,30">
+          <DockPanel LastChildFill="True">
+            <local:BrandMark Width="48" Height="48" Margin="0,0,9,0"
+                             VerticalAlignment="Center"/>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="PetPing" FontSize="23" FontWeight="Bold"
+                         Foreground="{StaticResource HeroInkBrush}"/>
+              <TextBlock Text="Your reminder companion" FontSize="10"
+                         Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0"/>
+            </StackPanel>
+          </DockPanel>
         </StackPanel>
         <StackPanel Grid.Row="1">
           <TextBlock Text="YOUR SPACE" FontSize="10"
@@ -73,15 +79,15 @@
             <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
           <StackPanel VerticalAlignment="Center">
-            <TextBlock x:Name="PageHeading" Text="Home" FontSize="21"
+            <TextBlock x:Name="PageHeading" Text="Home" FontSize="24"
                        FontWeight="SemiBold" Foreground="{StaticResource InkBrush}"/>
             <TextBlock x:Name="PageDescription" Text="Your companion and today's plans."
                        FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0"/>
           </StackPanel>
-          <Border Grid.Column="1" Background="#E9F5EE" CornerRadius="18"
+          <Border Grid.Column="1" Background="{StaticResource MintSurfaceBrush}" CornerRadius="18"
                   Padding="13,7" VerticalAlignment="Center">
-            <TextBlock Text="●  Ready to remind" FontSize="11"
-                       FontWeight="SemiBold" Foreground="#39785C"/>
+            <TextBlock Text="●  Local reminders active" FontSize="11"
+                       FontWeight="SemiBold" Foreground="{StaticResource MintInkBrush}"/>
           </Border>
         </Grid>
       </Border>
@@ -92,22 +98,22 @@
 
           <!-- HOME: real store-driven counts, upcoming reminders and companion preview. -->
           <StackPanel x:Name="HomePage" Visibility="Visible">
-            <Border CornerRadius="22" Background="#ECE6FB" Padding="25" Margin="0,0,0,18">
+            <Border CornerRadius="22" Background="{StaticResource HeroBrush}" Padding="25" Margin="0,0,0,18">
               <Grid>
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="178"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="A little help goes a long way." FontSize="23"
+                  <TextBlock Text="Your day, a little lighter." FontSize="23"
                              FontWeight="Bold" TextWrapping="Wrap"
-                             Foreground="#332C56"/>
-                  <TextBlock Text="Your companion is here to keep you on track, one reminder at a time."
-                             TextWrapping="Wrap" FontSize="13" Foreground="#61577C"
+                             Foreground="{StaticResource HeroInkBrush}"/>
+                  <TextBlock Text="Keep your next step clear. Your pet will remind you when it’s time."
+                             TextWrapping="Wrap" FontSize="13" Foreground="#554D6A"
                              Margin="0,10,9,16"/>
                   <WrapPanel>
                     <Button Content="+ Add reminder" Background="{StaticResource AccentBrush}"
-                            Foreground="White" BorderBrush="#8575DD"
+                            Foreground="White" BorderBrush="{StaticResource AccentBrush}"
                             Click="OnHomeAdd" AutomationProperties.Name="Create a reminder"/>
                     <Button x:Name="HomeHelloButton" Content="Say hello to Milo" Click="OnTestPet"
                             Background="White" BorderBrush="#E1D9EF"/>
@@ -173,7 +179,7 @@
                     </DataTemplate>
                   </ListBox.ItemTemplate>
                 </ListBox>
-                <TextBlock x:Name="HomeEmptyNext" Text="All clear! Add a reminder when you're ready."
+                <TextBlock x:Name="HomeEmptyNext" Text="Nothing coming up. Add a reminder when you’re ready."
                            Visibility="Collapsed" Style="{StaticResource SecondaryBody}"
                            HorizontalAlignment="Center" Margin="0,6,0,12"/>
               </StackPanel>
@@ -184,8 +190,8 @@
           <StackPanel x:Name="RemindersPage" Visibility="Collapsed">
             <Border Style="{StaticResource SoftCard}" Margin="0,0,0,18">
               <StackPanel>
-                <TextBlock Text="Make a little plan" Style="{StaticResource SectionHeading}"/>
-                <TextBlock Text="What should Milo remind you about?"
+                <TextBlock Text="Add a reminder" Style="{StaticResource SectionHeading}"/>
+                <TextBlock Text="What would you like your companion to remind you about?"
                            Style="{StaticResource SecondaryBody}" Margin="0,5,0,14"/>
                 <TextBox x:Name="ReminderName" MaxLength="120" FontSize="14"
                          AutomationProperties.Name="Reminder name"
@@ -221,7 +227,7 @@
                   </StackPanel>
                   <WrapPanel Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Right"
                              Margin="0,16,0,0">
-                    <Button x:Name="QuickAddButton" Content="In 1 minute"
+                    <Button x:Name="QuickAddButton" Content="Quick: 1 minute"
                             Click="OnQuickAdd"/>
                     <Button x:Name="CancelEditButton" Content="Cancel edit"
                             Click="OnCancelEdit" Visibility="Collapsed"/>
@@ -236,7 +242,7 @@
             <Border Style="{StaticResource SoftCard}">
               <StackPanel>
                 <DockPanel LastChildFill="False" Margin="0,0,0,12">
-                  <TextBlock Text="Your reminders" Style="{StaticResource SectionHeading}"
+                  <TextBlock Text="All reminders" Style="{StaticResource SectionHeading}"
                              DockPanel.Dock="Left" VerticalAlignment="Center"/>
                   <ComboBox x:Name="InboxPicker" DockPanel.Dock="Right" Width="172"
                             Height="34" SelectedIndex="0" SelectionChanged="OnInboxChanged"
