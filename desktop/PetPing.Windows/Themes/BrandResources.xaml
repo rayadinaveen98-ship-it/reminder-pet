@@ -1,0 +1,17 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Selected Companion Beacon (Logo C) light-first semantic palette. -->
+  <SolidColorBrush x:Key="BackgroundBrush" Color="#F8F6F2"/>
+  <SolidColorBrush x:Key="InkBrush" Color="#24272E"/>
+  <SolidColorBrush x:Key="MutedBrush" Color="#626672"/>
+  <SolidColorBrush x:Key="AccentBrush" Color="#7562D4"/>
+  <SolidColorBrush x:Key="CardBrush" Color="#FFFFFF"/>
+  <SolidColorBrush x:Key="SidebarBrush" Color="#F1EEE9"/>
+  <SolidColorBrush x:Key="LineBrush" Color="#DEDCE4"/>
+  <SolidColorBrush x:Key="HeroBrush" Color="#EFEAFB"/>
+  <SolidColorBrush x:Key="HeroInkBrush" Color="#302457"/>
+  <SolidColorBrush x:Key="MintSurfaceBrush" Color="#E9F7F0"/>
+  <SolidColorBrush x:Key="MintInkBrush" Color="#1D5644"/>
+  <SolidColorBrush x:Key="FocusBrush" Color="#5943C8"/>
+  <SolidColorBrush x:Key="ApricotBrush" Color="#FFAB7E"/>
+</ResourceDictionary>

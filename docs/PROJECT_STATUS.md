@@ -29,14 +29,15 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**v0.17 Stage A — Premium brand and rich UI visual exploration. PR #16 MERGED, CI VERIFIED; user visual approval pending; Windows executable still v0.15.**
+**v0.17 Stage B — Companion Beacon brand native Windows implementation. PR #17 in progress; v0.15 remains the latest released Windows executable.**
 
-- User approved advancing from merged v0.16 blueprint. Stage A branch `design/v0.17-brand-ui-stage-a` merged into `main` via PR #16: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/16 , squash commit `eaaec792d6866a08f1890f5ddd7a17b235bd9c59`. Windows CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38911303864 **success**: existing core tests, Windows x64 compile and real prior-version upgrade checks. Source/reminder schemas and installer logic unchanged.
-- Original editable SVG candidate marks: `design/petping-3/logos/candidate-a-friendly-signal.svg`, `candidate-b-companion-monogram.svg`, `candidate-c-companion-beacon.svg`. No final brand/logo has been selected. Concepts intended for tiny tray icon and larger installer/start screen testing; originality and brand-name/trademark review still open.
-- Editable Canva eight-page PetPing Concept Review: https://www.canva.com/d/rljAMk15QUasrej . Earlier 7-page `PetPing 2.0 UX` visual reference preserved: https://www.canva.com/d/0LRU2hT9b1v6vBO . The new deck is **exploratory and NOT approved**: some generated sample copy mistakenly describes pet care, health, analytics, connected/online settings and unrelated features. Do not implement those. See corrections in `docs/V017_UI_SPEC.md`.
-- Exact visual/interaction spec: `docs/V017_UI_SPEC.md` — Home and Reminders hierarchy, 5-screen navigation, sample-vs-live data distinction, keyboard/error/empty states, layout at WPF logical DIP dimensions and future v0.18 controls clearly deferred. Added **original scalable static screen compositions**: `design/petping-3/screens/v017-home-concept.svg` and `v017-reminders-concept.svg`, plus their README. These are editable design references and not native WPF screens.
-- Refined draft visual tokens: `design/petping-3/tokens.v017.candidate.json` with selected semantic contrasts. Contrast screening: primary lavender with white text 4.71:1; ink/ivory 13.85:1; muted on white 5.73:1; **mint/white fails at 1.93:1**, so use dark ink on mint. Full rendered accessibility checks still pending.
-- No WPF/source model/scheduler/pet actor/installer changed. All new visual files are candidates rather than production assets. User selects icon A/B/C or asks refinements and approves UI direction before native WPF repaint. Remaining Stage B = implement brand and responsive theme, then My Pets/Studio/Settings.
+- User selected **Logo C / Companion Beacon** on 2026-10-16; candidate A and B are kept as historical concepts only.
+- Stage A design-only PR #16 merged and previous CI passed: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/16 .
+- Stage B feature branch and draft PR #17: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/17 .
+- Native WPF changes: selected Companion Beacon vector, shared theme ResourceDictionary, branded sidebar, refined Home/Reminders, compact-width reflow for metrics/date/time/repeat fields, runtime-generated brand tray/window icons with OS fallback.
+- Fixed the previously unassigned MainWindow reminder-changed callback, which could fail when editing an upcoming reminder. Reminder scheduling/storage schema and saved pet profiles are not altered.
+- Windows CI must verify 122+ checks, native compilation and v0.14→v0.15 installer data upgrade. Real hardware DPI/voice/sleep/lock and final installer logo remain unapproved. This is **not** a fully released v0.17.
+- Stage C after brand readiness: My Pets, Pet Studio, Settings full visual consistency and user walkthrough. Advanced recurrence stays v0.18.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -83,5 +84,4 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Review three **original logo candidate SVGs** and the editable 8-page Canva concept deck. Note and reject the off-product pet-care/analytics examples in the automatically generated slides. Obtain preference A Friendly Signal / B Companion Monogram / C Companion Beacon and layout direction. Then v0.17 Stage B: final approved logo/ICO, WPF ResourceDictionary, responsive Home/Reminders real screens, no placeholder data, preexisting reminders/profile compatibility, Windows CI and physical DPI/readability QA. Keep v0.15 signed-off functionality as fallback; don't call v0.17 finished until WPF and user visual QA pass.
-
+Complete PR #17 Windows CI and resolve any build/test failures. Merge only after passing checks, then obtain physical laptop visual/behavior acceptance. Produce packaged multiresolution ICO and installer mark, then Stage C My Pets/Studio/Settings before calling v0.17 complete. Keep v0.15 data compatible, with unchanged reminder JSON and local profiles.

@@ -12,6 +12,13 @@ for path in xmls:
     print(f'XML parsed: {path.relative_to(root)}')
     if path.suffix != '.xaml':
         continue
+    # Standalone WPF ResourceDictionary XAML deliberately has no code-behind.
+    xaml_root = tree.getroot()
+    xclass = xaml_root.attrib.get('{http://schemas.microsoft.com/winfx/2006/xaml}Class')
+    if xclass is None:
+        if xaml_root.tag != '{http://schemas.microsoft.com/winfx/2006/xaml/presentation}ResourceDictionary':
+            raise SystemExit(f'Unbacked XAML is not a ResourceDictionary: {path}')
+        continue
     base = path.name[:-len('.xaml')]
     backing = path.with_name(base + '.xaml.cs')
     if not backing.exists():

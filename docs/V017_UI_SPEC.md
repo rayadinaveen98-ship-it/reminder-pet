@@ -1,6 +1,6 @@
 # PetPing v0.17 — UI Specification & Visual Review Gate
 
-**Status:** Stage A source design and concept exploration. Windows v0.15 is unchanged. Visuals remain concept candidates pending approval.
+**Status:** Stage A complete. User selected Logo C / Companion Beacon on 2026-10-16; Stage B implementation is in progress on PR #17. Windows v0.15 remains the release fallback. Full physical UI QA pending.
 **Editable Canva concept deck:** https://www.canva.com/d/rljAMk15QUasrej (8 slides; generated, requires editorial corrections below).
 **Earlier approved style reference:** https://www.canva.com/d/0LRU2hT9b1v6vBO (7 pages; preserve original).
 **Own-source identity candidates:** `design/petping-3/logos/`.
@@ -91,6 +91,6 @@ A Friendly Signal / B Companion Monogram / C Companion Beacon all provided as or
 - **Stage C:** My Pets, Studio, Settings, help, empty/error/loading states aligned. Physical Windows 100/125/150/200 DPI and text scaling QA before shipping.
 - **No automatic code merge of mockups.** Editable Canva and illustration output are guides, not executable UI or a production character rig.
 
-## 8. Next decision requested from user
+## 8. Selected direction and outstanding visual approval
 
-Review the three logo directions and Home/Reminders layout; choose **A/B/C** for refinement or request a hybrid, and say whether you prefer **Light-first cozy** vs **balanced light/dark**. Once approved, start v0.17 WPF implementation. If no selection yet, continue drafting UI architecture but do not label a candidate as the final brand.
+**Decision:** C Companion Beacon is the chosen identity direction. Implement the warm light-first UI and task-first desktop layout. Keep A/B only as unapproved historical vector alternatives. The selected brand direction does NOT signify packaged ICO/trademark clearance or on-device WPF visual acceptance. Review actual Home and Reminders once CI and local hardware testing are available, and keep existing v0.15 behavior as a fallback.

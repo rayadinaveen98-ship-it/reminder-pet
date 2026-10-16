@@ -21,6 +21,7 @@ public partial class App : System.Windows.Application
     private DiagnosticsLog? _diagnostics;
     private bool _faultNoticeShown;
     private Forms.NotifyIcon? _tray;
+    private System.Drawing.Icon? _brandTrayIcon;
     private MainWindow? _dashboard;
     private PetWindow? _petWindow;
     private readonly Queue<Reminder> _petQueue = new();
@@ -76,6 +77,8 @@ public partial class App : System.Windows.Application
             _dashboard = new MainWindow(_store, _voice, _speechSettings, _appearance,
                 _petProfiles, ShowTestPet, StopNarration, OnReminderChangedFromDashboard);
             MainWindow = _dashboard;
+            try { _dashboard.Icon = BrandIconFactory.RenderBitmap(32); }
+            catch (Exception error) { _diagnostics?.Record("window_icon_failed", error); }
             CreateTray();
             _scheduler = new ReminderScheduler(_store);
             _scheduler.ReminderDue += QueueReminder;
@@ -162,9 +165,11 @@ public partial class App : System.Windows.Application
         menu.Items.Add(open);
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(quit);
+        try { _brandTrayIcon = BrandIconFactory.CreateTrayIcon(); }
+        catch (Exception error) { _diagnostics?.Record("tray_icon_failed", error); }
         _tray = new Forms.NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = _brandTrayIcon ?? SystemIcons.Application,
             Text = "PetPing - reminders running",
             Visible = true,
             ContextMenuStrip = menu
@@ -425,6 +430,7 @@ public partial class App : System.Windows.Application
         SystemEvents.SessionSwitch -= OnSessionSwitch;
         _petWindow?.Close();
         if (_tray is not null) { _tray.Visible = false; _tray.Dispose(); }
+        _brandTrayIcon?.Dispose();
         _voice?.Dispose();
         _diagnostics?.Record("app_exited");
         if (_singleInstance is not null)
