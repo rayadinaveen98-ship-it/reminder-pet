@@ -35,3 +35,10 @@ No physical device test is claimed completed.
 - PR #18 merged brand packaging and companion screens, green Windows CI including seven-frame ICO verification, installer and v0.14→v0.15 data preservation.
 - Candidate preview branch bumps WPF FileVersion, installer version and GitHub artifacts to 0.17; the upgrade smoke must now rebuild an actual pinned v0.15 installer and confirm surviving local JSON across an in-place v0.15→v0.17 upgrade.
 - This is a test build, not a stable product release or proof of live reminders under sleep/lock.
+
+## 2026-10-16 — v0.17 unsigned Windows design preview merged, CI success
+- PR #18 merged as `c3fc4cac2502ab146779e5dbeca89cf20dae3c7c`, green icon-packaging/UI CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38921891673 .
+- PR #19 merged as `73efac5a7cf5f9e3d774d62e099fc6cb3aa32b5c`, green versioned preview CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38922662056 .
+- v0.17 FileVersion and preview package artifact names verified by Windows x64 publish and installer. CI pinned actual v0.15 source commit `3ec779352c0a35f83981ac01d01a7947429b0e2f` and successfully upgraded to v0.17 without changing sample reminder and pet-profile file hashes. Seven ICO PNG frames validated.
+- Uploaded `PetPing-Windows-v0.17-unsigned` artifact ID 12055626438 and `PetPing-Installer-v0.17-unsigned` artifact ID 12054633027; automatic expiration, no digital signature.
+- Physical laptop acceptance is **not completed**. Do not call this release production-ready; maintain required checks in `docs/V017_WINDOWS_PREVIEW_ACCEPTANCE.md`.

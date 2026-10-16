@@ -220,8 +220,10 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Create precise Home/Reminders WPF layout and interaction spec, plus original 1440×900 editable SVG screen mockups with explicit sample-watermark
 - [x] Refine semantic UI tokens; flag failing mint/white color contrast
 - [x] Stage A original logo/UI source merged PR #16, green existing Windows CI
-- [ ] User visual approval of logo A/B/C, general UI language and high-fidelity layout
-- [ ] Stage B final logo master/ICO and coherent WPF resources, Home & Reminders implementation with real reminder data
-- [ ] Stage C My Pets/Studio/Settings full UI polish; empty/error/loading/responsive/accessibility states
-- [ ] Windows CI and physical 100/125/150/200 DPI QA before calling v0.17 complete
+- [x] User chose original Logo C Companion Beacon for warm light-first brand implementation
+- [x] Stage B native WPF Logo C, seven-frame ICO, Home & Reminders with real data, branded preview installer and green CI
+- [x] Stage C My Pets/Studio/Settings source UI polish, saved-state selected pets, responsive sections and help merged; no physical UX signoff implied
+- [ ] Stage C physical visual, empty/error states, 200% text scaling and accessibility acceptance
+- [x] v0.17 Windows x64 and installer CI passed, including v0.15→v0.17 data-preserving upgrade
+- [ ] Physical Windows 100/125/150/200% DPI, reminders, audio, sleep/lock and branding QA before v0.17 stable
 - [ ] v0.18 advanced reminder system per locked roadmap
