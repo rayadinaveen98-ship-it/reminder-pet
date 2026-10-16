@@ -74,7 +74,7 @@ public partial class App : System.Windows.Application
                     SpeakFor(active);
             };
             _dashboard = new MainWindow(_store, _voice, _speechSettings, _appearance,
-                _petProfiles, ShowTestPet, OnReminderChangedFromDashboard);
+                _petProfiles, ShowTestPet, StopNarration, OnReminderChangedFromDashboard);
             MainWindow = _dashboard;
             CreateTray();
             _scheduler = new ReminderScheduler(_store);
