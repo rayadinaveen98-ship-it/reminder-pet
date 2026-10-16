@@ -135,9 +135,16 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] v0.10 versioned design tokens and example pet-profile schema
 - [x] v0.10 editable seven-page Canva concept created
 - [ ] Review and correct Canva pet-care placeholder copy and speech timing
-- [ ] Approve UI visual direction and safe talking/waiting behavior
-- [ ] v0.11 moving WPF pet with unboxed reminder text, Done/Snooze/Mute/Hide and cancellable repeated narration
+- [x] User approved Canva visual direction and authorized v0.11 work
+- [x] v0.11 source: walking WPF pet, unboxed reminder text, Done/Snooze/Mute/Hide and cancellable repeated narration (CI/real-device QA pending)
 - [ ] v0.12 expressive animations and action-specific effects
 - [ ] v0.13 Cat/Dog/Bunny profiles and per-pet customization
 - [ ] v0.14 full WPF dashboard/UI rework, keep reminder state compatibility
 - [ ] v0.15 Windows QA, then Windows v1.0 release candidate
+
+### v0.11 acceptance gates
+- [x] Pure movement planning and cancellation rules; regression smoke tests added
+- [x] New pet-sized WPF walking animation and no filled text bubble in source
+- [x] Session-tagged local speech repeat after 60s of silence; interrupted on action/lock/suspend
+- [ ] Windows WPF / Installer CI pass on v0.11 branch
+- [ ] User verifies screen-sized walking, text legibility, correct controls and voice on physical Windows device

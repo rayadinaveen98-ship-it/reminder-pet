@@ -24,12 +24,12 @@ jobs:
       - name: Core reminder tests
         run: dotnet run --project tests/PetPing.CoreChecks/PetPing.CoreChecks.csproj -c Release
       - name: Build portable Windows EXE
-        run: dotnet publish desktop/PetPing.Windows/PetPing.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/PetPing-Windows-v0.9
+        run: dotnet publish desktop/PetPing.Windows/PetPing.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/PetPing-Windows-v0.11
       - name: Upload unsigned alpha
         uses: actions/upload-artifact@v4
         with:
-          name: PetPing-Windows-v0.9-unsigned
-          path: artifacts/PetPing-Windows-v0.9/
+          name: PetPing-Windows-v0.11-unsigned
+          path: artifacts/PetPing-Windows-v0.11/
           if-no-files-found: error
           retention-days: 7
 
@@ -43,13 +43,13 @@ jobs:
           if (!(Test-Path $compiler)) { throw "Inno Setup compiler not found: $compiler" }
           & $compiler "/Q" "installer\PetPing.iss"
           if ($LASTEXITCODE -ne 0) { throw "Inno installer compilation failed" }
-          if (!(Test-Path "artifacts\PetPing-Installer-v0.9\PetPing-Setup-v0.9-unsigned.exe")) {
+          if (!(Test-Path "artifacts\PetPing-Installer-v0.11\PetPing-Setup-v0.11-unsigned.exe")) {
             throw "Expected installer artifact was not created"
           }
       - name: Validate installed files and preserve reminder data
         shell: pwsh
         run: |
-          $installer = (Resolve-Path "artifacts\PetPing-Installer-v0.9\PetPing-Setup-v0.9-unsigned.exe").Path
+          $installer = (Resolve-Path "artifacts\PetPing-Installer-v0.11\PetPing-Setup-v0.11-unsigned.exe").Path
           $installDir = Join-Path $env:LOCALAPPDATA "Programs\PetPing-CI"
           $dataDir = Join-Path $env:LOCALAPPDATA "PetPing"
           New-Item -ItemType Directory -Force $dataDir | Out-Null
@@ -80,7 +80,7 @@ jobs:
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: PetPing-Installer-v0.9-unsigned
-          path: artifacts/PetPing-Installer-v0.9/PetPing-Setup-v0.9-unsigned.exe
+          name: PetPing-Installer-v0.11-unsigned
+          path: artifacts/PetPing-Installer-v0.11/PetPing-Setup-v0.11-unsigned.exe
           if-no-files-found: error
           retention-days: 7

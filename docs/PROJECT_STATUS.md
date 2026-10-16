@@ -23,20 +23,15 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**PetPing 2.0 Experience — v0.10 design foundation (pre-v1.0).**
+**PetPing 2.0 — v0.11 walking companion and voice-repeat engine.**
 
-User approved a major pet behavior and UI redesign and asked to proceed with Phase 1. This supersedes the proposed Windows v1.0 feature freeze until the new experience is built and tested.
-
-- Baseline: v0.9 Windows stays unchanged and user-reported working, with CI 72 core checks (run 38881511852).
-- Design-only PR #9 **merged** to `main` at commit `9e6c70b3084071d1bd77b30d4bd7b0dfaa1a1098` (branch `design/pet-experience-2-phase-1`).
-- Editable Canva 7-page UI mockup: https://www.canva.com/d/26YBWLCIc7nE3nk (Home, Reminders, My Pets, Pet Studio, Preferences, storyboard, style guide).
-- Specs: `docs/PET_EXPERIENCE_2_DESIGN.md`, `docs/PET_EXPERIENCE_2_STORYBOARD.md`, `design/petping-2/tokens.json`, `design/petping-2/pet-profile.example.json`, `design/petping-2/README.md`.
-- No compiled v0.10 pet-experience app or new feature engine yet. This milestone is **design-only**. Existing Windows v0.9 build path remains working. CI for PR #9: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38888573514 — **success**, 72 core checks plus Windows app/installer build and preservation smoke.
-- Canva generation needs copy corrections: generic pet-care reminders, and voice repeat should be seconds, not minutes. User visual review pending.
-- Figma Starter/View seat reported; Canva used as the editable design option.
-
-### Implementation after visual signoff
-v0.11 walking actor + repeated voice + unboxed text; v0.12 action effects; v0.13 Cat/Dog/Bunny profile system; v0.14 native WPF navigation redesign; v0.15 QA; then Windows v1.0 candidate.
+- User approved new design direction in Canva (https://www.canva.com/d/26YBWLCIc7nE3nk) and asked to proceed with implementation.
+- Development branch: `feature/windows-v0.11-walking-narration`. PR/CI pending. Last merged stable Windows build remains **v0.9**.
+- Transparent pet-sized WPF window walks from either monitor edge to approximately the middle of the active monitor; existing manual left/right placement overrides random, Motion Off skips walking. Movement only uses a pet-sized window, not a fullscreen interactive overlay.
+- Old colored reminder speech bubble removed; reminder text floats with a shadow, separate **Done / Snooze 10m / Mute / Hide** controls. Hide retains Needs Attention.
+- Talking begins at **Arrived** rather than before travel. Local Windows TTS is tagged to the active pet's session and repeats 60 seconds after an utterance completes. Mute/Done/Snooze/Hide/lock/suspend cancel narration. No overlapping pet session voices.
+- ReminderScheduler/Store, recurring reminder schema, recovery and privacy unaffected. Old appearance settings still work; species selection and new dashboard UI are upcoming v0.13/0.14.
+- Regression checks added for walking coordinates on multiple screen origins and speech repeat/cancellation eligibility. Physical DPI, transparent hit testing, controls and TTS timings need user testing before release.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -81,4 +76,4 @@ v0.11 walking actor + repeated voice + unboxed text; v0.12 action effects; v0.13
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Review the seven Canva screens with the user and correct visual copy; approve style and storyboard. Then implement v0.11 in a separate code branch with CI, preserving v0.9 local reminder data. Keep this document and the engineering log current. The Windows v1.0 release checklist remains deferred, and Android follows a mature Windows release.
+Open PR on the v0.11 branch and run Windows CI. Fix compile/XAML or installer issues before merging. After green CI, download the portable Windows ZIP, test it on the user's laptop: 1-minute reminder, walking edge→center, unboxed words, Done/Snooze/Mute/Hide, repeated narration after one minute, lock/unlock, speech disabled, Motion Off, multiple screen scales. Only then move to v0.12 pet action effects and original species rigs. Don't call the current unreviewed branch a completed release.

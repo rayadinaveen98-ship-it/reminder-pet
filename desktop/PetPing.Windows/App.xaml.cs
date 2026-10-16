@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Windows;
+using System.Windows.Threading;
 using Microsoft.Win32;
 using PetPing.Windows.Models;
 using PetPing.Windows.Services;
@@ -23,7 +24,9 @@ public partial class App : System.Windows.Application
     private PetWindow? _petWindow;
     private readonly Queue<Reminder> _petQueue = new();
     private bool _locked;
+    private bool _suspended;
     private bool _quitting;
+    private readonly DispatcherTimer _voiceRepeat = new() { Interval = TimeSpan.FromSeconds(PetWalkRules.DefaultRepeatSeconds) };
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -45,8 +48,27 @@ public partial class App : System.Windows.Application
             _appearance = new PetAppearanceSettings();
             _voice = new VoiceService { Enabled = _speechSettings.Enabled };
             _voice.SpeechFailed += error => _diagnostics?.Record("voice_failed", error);
-            _voice.SpeakingChanged += speaking =>
-                Dispatcher.BeginInvoke(new Action(() => _petWindow?.SetSpeaking(speaking)));
+            _voice.SessionSpeakingChanged += (session, speaking) =>
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_petWindow?.SpeechSessionId == session)
+                        _petWindow.SetSpeaking(speaking);
+                }));
+            _voice.SessionSpeechFinished += session =>
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_petWindow?.SpeechSessionId == session && CanRepeatSpeech(_petWindow))
+                    {
+                        _voiceRepeat.Stop();
+                        _voiceRepeat.Start();
+                    }
+                }));
+            _voiceRepeat.Tick += (_, _) =>
+            {
+                _voiceRepeat.Stop();
+                if (_petWindow is { } active && CanRepeatSpeech(active))
+                    SpeakFor(active);
+            };
             _dashboard = new MainWindow(_store, _voice, _speechSettings, _appearance, ShowTestPet, OnReminderChangedFromDashboard);
             MainWindow = _dashboard;
             CreateTray();
@@ -176,20 +198,56 @@ public partial class App : System.Windows.Application
 
     private void OnReminderChangedFromDashboard(Reminder reminder)
     {
-        // If the dashboard completes, snoozes or removes a reminder, do not
-        // leave a now-stale pet popup claiming it still needs action.
+        // Dashboard actions cannot leave an unanswered voice repeating.
         if (_petWindow?.ReminderId == reminder.Id)
+        {
+            StopNarration();
             _petWindow.Close();
+        }
         UpdateTrayStatus();
+    }
+
+    private bool CanRepeatSpeech(PetWindow popup) =>
+        PetWalkRules.IsVoiceRepeatAllowed(_voice?.Enabled == true,
+            popup.IsMuted, _locked || _suspended,
+            popup.IsVisible, popup.AwaitingResponse)
+        && _store?.Reminders.Any(r => r.Id == popup.ReminderId &&
+                                   r.Status == ReminderStatus.Delivered) == true;
+
+    private void SpeakFor(PetWindow popup)
+    {
+        if (!CanRepeatSpeech(popup)) return;
+        if (_voice?.SpeakReminder(
+            _store!.Reminders.First(r => r.Id == popup.ReminderId).Title,
+            popup.SpeechSessionId) != true)
+            _diagnostics?.Record("voice_unavailable");
+    }
+
+    private void StopNarration()
+    {
+        _voiceRepeat.Stop();
+        _voice?.Stop();
+    }
+
+    private void RequeueAndCloseActivePet()
+    {
+        if (_petWindow is not { } popup) return;
+        var reminder = _store?.Reminders.FirstOrDefault(r => r.Id == popup.ReminderId);
+        if (reminder?.Status == ReminderStatus.Delivered &&
+            !_petQueue.Any(r => r.Id == reminder.Id))
+            _petQueue.Enqueue(reminder);
+        StopNarration();
+        popup.Close();
     }
 
     private void ShowNextPet()
     {
-        if (_locked || _petWindow is not null || _quitting) return;
+        if (_locked || _suspended || _petWindow is not null || _quitting) return;
         while (_petQueue.Count > 0)
         {
             var reminder = _petQueue.Dequeue();
-            if (reminder.Status != ReminderStatus.Delivered) continue;
+            if (reminder.Status != ReminderStatus.Delivered ||
+                _store?.Reminders.Any(r => r.Id == reminder.Id) != true) continue;
             PetWindow? popup = null;
             try
             {
@@ -226,15 +284,16 @@ public partial class App : System.Windows.Application
                         return false;
                     }
                 };
+                popup.Arrived += () => SpeakFor(popup);
+                popup.InteractionStopped += StopNarration;
                 popup.Closed += (_, _) =>
                 {
+                    StopNarration();
                     if (ReferenceEquals(_petWindow, popup)) _petWindow = null;
                     ShowNextPet();
                 };
                 popup.Show();
                 _diagnostics?.Record("pet_shown");
-                if (_voice is not null && _voice.Enabled && !_voice.SpeakReminder(reminder.Title))
-                    _diagnostics?.Record("voice_unavailable");
                 return;
             }
             catch (Exception error)
@@ -284,28 +343,35 @@ public partial class App : System.Windows.Application
         var popup = new PetWindow(demo, _appearance?.Placement ?? PetPlacement.Auto,
             _appearance?.Motion ?? PetMotion.Full);
         _petWindow = popup;
+        popup.Arrived += () => _voice?.SpeakReminder(demo.Title, popup.SpeechSessionId);
+        popup.InteractionStopped += StopNarration;
         popup.Closed += (_, _) =>
         {
+            StopNarration();
             if (ReferenceEquals(_petWindow, popup)) _petWindow = null;
             ShowNextPet();
         };
         popup.Show();
-        _voice?.SpeakReminder(demo.Title);
     }
 
     private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
     {
         if (e.Mode == PowerModes.Suspend)
-        {
-            _diagnostics?.Record("power_suspended");
-            _voice?.Stop();
-        }
-        if (e.Mode == PowerModes.Resume)
-            Dispatcher.BeginInvoke(() =>
+            Dispatcher.BeginInvoke(new Action(() =>
             {
+                _suspended = true;
+                _diagnostics?.Record("power_suspended");
+                RequeueAndCloseActivePet();
+                StopNarration();
+            }));
+        if (e.Mode == PowerModes.Resume)
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                _suspended = false;
                 _diagnostics?.Record("power_resumed");
                 _scheduler?.CheckNow();
-            });
+                ShowNextPet();
+            }));
     }
 
     private void OnSessionSwitch(object sender, SessionSwitchEventArgs e)
@@ -316,19 +382,9 @@ public partial class App : System.Windows.Application
             {
                 _locked = true;
                 _diagnostics?.Record("session_locked");
-                _voice?.Stop();
-                // On lock, hide any existing pet and requeue its unanswered reminder
-                // for the next unlock. Do not try to draw above Windows' secure screen.
-                if (_petWindow is not null)
-                {
-                    var active = _store?.Reminders.FirstOrDefault(r => r.Id == _petWindow.ReminderId);
-                    if (active is not null && active.Status == ReminderStatus.Delivered)
-                    {
-                        if (!_petQueue.Any(r => r.Id == active.Id))
-                            _petQueue.Enqueue(active);
-                    }
-                    _petWindow.Close();
-                }
+                // Session lock must stop speech and postpone the active actor.
+                RequeueAndCloseActivePet();
+                StopNarration();
             }
             if (e.Reason == SessionSwitchReason.SessionUnlock)
             {
@@ -351,6 +407,7 @@ public partial class App : System.Windows.Application
     protected override void OnExit(ExitEventArgs e)
     {
         _scheduler?.Stop();
+        StopNarration();
         SystemEvents.PowerModeChanged -= OnPowerModeChanged;
         SystemEvents.SessionSwitch -= OnSessionSwitch;
         _petWindow?.Close();

@@ -13,5 +13,6 @@
     <Compile Include="../../desktop/PetPing.Windows/Services/ReminderStore.cs" Link="ReminderStore.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/DiagnosticsLog.cs" Link="DiagnosticsLog.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/PetAppearanceSettings.cs" Link="PetAppearanceSettings.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/PetWalkRules.cs" Link="PetWalkRules.cs" />
   </ItemGroup>
 </Project>

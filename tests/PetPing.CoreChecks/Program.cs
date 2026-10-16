@@ -367,6 +367,50 @@ try
           new ReminderStore(recoveryDir).Reminders.Count == 1,
         "invalid backup cannot overwrite a healthy primary file");
 
+
+    // v0.11 walk geometry never owns the whole screen and always ends in
+    // the middle of the *selected* working area in WPF device-independent pixels.
+    var fromLeft = PetWalkRules.Plan(0, 1920, 485, true);
+    var fromRight = PetWalkRules.Plan(0, 1920, 485, false);
+    Check(fromLeft.Start == 0 && fromRight.Start == 1435,
+        "pet starts fully within its active monitor left or right edge");
+    Check(Math.Abs(fromLeft.End - 717.5) < 0.001 &&
+          Math.Abs(fromRight.End - fromLeft.End) < .001,
+        "both entry directions end at the same central destination");
+    var shifted = PetWalkRules.Plan(-1600, 1600, 485, false);
+    Check(shifted.Start == -485 && shifted.End < 0 &&
+          shifted.End > -1600,
+        "pet placement handles secondary monitor with negative X origin");
+    var narrow = PetWalkRules.Plan(200, 350, 485, true);
+    Check(narrow.Start == 200 && narrow.End == 200,
+        "pet is clamped on work area narrower than its window");
+    var invalidGeometryRejected = false;
+    try { _ = PetWalkRules.Plan(0, double.NaN, 400, true); }
+    catch (ArgumentOutOfRangeException) { invalidGeometryRejected = true; }
+    Check(invalidGeometryRejected, "nonfinite monitor metrics rejected safely");
+
+    var speechDone = current.AddMinutes(1);
+    Check(PetWalkRules.NextSpeechAt(speechDone, 60) == speechDone.AddSeconds(60),
+        "spoken reminder repeat starts after prior narration finishes");
+    Check(PetWalkRules.NextSpeechAt(speechDone, 120) ==
+          speechDone.AddMinutes(2), "repeat interval may be lengthened");
+    var invalidIntervalRejected = false;
+    try { _ = PetWalkRules.NextSpeechAt(speechDone, 0); }
+    catch (ArgumentOutOfRangeException) { invalidIntervalRejected = true; }
+    Check(invalidIntervalRejected, "zero-delay infinite speech repeat cannot be scheduled");
+    Check(PetWalkRules.IsVoiceRepeatAllowed(true, false, false, true, true),
+        "active unmuted visible pet is eligible for speech repeat");
+    Check(!PetWalkRules.IsVoiceRepeatAllowed(true, true, false, true, true),
+        "muting stops new speech repetitions");
+    Check(!PetWalkRules.IsVoiceRepeatAllowed(true, false, true, true, true),
+        "Windows lock/suspend blocks speech repetition");
+    Check(!PetWalkRules.IsVoiceRepeatAllowed(true, false, false, false, true),
+        "hidden pet does not speak");
+    Check(!PetWalkRules.IsVoiceRepeatAllowed(true, false, false, true, false),
+        "reacting or acknowledged pet does not speak");
+    Check(!PetWalkRules.IsVoiceRepeatAllowed(false, false, false, true, true),
+        "disabled local Windows voice is never scheduled");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
