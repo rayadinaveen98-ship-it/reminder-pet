@@ -1,0 +1,49 @@
+<Window x:Class="PetPing.Windows.Views.PetWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PetPing Reminder" Width="340" Height="232"
+        WindowStyle="None" ResizeMode="NoResize" AllowsTransparency="True"
+        Background="Transparent" Topmost="True" ShowInTaskbar="False" ShowActivated="False">
+  <Window.Resources>
+    <Storyboard x:Key="FloatAnimation" RepeatBehavior="Forever" AutoReverse="True">
+      <DoubleAnimation Storyboard.TargetName="PetFloat" Storyboard.TargetProperty="Y" From="0" To="-6" Duration="0:0:1.3"/>
+    </Storyboard>
+  </Window.Resources>
+  <Window.Triggers><EventTrigger RoutedEvent="Window.Loaded"><BeginStoryboard Storyboard="{StaticResource FloatAnimation}"/></EventTrigger></Window.Triggers>
+  <Border Background="Transparent" Padding="5">
+    <Grid>
+      <Border Margin="0,0,0,3" Background="White" CornerRadius="22" BorderBrush="#F4D3C0" BorderThickness="1.4">
+        <Border.Effect>
+          <DropShadowEffect Color="#4F3326" BlurRadius="20" ShadowDepth="5" Opacity="0.18"/>
+        </Border.Effect>
+        <Grid Margin="16">
+          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+          <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Top">
+            <Canvas Width="92" Height="100" Margin="0,4,12,4">
+              <Canvas.RenderTransform><TranslateTransform x:Name="PetFloat"/></Canvas.RenderTransform>
+              <!-- Original vector placeholder mascot; no external art dependency -->
+              <Polygon Points="12,32 18,2 43,24" Fill="#E9A66D" Stroke="#9C684A" StrokeThickness="1.5"/>
+              <Polygon Points="53,24 78,2 84,32" Fill="#E9A66D" Stroke="#9C684A" StrokeThickness="1.5"/>
+              <Ellipse Canvas.Left="9" Canvas.Top="20" Width="77" Height="71" Fill="#F5B27E" Stroke="#9C684A" StrokeThickness="1.5"/>
+              <Ellipse Canvas.Left="22" Canvas.Top="48" Width="8" Height="11" Fill="#37312F"/>
+              <Ellipse Canvas.Left="65" Canvas.Top="48" Width="8" Height="11" Fill="#37312F"/>
+              <Ellipse Canvas.Left="41" Canvas.Top="63" Width="14" Height="9" Fill="#E8837C"/>
+              <Path Data="M 47,72 Q 40,81 33,74 M 47,72 Q 54,81 61,74" Stroke="#9C684A" StrokeThickness="2" Fill="Transparent"/>
+              <Ellipse Canvas.Left="14" Canvas.Top="70" Width="15" Height="8" Fill="#ED9F8A" Opacity="0.7"/>
+              <Ellipse Canvas.Left="67" Canvas.Top="70" Width="15" Height="8" Fill="#ED9F8A" Opacity="0.7"/>
+            </Canvas>
+            <StackPanel VerticalAlignment="Center" Width="182">
+              <TextBlock Text="It's reminder time!" FontWeight="Bold" FontSize="16" Foreground="#292D32"/>
+              <TextBlock x:Name="ReminderTitle" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="68" Margin="0,7,0,0" FontSize="13" Foreground="#50575D"/>
+            </StackPanel>
+          </StackPanel>
+          <Border Grid.Row="1" Height="1" Background="#F2E9E3" Margin="0,10,0,12"/>
+          <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Snooze 10m" Click="OnSnooze" Background="#F3F2EF"/>
+            <Button Content="Done ✓" Click="OnDone" Margin="0" Background="#F3AE85"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
+</Window>

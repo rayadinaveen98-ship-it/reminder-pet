@@ -1,0 +1,83 @@
+<Window x:Class="PetPing.Windows.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PetPing — your reminder companion" Height="660" Width="880"
+        MinHeight="550" MinWidth="710" Background="{StaticResource BackgroundBrush}"
+        WindowStartupLocation="CenterScreen">
+  <Grid Margin="29">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <Grid Grid.Row="0" Margin="0,1,0,20">
+      <StackPanel>
+        <TextBlock Text="PetPing" FontSize="30" FontWeight="Bold" Foreground="{StaticResource InkBrush}"/>
+        <TextBlock Text="A little friend who remembers the important stuff." FontSize="13" Foreground="{StaticResource MutedBrush}" Margin="1,5,0,0"/>
+      </StackPanel>
+      <Border Background="#FFEBDD" CornerRadius="13" Padding="12,8" HorizontalAlignment="Right" VerticalAlignment="Center">
+        <TextBlock Text="●  Ready to remind you" Foreground="#8A6046" FontSize="12" FontWeight="SemiBold"/>
+      </Border>
+    </Grid>
+    <Border Grid.Row="1" Background="White" CornerRadius="18" Padding="19" Margin="0,0,0,18" BorderBrush="#ECE8E2" BorderThickness="1">
+      <StackPanel>
+        <TextBlock Text="Create a reminder" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource InkBrush}"/>
+        <TextBlock Text="What should your pet remind you about?" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,12"/>
+        <TextBox x:Name="ReminderName" FontSize="15" MaxLength="120" ToolTip="For example, Drink water or Start editing"/>
+        <Grid Margin="0,13,0,0">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,0,10,0">
+            <TextBlock Text="Date" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,5"/>
+            <DatePicker x:Name="ReminderDate" Height="35"/>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="0,0,10,0">
+            <TextBlock Text="Time (24h)" FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,5"/>
+            <TextBox x:Name="ReminderTime" Text="19:00" FontSize="13"/>
+          </StackPanel>
+          <StackPanel Grid.Column="2" VerticalAlignment="Bottom" Orientation="Horizontal">
+            <Button Content="In 1 minute" Click="OnQuickAdd" Background="#F2F1ED"/>
+            <Button Content="Add reminder" Click="OnAddReminder" Background="{StaticResource AccentBrush}" Margin="0"/>
+          </StackPanel>
+        </Grid>
+        <TextBlock x:Name="ValidationMessage" Foreground="#AF453D" FontSize="12" Margin="0,10,0,0" Visibility="Collapsed"/>
+      </StackPanel>
+    </Border>
+    <Border Grid.Row="2" Background="White" CornerRadius="18" Padding="19" BorderBrush="#ECE8E2" BorderThickness="1">
+      <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <Grid Grid.Row="0" Margin="0,0,0,11">
+          <TextBlock Text="Your reminders" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource InkBrush}"/>
+          <TextBlock x:Name="ReminderCount" HorizontalAlignment="Right" Foreground="{StaticResource MutedBrush}" FontSize="12"/>
+        </Grid>
+        <ListBox Grid.Row="1" x:Name="ReminderList" BorderThickness="0" Background="Transparent"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionMode="Single">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <Border CornerRadius="10" Background="#FAF9F7" Padding="12" Margin="0,2,0,7">
+                <Grid>
+                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                  <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="#292D32" TextWrapping="Wrap"/>
+                  <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBlock Text="{Binding DueLabel}" FontSize="11" Foreground="#717782"/>
+                    <TextBlock Text="  •  " FontSize="11" Foreground="#A4A6A8"/>
+                    <TextBlock Text="{Binding StatusLabel}" FontSize="11" Foreground="#AF7352"/>
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
+          <Button Content="Mark selected done" Background="#F1F0ED" Click="OnSelectedDone"/>
+          <Button Content="Delete selected" Background="#F1F0ED" Click="OnDelete"/>
+          <Button Content="Test pet now" Click="OnTestPet" Background="#FFE5D3"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Grid Grid.Row="3" Margin="0,16,0,0">
+      <TextBlock Text="Close window → keeps reminding from tray. Quit from tray → stops reminders." FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+      <CheckBox x:Name="VoiceToggle" Content="Speak reminders" HorizontalAlignment="Right" VerticalAlignment="Center" IsChecked="True" Click="OnVoiceToggled"/>
+    </Grid>
+  </Grid>
+</Window>
