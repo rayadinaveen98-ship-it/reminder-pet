@@ -15,6 +15,7 @@ public partial class App : System.Windows.Application
     private ReminderScheduler? _scheduler;
     private VoiceService? _voice;
     private SpeechSettings? _speechSettings;
+    private PetAppearanceSettings? _appearance;
     private DiagnosticsLog? _diagnostics;
     private bool _faultNoticeShown;
     private Forms.NotifyIcon? _tray;
@@ -41,9 +42,12 @@ public partial class App : System.Windows.Application
             _diagnostics.Record("app_started");
             _store = new ReminderStore();
             _speechSettings = new SpeechSettings();
+            _appearance = new PetAppearanceSettings();
             _voice = new VoiceService { Enabled = _speechSettings.Enabled };
             _voice.SpeechFailed += error => _diagnostics?.Record("voice_failed", error);
-            _dashboard = new MainWindow(_store, _voice, _speechSettings, ShowTestPet, OnReminderChangedFromDashboard);
+            _voice.SpeakingChanged += speaking =>
+                Dispatcher.BeginInvoke(new Action(() => _petWindow?.SetSpeaking(speaking)));
+            _dashboard = new MainWindow(_store, _voice, _speechSettings, _appearance, ShowTestPet, OnReminderChangedFromDashboard);
             MainWindow = _dashboard;
             CreateTray();
             _scheduler = new ReminderScheduler(_store);
@@ -147,7 +151,8 @@ public partial class App : System.Windows.Application
             PetWindow? popup = null;
             try
             {
-                popup = new PetWindow(reminder);
+                popup = new PetWindow(reminder, _appearance?.Placement ?? PetPlacement.Auto,
+                    _appearance?.Motion ?? PetMotion.Full);
                 _petWindow = popup;
                 popup.Completed += r =>
                 {
@@ -156,8 +161,13 @@ public partial class App : System.Windows.Application
                         _store!.Mark(r, ReminderStatus.Completed);
                         _dashboard?.RefreshList();
                         UpdateTrayStatus();
+                        return true;
                     }
-                    catch (Exception error) { OnPresentationFault("completion_save_failed", error); }
+                    catch (Exception error)
+                    {
+                        OnPresentationFault("completion_save_failed", error);
+                        return false;
+                    }
                 };
                 popup.Snoozed += r =>
                 {
@@ -166,8 +176,13 @@ public partial class App : System.Windows.Application
                         _store!.Snooze(r, TimeSpan.FromMinutes(10));
                         _dashboard?.RefreshList();
                         UpdateTrayStatus();
+                        return true;
                     }
-                    catch (Exception error) { OnPresentationFault("snooze_save_failed", error); }
+                    catch (Exception error)
+                    {
+                        OnPresentationFault("snooze_save_failed", error);
+                        return false;
+                    }
                 };
                 popup.Closed += (_, _) =>
                 {
@@ -224,7 +239,8 @@ public partial class App : System.Windows.Application
     {
         if (_petWindow is not null) return;
         var demo = new Reminder { Title = "This is how I'll remind you!" };
-        var popup = new PetWindow(demo);
+        var popup = new PetWindow(demo, _appearance?.Placement ?? PetPlacement.Auto,
+            _appearance?.Motion ?? PetMotion.Full);
         _petWindow = popup;
         popup.Closed += (_, _) =>
         {

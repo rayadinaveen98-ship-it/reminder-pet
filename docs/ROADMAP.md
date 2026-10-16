@@ -84,3 +84,14 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Windows CI compiled and 49 core checks passed; PR #5 merged into main
 - [ ] Device QA: repeat, edit, tray restart, sleep resume, voice and multiple monitors
 - [ ] Custom weekly days, series-level history management and richer Today/Upcoming view (subsequent phase)
+
+## Milestone W1.5 — pet experience (v0.7)
+- [x] Independent local pet preferences with safe defaults and atomic saves
+- [x] Select Auto, Top/Bottom Right/Left popup placement
+- [x] Full, Gentle, Off motion settings, supporting reduced movement
+- [x] Blinking eyes, Windows TTS event-driven speaking mouth, and brief successful Done/Snooze reactions
+- [x] Use foreground monitor positioning with WPF pixel/DIP conversion
+- [x] Test preference persistence, invalid/corrupt settings and rollback
+- [x] Initial Windows CI verified with 56 core checks; post-fix CI / merge pending
+- [ ] Physical QA: appearance controls, blink/speaking, mixed DPI, lock/wake
+- [ ] Alternate pet species/asset packs and full walking sprite animations (later work)

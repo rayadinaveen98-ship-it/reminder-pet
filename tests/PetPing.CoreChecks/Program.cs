@@ -254,6 +254,47 @@ try
           legacy.Reminders[0].SeriesId is null,
         "previous-version one-time JSON loads without migration or recurrence");
 
+
+    // v0.7: appearance preferences are independent from reminder data.
+    var appearanceFolder = Path.Combine(temp, "pet-settings");
+    var look = new PetAppearanceSettings(appearanceFolder);
+    Check(look.Placement == PetPlacement.Auto && look.Motion == PetMotion.Full,
+        "appearance defaults to auto location and playful motion");
+    look.Update(PetPlacement.TopLeft, PetMotion.Gentle);
+    Check(new PetAppearanceSettings(appearanceFolder).Placement == PetPlacement.TopLeft &&
+          new PetAppearanceSettings(appearanceFolder).Motion == PetMotion.Gentle,
+        "pet placement and motion persist across restart");
+    look.Update(PetPlacement.BottomRight, PetMotion.Off);
+    Check(new PetAppearanceSettings(appearanceFolder).Motion == PetMotion.Off,
+        "motion-off preference persists");
+    bool badAppearanceRejected = false;
+    try { look.Update((PetPlacement)999, PetMotion.Full); }
+    catch (ArgumentException) { badAppearanceRejected = true; }
+    Check(badAppearanceRejected, "invalid appearance enum is rejected");
+
+    var appearancePath = Path.Combine(appearanceFolder, "pet-appearance.json");
+    var appearanceBefore = File.ReadAllText(appearancePath);
+    var blockedAppearance = appearancePath + ".tmp";
+    Directory.CreateDirectory(blockedAppearance);
+    bool appearanceWriteRefused = false;
+    try { look.Update(PetPlacement.BottomLeft, PetMotion.Full); }
+    catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+    { appearanceWriteRefused = true; }
+    Check(appearanceWriteRefused && look.Placement == PetPlacement.BottomRight &&
+          look.Motion == PetMotion.Off && File.ReadAllText(appearancePath) == appearanceBefore,
+          "failed settings write preserves last saved preferences");
+    // Update() cleans up failed temporary files where possible.
+    if (Directory.Exists(blockedAppearance)) Directory.Delete(blockedAppearance);
+
+    File.WriteAllText(appearancePath, "corrupted appearance JSON");
+    var fallback = new PetAppearanceSettings(appearanceFolder);
+    Check(fallback.Placement == PetPlacement.Auto && fallback.Motion == PetMotion.Full &&
+          File.ReadAllText(appearancePath) == "corrupted appearance JSON",
+          "corrupted appearance file does not prevent defaults and is not silently erased");
+    var reminderCountBefore = repeated.Reminders.Count;
+    Check(new ReminderStore(repeatFolder).Reminders.Count == reminderCountBefore,
+        "corrupted pet preferences never modify saved reminders");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;

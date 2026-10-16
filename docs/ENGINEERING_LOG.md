@@ -55,3 +55,22 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Final artifact `PetPing-Windows-v0.6-unsigned` ID 12032645056. Downloaded ZIP locally and validated its archive integrity; includes `PetPing.Windows.exe` (unsigned test build).
 - No evidence yet of actual user interaction testing of the new v0.6 repeating/edit screens. Await results rather than claim production quality.
 - Next: v0.6 Windows edit/recurrence acceptance QA; triage failures before v0.7 character animations.
+
+## 2026-10-16 — v0.7 kickoff
+- User reports Windows v0.6 is working fine. Detailed lock/sleep, multi-monitor and speech regression evidence remains unrecorded, so those formal release gates remain open.
+- Target: make the existing orange-cat companion more expressive without altering reminder schema or recurrence: blinking/speaking feedback, reduced-motion mode, user-selectable corner placement, and safe settings persistence.
+- Keep Windows first, Android second, local-first, zero-cost software/hosting. Commit code and resume documents, run green Windows CI, then merge and share the unsigned alpha.
+- Branch: `feature/windows-v0.7-pet-experience`; PR and CI pending.
+
+## 2026-10-16 — v0.7 engineering checkpoint
+- Feature branch: `feature/windows-v0.7-pet-experience`.
+- Initial commits: pet appearance preference store; vector-cat blink/mouth elements; WPF speech-linked expression, reduced-motion modes and monitor-corner positioning; app/dashboard integration.
+- Settings are local and independent of the reminder JSON. Existing daily/weekly engine intentionally unchanged.
+- Added smoke checks for preference persistence, invalid enum, disk write rollback and corrupt settings isolation.
+- Windows compile and hands-on appearance tests pending at this checkpoint. Next: PR, CI, bug fixes, status refresh, merge.
+
+## 2026-10-16 — v0.7 first CI and action safety refinement
+- Pull request #6: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/6 .
+- Initial Windows CI run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38872180216 **passed**: 56 core tests, compiled executable, uploaded unsigned alpha.
+- Subsequent safety fix: pet Done/Snooze now get explicit success from the persistence callbacks. On save failure pet remains actionable rather than closing as if completed. On success the pet briefly replies with a friendly acknowledgement before animating away.
+- Final CI for the additional code change not yet verified at this checkpoint; do not merge until green.

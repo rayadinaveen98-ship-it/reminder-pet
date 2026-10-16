@@ -79,3 +79,17 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Old JSON from v0.5 should load; never wipe `%LOCALAPPDATA%\PetPing` during upgrade.
 - Sleep for more than one repeat period; on wake no flood of hundreds of stale alerts; one future pending occurrence remains.
 - Lock/unlock and voiced reminders require physical Windows QA as before.
+
+## v0.7 physical appearance QA
+- Launch pet in Playful mode: entrance slide, bob, tail motion, blink and speaking mouth when TTS starts; mouth stops when speech stops.
+- Gentle mode: soft fade and blink, no continuous body/tail movement.
+- Off mode: no entrance slide, bobbing, tail wag, blink or exit fade. Reminder text/actions still visible; speech may display a static talking mouth.
+- Switch Top-left, Bottom-left, Top-right, Bottom-right manually; overlay must stay inside target monitor working area.
+- Auto mode: maximized Netflix/browser near top right; regular desktop at lower right. Check 100/125/150% scaling and two mixed-DPI monitors.
+- Disable voice: no speech and no speech-mouth state, but popup still displays and Done/Snooze work.
+- Change pet preference, quit tray, restart EXE: saved choice persists, existing reminders unchanged.
+- Test corrupt `pet-appearance.json`: app starts with defaults without erasing reminders or file.
+- Repeat full Windows sleep/wake and lock/unlock regression tests, not implied passed by GitHub CI.
+
+- Click Done and Snooze with successful disk writes: pet should briefly say a friendly confirmation before disappearing.
+- Simulate disk write failure while clicking Done/Snooze: pet must remain visible rather than falsely claiming saved completion; a generic error notification may be suppressed by OS.
