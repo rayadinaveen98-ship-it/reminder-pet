@@ -103,6 +103,36 @@ public partial class MainWindow : Window
         HomeEmptyNext.Visibility = snapshot.NextReminders.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    // At compact window widths preserve full-size controls instead of squeezing
+    // date, time and recurrence into unreadable columns.
+    private void OnWindowResized(object sender, SizeChangedEventArgs e)
+    {
+        if (ReminderFieldsGrid is null || HomeMetricsGrid is null ||
+            ReminderDateGroup is null || ReminderTimeGroup is null ||
+            ReminderRepeatGroup is null || ReminderFieldsActions is null)
+            return;
+
+        var compact = ActualWidth < 1010;
+        HomeMetricsGrid.Columns = compact ? 1 : 3;
+
+        var columns = ReminderFieldsGrid.ColumnDefinitions;
+        for (var i = 0; i < columns.Count; i++)
+            columns[i].Width = new GridLength(compact && i > 0 ? 0 : 1,
+                GridUnitType.Star);
+
+        Grid.SetRow(ReminderDateGroup, 0);
+        Grid.SetRow(ReminderTimeGroup, compact ? 1 : 0);
+        Grid.SetRow(ReminderRepeatGroup, compact ? 2 : 0);
+        Grid.SetColumn(ReminderDateGroup, 0);
+        Grid.SetColumn(ReminderTimeGroup, compact ? 0 : 1);
+        Grid.SetColumn(ReminderRepeatGroup, compact ? 0 : 2);
+        ReminderDateGroup.Margin = compact ? new Thickness(0, 0, 0, 12) : new Thickness(0, 0, 12, 0);
+        ReminderTimeGroup.Margin = compact ? new Thickness(0, 0, 0, 12) : new Thickness(0, 0, 12, 0);
+
+        Grid.SetRow(ReminderFieldsActions, compact ? 3 : 1);
+        Grid.SetColumnSpan(ReminderFieldsActions, compact ? 1 : 3);
+    }
+
     private void NavigateTo(DashboardPage page)
     {
         _currentPage = page;
