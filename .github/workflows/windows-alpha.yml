@@ -27,6 +27,33 @@ jobs:
         run: dotnet run --project tests/PetPing.CoreChecks/PetPing.CoreChecks.csproj -c Release
       - name: Build portable Windows EXE
         run: dotnet publish desktop/PetPing.Windows/PetPing.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/PetPing-Windows-v0.15
+      - name: Validate seven-size Companion Beacon app icon
+        shell: pwsh
+        run: |
+          $iconFile = "desktop/PetPing.Windows/Assets/PetPing.ico"
+          if (!(Test-Path $iconFile)) { throw "Generated Companion Beacon ICO is missing" }
+          $bytes = [System.IO.File]::ReadAllBytes((Resolve-Path $iconFile).Path)
+          if ($bytes.Length -lt 1000 -or [BitConverter]::ToUInt16($bytes, 2) -ne 1 -or
+              [BitConverter]::ToUInt16($bytes, 4) -ne 7) {
+            throw "Invalid brand ICO header or incomplete multi-size icon"
+          }
+          $expected = @(16, 24, 32, 48, 64, 128, 0)
+          foreach ($i in 0..6) {
+            $entry = 6 + 16 * $i
+            if ([int]$bytes[$entry] -ne $expected[$i] -or
+                [int]$bytes[$entry + 1] -ne $expected[$i]) {
+              throw "Missing Companion Beacon ICO frame: entry $i"
+            }
+            $pngSize = [BitConverter]::ToUInt32($bytes, $entry + 8)
+            $pngOffset = [BitConverter]::ToUInt32($bytes, $entry + 12)
+            if ($pngSize -lt 100 -or ($pngOffset + $pngSize) -gt $bytes.Length) {
+              throw "ICO PNG frame offset invalid: entry $i"
+            }
+            if ($bytes[$pngOffset] -ne 137 -or $bytes[$pngOffset + 1] -ne 80) {
+              throw "ICO entry $i is not a PNG frame"
+            }
+          }
+          Write-Host "PASS: multi-resolution original Companion Beacon ICO validated"
       - name: Upload unsigned alpha
         uses: actions/upload-artifact@v4
         with:
