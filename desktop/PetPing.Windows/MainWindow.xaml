@@ -113,8 +113,10 @@
                             Background="White" BorderBrush="#E1D9EF"/>
                   </WrapPanel>
                 </StackPanel>
-                <local:PetCharacter x:Name="HomeCharacter" Grid.Column="1" Width="150" Height="184"
-                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <Viewbox Grid.Column="1" Width="150" Height="184" Stretch="Uniform"
+                           HorizontalAlignment="Right" VerticalAlignment="Center">
+                  <local:PetCharacter x:Name="HomeCharacter"/>
+                </Viewbox>
               </Grid>
             </Border>
 
@@ -304,8 +306,9 @@
             <UniformGrid Columns="3" Margin="0,0,0,15">
               <Border Style="{StaticResource SoftCard}" Margin="0,0,7,0">
                 <StackPanel>
-                  <local:PetCharacter x:Name="PetsCatCharacter" Width="132" Height="180"
-                                      HorizontalAlignment="Center"/>
+                  <Viewbox Width="132" Height="180" Stretch="Uniform" HorizontalAlignment="Center">
+                    <local:PetCharacter x:Name="PetsCatCharacter"/>
+                  </Viewbox>
                   <TextBlock Text="Milo" FontSize="18" FontWeight="SemiBold" Margin="0,9,0,3"/>
                   <TextBlock Text="The curious cat" Style="{StaticResource SecondaryBody}"/>
                   <TextBlock x:Name="CatChoiceStatus" Text="Active" FontSize="11"
@@ -317,8 +320,9 @@
               </Border>
               <Border Style="{StaticResource SoftCard}" Margin="7,0,7,0">
                 <StackPanel>
-                  <local:PetCharacter x:Name="PetsDogCharacter" Width="132" Height="180"
-                                      HorizontalAlignment="Center"/>
+                  <Viewbox Width="132" Height="180" Stretch="Uniform" HorizontalAlignment="Center">
+                    <local:PetCharacter x:Name="PetsDogCharacter"/>
+                  </Viewbox>
                   <TextBlock Text="Buddy" FontSize="18" FontWeight="SemiBold" Margin="0,9,0,3"/>
                   <TextBlock Text="The friendly puppy" Style="{StaticResource SecondaryBody}"/>
                   <TextBlock x:Name="DogChoiceStatus" Text="Available" FontSize="11"
@@ -330,8 +334,9 @@
               </Border>
               <Border Style="{StaticResource SoftCard}" Margin="7,0,0,0">
                 <StackPanel>
-                  <local:PetCharacter x:Name="PetsBunnyCharacter" Width="132" Height="180"
-                                      HorizontalAlignment="Center"/>
+                  <Viewbox Width="132" Height="180" Stretch="Uniform" HorizontalAlignment="Center">
+                    <local:PetCharacter x:Name="PetsBunnyCharacter"/>
+                  </Viewbox>
                   <TextBlock Text="Luna" FontSize="18" FontWeight="SemiBold" Margin="0,9,0,3"/>
                   <TextBlock Text="The lively bunny" Style="{StaticResource SecondaryBody}"/>
                   <TextBlock x:Name="BunnyChoiceStatus" Text="Available" FontSize="11"
@@ -362,8 +367,9 @@
                 <TextBlock Text="Your changes save automatically and apply to the next reminder."
                            Style="{StaticResource SecondaryBody}" Margin="0,5,0,13"/>
                 <Border CornerRadius="19" Background="#F5EAF4" Padding="12" Margin="0,0,0,13">
-                  <local:PetCharacter x:Name="StudioCharacter" Width="188" Height="214"
-                                      HorizontalAlignment="Center"/>
+                  <Viewbox Width="188" Height="214" Stretch="Uniform" HorizontalAlignment="Center">
+                    <local:PetCharacter x:Name="StudioCharacter"/>
+                  </Viewbox>
                 </Border>
                 <WrapPanel HorizontalAlignment="Center">
                   <Button Content="Preview on desktop" Click="OnTestPet"
