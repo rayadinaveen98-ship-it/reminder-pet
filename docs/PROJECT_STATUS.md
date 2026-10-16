@@ -28,10 +28,10 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 User approved a major pet behavior and UI redesign and asked to proceed with Phase 1. This supersedes the proposed Windows v1.0 feature freeze until the new experience is built and tested.
 
 - Baseline: v0.9 Windows stays unchanged and user-reported working, with CI 72 core checks (run 38881511852).
-- Design branch: `design/pet-experience-2-phase-1`.
+- Design-only PR #9 **merged** to `main` at commit `9e6c70b3084071d1bd77b30d4bd7b0dfaa1a1098` (branch `design/pet-experience-2-phase-1`).
 - Editable Canva 7-page UI mockup: https://www.canva.com/d/26YBWLCIc7nE3nk (Home, Reminders, My Pets, Pet Studio, Preferences, storyboard, style guide).
 - Specs: `docs/PET_EXPERIENCE_2_DESIGN.md`, `docs/PET_EXPERIENCE_2_STORYBOARD.md`, `design/petping-2/tokens.json`, `design/petping-2/pet-profile.example.json`, `design/petping-2/README.md`.
-- No compiled v0.10 app or new feature engine yet. This branch is design-only.
+- No compiled v0.10 pet-experience app or new feature engine yet. This milestone is **design-only**. Existing Windows v0.9 build path remains working. CI for PR #9: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38888573514 — **success**, 72 core checks plus Windows app/installer build and preservation smoke.
 - Canva generation needs copy corrections: generic pet-care reminders, and voice repeat should be seconds, not minutes. User visual review pending.
 - Figma Starter/View seat reported; Canva used as the editable design option.
 
