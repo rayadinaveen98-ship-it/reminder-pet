@@ -4,6 +4,7 @@
 **Editable Canva concept deck:** https://www.canva.com/d/rljAMk15QUasrej (8 slides; generated, requires editorial corrections below).
 **Earlier approved style reference:** https://www.canva.com/d/0LRU2hT9b1v6vBO (7 pages; preserve original).
 **Own-source identity candidates:** `design/petping-3/logos/`.
+**Precisely authored editable mockups:** `design/petping-3/screens/v017-home-concept.svg` and `v017-reminders-concept.svg`; static sample content only.
 
 ## 1. Review criteria and correction notes
 
