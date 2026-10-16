@@ -8,6 +8,7 @@ public partial class PetWindow : Window
 {
     private readonly Reminder _reminder;
     private readonly DispatcherTimer _autoHide = new() { Interval = TimeSpan.FromSeconds(45) };
+    public Guid ReminderId => _reminder.Id;
     public event Action<Reminder>? Completed;
     public event Action<Reminder>? Snoozed;
 
@@ -19,8 +20,7 @@ public partial class PetWindow : Window
         var work = SystemParameters.WorkArea;
         Left = work.Right - Width - 18;
         Top = work.Bottom - Height - 18;
-        // Do not leave an always-on-top window blocking the screen indefinitely.
-        // Timeout does not silently mark the reminder done.
+        // Auto-hide does NOT acknowledge the reminder; it remains Needs Attention.
         _autoHide.Tick += (_, _) => Close();
         Loaded += (_, _) => _autoHide.Start();
         Closed += (_, _) => _autoHide.Stop();

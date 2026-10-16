@@ -38,12 +38,17 @@ public partial class App : System.Windows.Application
             _store = new ReminderStore();
             _speechSettings = new SpeechSettings();
             _voice = new VoiceService { Enabled = _speechSettings.Enabled };
-            _dashboard = new MainWindow(_store, _voice, _speechSettings, ShowTestPet);
+            _dashboard = new MainWindow(_store, _voice, _speechSettings, ShowTestPet, OnReminderChangedFromDashboard);
             MainWindow = _dashboard;
             CreateTray();
             _scheduler = new ReminderScheduler(_store);
             _scheduler.ReminderDue += QueueReminder;
-            _scheduler.Changed += () => _dashboard.RefreshList();
+            _scheduler.RemindersMissed += OnRemindersMissed;
+            _scheduler.Changed += () =>
+            {
+                _dashboard.RefreshList();
+                UpdateTrayStatus();
+            };
             SystemEvents.PowerModeChanged += OnPowerModeChanged;
             SystemEvents.SessionSwitch += OnSessionSwitch;
 
@@ -85,13 +90,44 @@ public partial class App : System.Windows.Application
             ContextMenuStrip = menu
         };
         _tray.DoubleClick += (_, _) => Dispatcher.BeginInvoke(() => _dashboard?.OpenDashboard());
+        UpdateTrayStatus();
     }
 
     private void QueueReminder(Reminder reminder)
     {
         if (reminder.Status != ReminderStatus.Delivered) return;
+        if (_petWindow?.ReminderId == reminder.Id) return;
+        if (_petQueue.Any(r => r.Id == reminder.Id)) return;
         _petQueue.Enqueue(reminder);
         ShowNextPet();
+    }
+
+    private void UpdateTrayStatus()
+    {
+        if (_tray is null || _store is null) return;
+        var needsAttention = _store.Reminders.Count(ReminderRules.NeedsAttention);
+        _tray.Text = needsAttention > 0
+            ? $"PetPing - {needsAttention} need attention"
+            : "PetPing - reminders running";
+    }
+
+    private void OnRemindersMissed(int count)
+    {
+        UpdateTrayStatus();
+        if (_tray is null) return;
+        var subject = count == 1 ? "1 reminder was missed" : $"{count} reminders were missed";
+        _tray.ShowBalloonTip(6000, "PetPing — check reminders",
+            $"{subject} while your computer was unavailable. Open PetPing to snooze or complete.",
+            Forms.ToolTipIcon.Info);
+    }
+
+    private void OnReminderChangedFromDashboard(Reminder reminder)
+    {
+        // If the dashboard completes, snoozes or removes a reminder, do not
+        // leave a now-stale pet popup claiming it still needs action.
+        if (_petWindow?.ReminderId == reminder.Id)
+            _petWindow.Close();
+        UpdateTrayStatus();
     }
 
     private void ShowNextPet()
@@ -141,7 +177,22 @@ public partial class App : System.Windows.Application
     {
         Dispatcher.BeginInvoke(() =>
         {
-            if (e.Reason == SessionSwitchReason.SessionLock) _locked = true;
+            if (e.Reason == SessionSwitchReason.SessionLock)
+            {
+                _locked = true;
+                // On lock, hide any existing pet and requeue its unanswered reminder
+                // for the next unlock. Do not try to draw above Windows' secure screen.
+                if (_petWindow is not null)
+                {
+                    var active = _store?.Reminders.FirstOrDefault(r => r.Id == _petWindow.ReminderId);
+                    if (active is not null && active.Status == ReminderStatus.Delivered)
+                    {
+                        if (!_petQueue.Any(r => r.Id == active.Id))
+                            _petQueue.Enqueue(active);
+                    }
+                    _petWindow.Close();
+                }
+            }
             if (e.Reason == SessionSwitchReason.SessionUnlock)
             {
                 _locked = false;

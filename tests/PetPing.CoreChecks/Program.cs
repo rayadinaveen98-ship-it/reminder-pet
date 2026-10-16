@@ -30,6 +30,13 @@ try
     Check(ReminderRules.Evaluate(reminder, current) == ReminderDeliveryDecision.Missed, "old reminder is missed");
     reminder.Status = ReminderStatus.Completed;
     Check(ReminderRules.Evaluate(reminder, current) == ReminderDeliveryDecision.None, "completed reminder cannot fire");
+    Check(!ReminderRules.NeedsAttention(reminder), "completed reminder does not need attention");
+    Check(!ReminderRules.CanSnooze(reminder), "completed reminder cannot be snoozed");
+    reminder.Status = ReminderStatus.Missed;
+    Check(ReminderRules.NeedsAttention(reminder), "missed reminder stays in attention inbox");
+    Check(ReminderRules.CanSnooze(reminder), "missed reminder can be snoozed");
+    reminder.Status = ReminderStatus.Delivered;
+    Check(ReminderRules.NeedsAttention(reminder), "unanswered reminder stays in attention inbox");
 
     restored.Reminders[0].Status = ReminderStatus.Delivered;
     restored.Reminders[0].DeliveredAt = current.AddMinutes(-5);
@@ -48,6 +55,10 @@ try
     restored.Mark(restored.Reminders[0], ReminderStatus.Completed);
     Check(new ReminderStore(temp).Reminders[0].Status == ReminderStatus.Completed,
         "completed state persists across restart");
+    bool refusedSnooze = false;
+    try { restored.Snooze(restored.Reminders[0], TimeSpan.FromMinutes(10)); }
+    catch (InvalidOperationException) { refusedSnooze = true; }
+    Check(refusedSnooze, "completed reminder rejects snooze");
 
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");

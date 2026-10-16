@@ -8,6 +8,7 @@ public sealed class ReminderScheduler
     private readonly ReminderStore _store;
     private readonly DispatcherTimer _tick;
     public event Action<Reminder>? ReminderDue;
+    public event Action<int>? RemindersMissed;
     public event Action? Changed;
 
     public ReminderScheduler(ReminderStore store)
@@ -23,7 +24,10 @@ public sealed class ReminderScheduler
     public void CheckNow()
     {
         var now = DateTimeOffset.UtcNow;
-        foreach (var reminder in _store.Reminders.Where(r => r.Status == ReminderStatus.Pending).OrderBy(r => r.DueAt).ToList())
+        var newlyMissed = 0;
+        foreach (var reminder in _store.Reminders
+                     .Where(r => r.Status == ReminderStatus.Pending)
+                     .OrderBy(r => r.DueAt).ToList())
         {
             switch (ReminderRules.Evaluate(reminder, now))
             {
@@ -31,11 +35,10 @@ public sealed class ReminderScheduler
                     break;
                 case ReminderDeliveryDecision.Missed:
                     _store.Mark(reminder, ReminderStatus.Missed);
+                    newlyMissed++;
                     Changed?.Invoke();
                     break;
                 case ReminderDeliveryDecision.Deliver:
-                    // Persist before callback. If app crashes before the alert appears,
-                    // a recent unacknowledged alert is restored on the next app launch.
                     reminder.Status = ReminderStatus.Delivered;
                     reminder.DeliveredAt = now;
                     _store.Save();
@@ -44,5 +47,9 @@ public sealed class ReminderScheduler
                     break;
             }
         }
+
+        // One summary for a batch, not one intrusive alert per missed reminder.
+        if (newlyMissed > 0)
+            RemindersMissed?.Invoke(newlyMissed);
     }
 }
