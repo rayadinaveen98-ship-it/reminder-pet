@@ -411,6 +411,35 @@ try
     Check(!PetWalkRules.IsVoiceRepeatAllowed(false, false, false, true, true),
         "disabled local Windows voice is never scheduled");
 
+
+    // v0.12: new Home never fabricates reminder counts or mutates persistence.
+    var sampleTime = new DateTimeOffset(2026, 10, 16, 10, 0, 0, TimeSpan.Zero);
+    var sampleTasks = new List<Reminder>
+    {
+        new() { Title = "Video edit", DueAt = sampleTime.AddHours(4), Status = ReminderStatus.Pending },
+        new() { Title = "Tomorrow reading", DueAt = sampleTime.AddDays(1), Status = ReminderStatus.Pending },
+        new() { Title = "Tomorrow writing", DueAt = sampleTime.AddDays(1).AddHours(3), Status = ReminderStatus.Pending },
+        new() { Title = "Next week plan", DueAt = sampleTime.AddDays(7), Status = ReminderStatus.Pending },
+        new() { Title = "Needs attention", DueAt = sampleTime.AddHours(-1), Status = ReminderStatus.Delivered },
+        new() { Title = "Finished", DueAt = sampleTime, Status = ReminderStatus.Completed }
+    };
+    var snapshot = DashboardSummaryRules.Build(sampleTasks, sampleTime.UtcDateTime);
+    Check(snapshot.UpcomingCount == 4 && snapshot.AttentionCount == 1,
+        "Home counts are computed from stored reminder states");
+    Check(snapshot.TodayCount == 2,
+        "Home Today reflects active pending and delivered reminders for local calendar day");
+    Check(snapshot.NextReminders.Count == 3 &&
+          snapshot.NextReminders[0].Title == "Video edit" &&
+          snapshot.NextReminders[2].Title == "Tomorrow writing",
+        "Home shows only the next three upcoming tasks sorted by due date");
+    Check(sampleTasks.Count == 6 &&
+          sampleTasks.All(r => r.Title != "Pet caretaker appointment"),
+        "Home summary is read-only and uses actual human reminder titles");
+    var emptyHome = DashboardSummaryRules.Build(Array.Empty<Reminder>(), DateTime.Today);
+    Check(emptyHome.TodayCount == 0 && emptyHome.UpcomingCount == 0 &&
+          emptyHome.AttentionCount == 0 && emptyHome.NextReminders.Count == 0,
+        "new dashboard shows honest empty totals without fake sample data");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
