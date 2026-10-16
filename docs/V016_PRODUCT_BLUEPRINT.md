@@ -3,7 +3,7 @@
 **Status:** APPROVED DIRECTION / SPECIFICATION IN PROGRESS — design and engineering deliverables, **not an implemented Windows feature release**.
 **Decision date:** 2026-10-16.
 **Working product name:** PetPing; public trademark/name check and user approval required before final brand lock.
-**Implementation baseline:** Windows v0.15, source merged to \`main\`; 122 CI core checks, Windows package and real v0.14→v0.15 synthetic-data upgrade passed. User reports the overall existing app works; formal per-device accessibility, audio, mixed-DPI, power-cycle acceptance remains outstanding.
+**Implementation baseline:** Windows v0.15, source merged to `main`; 122 CI core checks, Windows package and real v0.14→v0.15 synthetic-data upgrade passed. User reports the overall existing app works; formal per-device accessibility, audio, mixed-DPI, power-cycle acceptance remains outstanding.
 
 ## 1. North star
 
@@ -113,13 +113,13 @@ Use simple human language: “Remind me”, “Repeat”, “Snooze”, “Needs
 Current Windows stack: WPF/.NET 10; JSON reminders and pet settings under local AppData; scheduler polling and tray process; Windows local TTS; unsigned per-user Inno Setup. Preserve this reliable surface until replacements are tested.
 
 Proposed design seams:
-- \`ReminderDomain\`: scheduling rules, one-time and recurrence, snooze, history, validation, storage migrations.
-- \`ReminderPresentationCoordinator\`: one active reminder scene, queue and lossless status reconciliation.
-- \`PetSceneRenderer\`: art rigs, animation state machine, text/controls, reduced-motion rendering.
-- \`NarrationCoordinator\`: local TTS ownership, repeats, cancel-on-session changes, silent fallback.
-- \`PetProfileStore\`: per-species versioned settings, safe local migration, validated asset references.
-- \`FirstRunCoordinator\`: idempotent first-run flow only after profile/data-presence inspection; never replace existing reminders.
-- \`Theme/DesignTokens\`: consistent WPF resource dictionary and responsive typography; visuals in Canva/Figma remain reference, not runtime dependencies.
+- `ReminderDomain`: scheduling rules, one-time and recurrence, snooze, history, validation, storage migrations.
+- `ReminderPresentationCoordinator`: one active reminder scene, queue and lossless status reconciliation.
+- `PetSceneRenderer`: art rigs, animation state machine, text/controls, reduced-motion rendering.
+- `NarrationCoordinator`: local TTS ownership, repeats, cancel-on-session changes, silent fallback.
+- `PetProfileStore`: per-species versioned settings, safe local migration, validated asset references.
+- `FirstRunCoordinator`: idempotent first-run flow only after profile/data-presence inspection; never replace existing reminders.
+- `Theme/DesignTokens`: consistent WPF resource dictionary and responsive typography; visuals in Canva/Figma remain reference, not runtime dependencies.
 
 **Decision gate:** current JSON can remain for low-volume data. Do not convert to SQLite simply because “premium” sounds larger. Introduce a transactional data layer only with a tested migration+rollback case and a clear requirement from advanced recurrence/history.
 
@@ -127,6 +127,6 @@ Proposed design seams:
 
 This approval locks **direction and work sequence**, not every detailed interaction or visual asset. Exact logo artwork, character rigs, new recurrence semantics, how strongly voice repeats, fullscreen interruption behavior and typography need visual prototype + acceptance before implementation lock.
 
-See \`docs/V016_DELIVERY_PLAN.md\` for milestone entry/exit criteria; \`docs/V016_REMINDER_SPEC.md\` for schedule behavior; \`docs/V016_CHARACTER_EXPERIENCE.md\` and \`docs/V016_BRAND_ONBOARDING.md\` for art and onboarding.
+See `docs/V016_DELIVERY_PLAN.md` for milestone entry/exit criteria; `docs/V016_REMINDER_SPEC.md` for schedule behavior; `docs/V016_CHARACTER_EXPERIENCE.md` and `docs/V016_BRAND_ONBOARDING.md` for art and onboarding.
 
 **Current deliverable v0.16 is a PRODUCT BLUEPRINT, not a Windows EXE.** No claim of new reminder options/brand/onboarding code being live until future builds explicitly pass Windows CI and user QA.
