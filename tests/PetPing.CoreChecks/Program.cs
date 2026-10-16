@@ -689,6 +689,96 @@ try
               == stateBeforeInvalidSnooze,
         "storage-layer duration validation rejects oversized snooze without mutation");
 
+    // v0.18 R2-A: the same editor rules govern Create and Edit. No silent
+    // conversion of invalid local wall-times or impossible repeat selections.
+    Check(ReminderEditorRules.ValidateTitle("  Review storyboard  ") == "Review storyboard",
+        "editor trims title whitespace without losing meaningful characters");
+    Check(ReminderEditorRules.ValidateTitle(new string('a', 120)).Length == 120,
+        "editor permits names exactly at its 120-character boundary");
+    bool emptyTitleRejected = false;
+    bool overlongTitleRejected = false;
+    try { ReminderEditorRules.ValidateTitle("  "); }
+    catch (ArgumentException) { emptyTitleRejected = true; }
+    try { ReminderEditorRules.ValidateTitle(new string('x', 121)); }
+    catch (ArgumentException) { overlongTitleRejected = true; }
+    Check(emptyTitleRejected && overlongTitleRejected,
+        "editor rejects empty and overlong names without a store write");
+    Check(ReminderEditorRules.SelectRepeat(0) == RepeatPattern.None &&
+          ReminderEditorRules.SelectRepeat(1) == RepeatPattern.Daily &&
+          ReminderEditorRules.SelectRepeat(2) == RepeatPattern.Weekly,
+        "editor repeat selection preserves all three existing frequencies");
+    bool invalidRepeatRejected = false;
+    try { ReminderEditorRules.SelectRepeat(-1); }
+    catch (ArgumentException) { invalidRepeatRejected = true; }
+    Check(invalidRepeatRejected, "editor rejects an unset or unsupported repeat choice");
+
+    var midnightUtc = new DateTimeOffset(2026, 10, 16, 23, 58, 0, TimeSpan.Zero);
+    var midnightDefault = ReminderEditorRules.DefaultLocalDue(midnightUtc, TimeZoneInfo.Utc);
+    Check(midnightDefault.Date == new DateTime(2026, 10, 17) &&
+          midnightDefault.TimeOfDay == new TimeSpan(0, 3, 0),
+        "default reminder date and time advance together across midnight");
+    var sampleNow = new DateTimeOffset(2026, 10, 16, 14, 0, 0, TimeSpan.Zero);
+    var validDue = ReminderEditorRules.ReadLocalDue(
+        new DateTime(2026, 10, 17), "09:30", TimeZoneInfo.Utc, sampleNow);
+    Check(validDue == new DateTimeOffset(2026, 10, 17, 9, 30, 0, TimeSpan.Zero),
+        "editor parses a future 24-hour local time without silent adjustment");
+    bool dateRequired = false, timeRequired = false, timeSyntaxRejected = false,
+        pastRejected = false;
+    try { ReminderEditorRules.ReadLocalDue(null, "19:00", TimeZoneInfo.Utc, sampleNow); }
+    catch (ArgumentException) { dateRequired = true; }
+    try { ReminderEditorRules.ReadLocalDue(new DateTime(2026, 10, 17),
+        "", TimeZoneInfo.Utc, sampleNow); }
+    catch (ArgumentException) { timeRequired = true; }
+    try { ReminderEditorRules.ReadLocalDue(new DateTime(2026, 10, 17),
+        "24:00", TimeZoneInfo.Utc, sampleNow); }
+    catch (ArgumentException) { timeSyntaxRejected = true; }
+    try { ReminderEditorRules.ReadLocalDue(new DateTime(2026, 10, 16),
+        "13:59", TimeZoneInfo.Utc, sampleNow); }
+    catch (ArgumentException) { pastRejected = true; }
+    Check(dateRequired && timeRequired && timeSyntaxRejected && pastRejected,
+        "editor rejects unset dates, invalid 24-hour clocks, and past timestamps");
+
+    // Use an entirely synthetic timezone to avoid assumptions about Windows
+    // registry or ICU aliases on different CI machines.
+    var springSwitch = TimeZoneInfo.TransitionTime.CreateFloatingDateRule(
+        new DateTime(1, 1, 1, 2, 0, 0), 3, 2, DayOfWeek.Sunday);
+    var fallSwitch = TimeZoneInfo.TransitionTime.CreateFloatingDateRule(
+        new DateTime(1, 1, 1, 2, 0, 0), 11, 1, DayOfWeek.Sunday);
+    var syntheticDSTRule = TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
+        new DateTime(2020, 1, 1), new DateTime(2035, 12, 31),
+        TimeSpan.FromHours(1), springSwitch, fallSwitch);
+    var syntheticZone = TimeZoneInfo.CreateCustomTimeZone("PetPing-Editor-DST-Test",
+        TimeSpan.FromHours(-5), "PetPing editor test time zone", "Winter", "Summer",
+        [syntheticDSTRule]);
+    bool gapRejected = false, repeatedHourRejected = false;
+    try { ReminderEditorRules.ReadLocalDue(new DateTime(2026, 3, 8),
+        "02:30", syntheticZone, sampleNow.AddMonths(-8)); }
+    catch (ArgumentException) { gapRejected = true; }
+    try { ReminderEditorRules.ReadLocalDue(new DateTime(2026, 11, 1),
+        "01:30", syntheticZone, sampleNow); }
+    catch (ArgumentException) { repeatedHourRejected = true; }
+    Check(gapRejected && repeatedHourRejected,
+        "editor refuses DST gap and ambiguous repeated wall hour instead of guessing");
+    var normalSummerDue = ReminderEditorRules.ReadLocalDue(new DateTime(2026, 7, 15),
+        "10:00", syntheticZone, sampleNow.AddMonths(-8));
+    Check(normalSummerDue.Offset == TimeSpan.FromHours(-4) &&
+          normalSummerDue.Hour == 10,
+        "valid DST summer reminder retains its intended wall time and UTC offset");
+
+    var invalidEditorStore = new ReminderStore(Path.Combine(temp, "editor-validation"));
+    var invalidEditorItem = invalidEditorStore.Add("Unchanged", DateTimeOffset.UtcNow.AddHours(2));
+    var diskBeforeInvalidEdit = File.ReadAllText(
+        Path.Combine(temp, "editor-validation", "reminders.json"));
+    bool invalidEditorEditRejected = false;
+    try { invalidEditorStore.Edit(invalidEditorItem, new string('a', 121),
+        DateTimeOffset.UtcNow.AddHours(3), RepeatPattern.None); }
+    catch (ArgumentException) { invalidEditorEditRejected = true; }
+    Check(invalidEditorEditRejected &&
+          invalidEditorItem.Title == "Unchanged" &&
+          File.ReadAllText(Path.Combine(temp, "editor-validation", "reminders.json"))
+            == diskBeforeInvalidEdit,
+        "invalid edited name keeps both in-memory occurrence and saved JSON untouched");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
