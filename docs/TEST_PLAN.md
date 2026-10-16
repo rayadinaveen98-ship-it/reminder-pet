@@ -146,3 +146,7 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Quit tray app and reopen: same pet, palette, accessories, size and actions remain. Existing saved reminders must not change.
 - Corrupt only a **disposable test** pet-profile.json and restart: app chooses safe cat default without deleting the corrupt file or reminders.
 - Physical tests for 100–200% scaling, pet controls and keyboard focus, second monitor, session lock, suspend/resume. CI is not physical confirmation.
+
+## v0.13 automated evidence vs physical QA
+- Windows run 38897525278 passed 105 core smoke checks, compiled the WPF project and Inno Setup package, installed and reinstalled silently, uninstalled, then verified LocalAppData sentinel was preserved.
+- Cat/Dog/Bunny rendering, text/font/ear scaling, and on-device Windows speech have not been visually or audibly verified by CI; user must still test.
