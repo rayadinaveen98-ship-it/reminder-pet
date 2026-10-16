@@ -53,3 +53,12 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Requeue unanswered popup when desktop locks; present after unlock
 - [x] Keep popup consistent with user actions in dashboard
 - [ ] Real-device confirmation of focus, screen lock and notification behavior
+
+## Milestone W1.2 — floating visual companion (v0.4)
+- [x] Independent 2D vector pet with no rectangular enclosing notification card
+- [x] Short sliding arrival, looping gentle hover and tail motion, animated exit
+- [x] Compact reminder speech bubble with Done / Snooze / Hide controls
+- [x] Popup positioning away from video controls for large active windows
+- [x] Hover pauses popup timeout; hidden reminders remain Needs Attention
+- [ ] Hands-on Windows QA for UI, screen scaling, fullscreen and speech
+- [ ] Focus/quiet modes, user-selectable popup placement and mixed-DPI multi-monitor placement

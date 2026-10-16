@@ -49,3 +49,13 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - **Manual action consistency:** with a pet visible, mark that reminder Done (or Snooze) from the dashboard; the old pet should close.
 - **Missed batch:** create several reminders, leave device unavailable until 16+ minutes overdue, then relaunch; one tray summary may appear, all should remain in history as Missed.
 - **No false promise:** Windows may suppress tray balloons; do not rely on them as the only notification.
+
+## v0.4 floating pet visual QA
+- Confirm orange cat is free-standing beside the bubble rather than inside a large notification rectangle.
+- Confirm arrival slides from the right and idle floating/tail animations do not interfere with clicks.
+- Test a maximized video browser and regular window; large-window overlay should be upper right; ordinary desktop overlay should be elevated bottom right.
+- Hover over reminder and wait more than 45 seconds: it should not vanish until mouse leaves and timer expires.
+- Test Done and Snooze; verify both persist and close the popup. Test ×: hide but leave in Needs Attention.
+- Test 100/125/150% display scaling, dark desktop, two monitors, 720p and 4K screen.
+- Confirm voice continues announcing reminder names with Speak Reminders enabled and remains quiet when disabled.
+- Test reminder while Windows session is locked: no secure lock-screen overlay.

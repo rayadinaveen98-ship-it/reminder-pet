@@ -1,49 +1,148 @@
 <Window x:Class="PetPing.Windows.Views.PetWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="PetPing Reminder" Width="340" Height="232"
+        Title="PetPing — friendly reminder"
+        Width="425" Height="236" MinWidth="425" MinHeight="236"
         WindowStyle="None" ResizeMode="NoResize" AllowsTransparency="True"
-        Background="Transparent" Topmost="True" ShowInTaskbar="False" ShowActivated="False">
+        Background="Transparent" Topmost="True" ShowInTaskbar="False"
+        ShowActivated="False" SnapsToDevicePixels="True"
+        MouseEnter="OnPetMouseEnter" MouseLeave="OnPetMouseLeave">
   <Window.Resources>
-    <Storyboard x:Key="FloatAnimation" RepeatBehavior="Forever" AutoReverse="True">
-      <DoubleAnimation Storyboard.TargetName="PetFloat" Storyboard.TargetProperty="Y" From="0" To="-6" Duration="0:0:1.3"/>
-    </Storyboard>
+    <Style x:Key="BubbleAction" TargetType="{x:Type Button}">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="MinHeight" Value="27"/>
+      <Setter Property="Padding" Value="11,5"/>
+      <Setter Property="FontFamily" Value="Segoe UI"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="#4A3C32"/>
+      <Setter Property="Background" Value="#F5F0EB"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="{x:Type Button}">
+            <Border x:Name="Chrome" Background="{TemplateBinding Background}"
+                    Padding="{TemplateBinding Padding}" CornerRadius="14"
+                    SnapsToDevicePixels="True">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Chrome" Property="Opacity" Value="0.82"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Chrome" Property="Opacity" Value="0.68"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Chrome" Property="Opacity" Value="0.48"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
   </Window.Resources>
-  <Window.Triggers><EventTrigger RoutedEvent="Window.Loaded"><BeginStoryboard Storyboard="{StaticResource FloatAnimation}"/></EventTrigger></Window.Triggers>
-  <Border Background="Transparent" Padding="5">
-    <Grid>
-      <Border Margin="0,0,0,3" Background="White" CornerRadius="22" BorderBrush="#F4D3C0" BorderThickness="1.4">
-        <Border.Effect>
-          <DropShadowEffect Color="#4F3326" BlurRadius="20" ShadowDepth="5" Opacity="0.18"/>
-        </Border.Effect>
-        <Grid Margin="16">
-          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-          <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Top">
-            <Canvas Width="92" Height="100" Margin="0,4,12,4">
-              <Canvas.RenderTransform><TranslateTransform x:Name="PetFloat"/></Canvas.RenderTransform>
-              <!-- Original vector placeholder mascot; no external art dependency -->
-              <Polygon Points="12,32 18,2 43,24" Fill="#E9A66D" Stroke="#9C684A" StrokeThickness="1.5"/>
-              <Polygon Points="53,24 78,2 84,32" Fill="#E9A66D" Stroke="#9C684A" StrokeThickness="1.5"/>
-              <Ellipse Canvas.Left="9" Canvas.Top="20" Width="77" Height="71" Fill="#F5B27E" Stroke="#9C684A" StrokeThickness="1.5"/>
-              <Ellipse Canvas.Left="22" Canvas.Top="48" Width="8" Height="11" Fill="#37312F"/>
-              <Ellipse Canvas.Left="65" Canvas.Top="48" Width="8" Height="11" Fill="#37312F"/>
-              <Ellipse Canvas.Left="41" Canvas.Top="63" Width="14" Height="9" Fill="#E8837C"/>
-              <Path Data="M 47,72 Q 40,81 33,74 M 47,72 Q 54,81 61,74" Stroke="#9C684A" StrokeThickness="2" Fill="Transparent"/>
-              <Ellipse Canvas.Left="14" Canvas.Top="70" Width="15" Height="8" Fill="#ED9F8A" Opacity="0.7"/>
-              <Ellipse Canvas.Left="67" Canvas.Top="70" Width="15" Height="8" Fill="#ED9F8A" Opacity="0.7"/>
-            </Canvas>
-            <StackPanel VerticalAlignment="Center" Width="182">
-              <TextBlock Text="It's reminder time!" FontWeight="Bold" FontSize="16" Foreground="#292D32"/>
-              <TextBlock x:Name="ReminderTitle" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="68" Margin="0,7,0,0" FontSize="13" Foreground="#50575D"/>
-            </StackPanel>
-          </StackPanel>
-          <Border Grid.Row="1" Height="1" Background="#F2E9E3" Margin="0,10,0,12"/>
-          <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Snooze 10m" Click="OnSnooze" Background="#F3F2EF"/>
-            <Button Content="Done ✓" Click="OnDone" Margin="0" Background="#F3AE85"/>
-          </StackPanel>
+  <!-- A truly transparent stage: only the bubble and the free-standing pet have paint.
+       No full-size white notification card behind the character. -->
+  <Canvas x:Name="Stage" Width="425" Height="236">
+    <Canvas.RenderTransform>
+      <TranslateTransform x:Name="EntranceSlide" X="85"/>
+    </Canvas.RenderTransform>
+    <!-- Small speech bubble and pointer -->
+    <Border Canvas.Left="12" Canvas.Top="27" Width="252" Height="151"
+            Background="#FFFBF6" BorderBrush="#E8CBB4"
+            BorderThickness="1.2" CornerRadius="19">
+      <Border.Effect>
+        <DropShadowEffect Color="#77513C" BlurRadius="14" ShadowDepth="3" Opacity="0.22"/>
+      </Border.Effect>
+      <Grid Margin="15,12,15,11">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+          <TextBlock Text="HEY, REMINDER TIME!" FontFamily="Segoe UI"
+                     FontSize="10" FontWeight="Bold" Foreground="#C2764F"
+                     VerticalAlignment="Center"/>
+          <Button x:Name="HideButton" Content="×" HorizontalAlignment="Right"
+                  Background="Transparent" BorderThickness="0" Width="24" Height="22"
+                  FontSize="18" Foreground="#88776C" Cursor="Hand" Padding="0"
+                  ToolTip="Hide for now — reminder stays in Needs Attention"
+                  Click="OnHide" VerticalAlignment="Top"/>
         </Grid>
-      </Border>
-    </Grid>
-  </Border>
+        <TextBlock Grid.Row="1" x:Name="ReminderTitle"
+                   FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold"
+                   Foreground="#332A27" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
+                   VerticalAlignment="Center" MaxHeight="58" Margin="0,4,0,7"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal">
+          <Button Style="{StaticResource BubbleAction}" Content="Snooze 10m"
+                  Click="OnSnooze" Margin="0,0,8,0"/>
+          <Button Style="{StaticResource BubbleAction}" Content="Done ✓"
+                  Background="#F4B38D" Click="OnDone"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Polygon Canvas.Left="262" Canvas.Top="75" Points="0,0 17,10 0,22"
+             Fill="#FFFBF6" Stroke="#E8CBB4" StrokeThickness="1"/>
+
+    <!-- An original vector cat, physically separate from the speech bubble. -->
+    <Canvas Canvas.Left="274" Canvas.Top="4" Width="145" Height="224"
+            x:Name="PetBody" IsHitTestVisible="False">
+      <Canvas.RenderTransform>
+        <TranslateTransform x:Name="PetFloat"/>
+      </Canvas.RenderTransform>
+      <!-- tail (behind body): subtle ongoing wag -->
+      <Path Data="M 112,157 C 157,156 154,105 128,112"
+            Stroke="#E49C65" StrokeThickness="16" StrokeStartLineCap="Round"
+            StrokeEndLineCap="Round" Fill="Transparent">
+        <Path.RenderTransform>
+          <RotateTransform x:Name="TailWag" CenterX="115" CenterY="152"/>
+        </Path.RenderTransform>
+      </Path>
+      <!-- feet and legs -->
+      <Ellipse Canvas.Left="39" Canvas.Top="181" Width="38" Height="22"
+               Fill="#DE9463" Stroke="#A96F50" StrokeThickness="1.5"/>
+      <Ellipse Canvas.Left="83" Canvas.Top="181" Width="38" Height="22"
+               Fill="#DE9463" Stroke="#A96F50" StrokeThickness="1.5"/>
+      <!-- body and cream chest -->
+      <Ellipse Canvas.Left="30" Canvas.Top="102" Width="100" Height="94"
+               Fill="#F1AD78" Stroke="#A96F50" StrokeThickness="2"/>
+      <Ellipse Canvas.Left="58" Canvas.Top="125" Width="47" Height="63"
+               Fill="#FFE0B8"/>
+      <!-- pointed ears behind face -->
+      <Polygon Points="31,66 33,13 68,41" Fill="#F1AD78"
+               Stroke="#A96F50" StrokeThickness="2"/>
+      <Polygon Points="93,41 129,13 131,67" Fill="#F1AD78"
+               Stroke="#A96F50" StrokeThickness="2"/>
+      <Polygon Points="40,53 41,28 59,46" Fill="#F8C3B2"/>
+      <Polygon Points="104,46 122,27 122,54" Fill="#F8C3B2"/>
+      <!-- head -->
+      <Ellipse Canvas.Left="23" Canvas.Top="39" Width="116" Height="112"
+               Fill="#F6B683" Stroke="#A96F50" StrokeThickness="2"/>
+      <!-- face markings -->
+      <Ellipse Canvas.Left="31" Canvas.Top="102" Width="21" Height="11"
+               Fill="#EC9387" Opacity="0.6"/>
+      <Ellipse Canvas.Left="109" Canvas.Top="102" Width="21" Height="11"
+               Fill="#EC9387" Opacity="0.6"/>
+      <Ellipse Canvas.Left="46" Canvas.Top="81" Width="9" Height="14" Fill="#473934"/>
+      <Ellipse Canvas.Left="108" Canvas.Top="81" Width="9" Height="14" Fill="#473934"/>
+      <Ellipse Canvas.Left="47" Canvas.Top="83" Width="3" Height="4" Fill="#FFFFFF"/>
+      <Ellipse Canvas.Left="109" Canvas.Top="83" Width="3" Height="4" Fill="#FFFFFF"/>
+      <Ellipse Canvas.Left="76" Canvas.Top="107" Width="12" Height="8"
+               Fill="#D97D73"/>
+      <Path Data="M 82,115 Q 70,128 63,115 M 82,115 Q 91,128 100,115"
+            Stroke="#985F50" StrokeThickness="2" StrokeStartLineCap="Round"
+            Fill="Transparent"/>
+      <!-- whiskers -->
+      <Path Data="M 48,109 L 25,106 M 49,118 L 26,126 M 115,109 L 139,106 M 114,118 L 137,126"
+            Stroke="#AB785E" StrokeThickness="1.5" Fill="Transparent"/>
+      <!-- front paws -->
+      <Ellipse Canvas.Left="45" Canvas.Top="155" Width="25" Height="37"
+               Fill="#F8BD8F" Stroke="#A96F50" StrokeThickness="1.4"/>
+      <Ellipse Canvas.Left="94" Canvas.Top="155" Width="25" Height="37"
+               Fill="#F8BD8F" Stroke="#A96F50" StrokeThickness="1.4"/>
+    </Canvas>
+  </Canvas>
 </Window>
