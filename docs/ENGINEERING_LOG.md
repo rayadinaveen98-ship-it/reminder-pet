@@ -82,3 +82,9 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Includes blink, speech-mouth, local pet placement/motion settings, and saved-action-only Done/Snooze confirmation. Existing reminder recurrence untouched.
 - Hands-on physical testing remains open (animation visuals, voice timing, mixed-DPI monitors, lock/sleep). Do not treat passing CI as proof of those scenarios.
 - Next: user v0.7 testing, P0 defects, then v0.8 Windows polish/packaging before Android.
+
+## 2026-10-16 — v0.8 kickoff
+- User confirmed v0.7 is good and approved proceeding. Do not infer that separate lock/wake, audio and mixed-DPI device acceptance tests passed.
+- Branch `feature/windows-v0.8-dashboard-installer`. Scope: reorganize reminder inbox into readable Today / Upcoming / Needs Attention / History / All filters, friendlier dashboard spacing and keyboard/accessibility helpers. Preserve v0.7 pet, preferences, recurring scheduling and local saved reminder data.
+- Distribution: add a per-user **unsigned** Inno Setup installer via Windows GitHub CI alongside the existing portable ZIP. The installer must never erase reminder data on uninstall. Avoid admin rights, paid certificate requirements, auto-updater promises or silent background actions.
+- Next: commit source and CI pipeline, run Windows build, fix errors, test installer extraction/build, update docs/QA and merge only when green.
