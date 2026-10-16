@@ -23,20 +23,20 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**Windows v1.0 release candidate (RC1) — planning and acceptance.**
+**PetPing 2.0 Experience — v0.10 design foundation (pre-v1.0).**
 
-- v0.9 is merged and CI-verified (72 automated core checks; Windows x64 installer build and same-version install/reinstall/uninstall smoke).
-- On 2026-10-16, the user reported: **"all working good bro tested everything"** for v0.9. Treat this as broad **user-reported acceptance** of the current Windows build; do not invent a detailed pass/fail transcript for separate tests such as mixed DPI, screen reader, lock/sleep, or a real v0.8→v0.9 installer upgrade.
-- v1.0 RC feature freeze proposed: keep existing pet, reminders, recurring schedule, offline preferences and installer stable. Focus on reliability, release presentation and distribution instead of unrelated new features.
-- No v1.0 code or installer release has been built yet. v0.9 remains the latest confirmed artifact.
+User approved a major pet behavior and UI redesign and asked to proceed with Phase 1. This supersedes the proposed Windows v1.0 feature freeze until the new experience is built and tested.
 
-### RC1 build objectives
-1. Give all binaries and installer a consistent v1.0 RC identity/version and suitable first-party icon/resources.
-2. Extend Windows CI with an actual **v0.9→RC upgrade simulation**, verifying persisted reminders/settings before and after; retain install/uninstall preserve-data checks.
-3. Do a final keyboard/focus, screen scaling, monitor placement, sleep/resume, lock/unlock and optional speech smoke checklist, recording user results distinctly from automated tests.
-4. Prepare privacy/data-handling note, troubleshooting, backup/restore instructions, changelog and install/upgrade/uninstall guide.
-5. Publish reproducible Windows RC artifacts, checksums and concise release notes. Public distribution requires an explicit plan for unsigned Windows warnings/code signing; do not claim SmartScreen trust.
-6. After acceptance, decide whether to designate v1.0 stable, then start Android native foundation without promising equivalent overlays under Android OS restrictions.
+- Baseline: v0.9 Windows stays unchanged and user-reported working, with CI 72 core checks (run 38881511852).
+- Design branch: `design/pet-experience-2-phase-1`.
+- Editable Canva 7-page UI mockup: https://www.canva.com/d/26YBWLCIc7nE3nk (Home, Reminders, My Pets, Pet Studio, Preferences, storyboard, style guide).
+- Specs: `docs/PET_EXPERIENCE_2_DESIGN.md`, `docs/PET_EXPERIENCE_2_STORYBOARD.md`, `design/petping-2/tokens.json`, `design/petping-2/pet-profile.example.json`, `design/petping-2/README.md`.
+- No compiled v0.10 app or new feature engine yet. This branch is design-only.
+- Canva generation needs copy corrections: generic pet-care reminders, and voice repeat should be seconds, not minutes. User visual review pending.
+- Figma Starter/View seat reported; Canva used as the editable design option.
+
+### Implementation after visual signoff
+v0.11 walking actor + repeated voice + unboxed text; v0.12 action effects; v0.13 Cat/Dog/Bunny profile system; v0.14 native WPF navigation redesign; v0.15 QA; then Windows v1.0 candidate.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -81,8 +81,4 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-**Proposed next implementation: `Windows v1.0 RC1`.** Start a dedicated release-candidate branch, add release versioning/branding and a true prior-version installer upgrade regression to CI, then prepare release notes and distributable outputs. Keep user reminders and on-device data intact. Do not add cloud sync, AI, subscriptions or new pet species during the release freeze.
-
-Ask user for a visual/installation feedback report if any problems arise, but their broad v0.9 all-working report is now recorded. Identify exact physical test evidence still missing without calling their tests failed. Do not merge v1.0 or publish it as stable without a green build and clear release gates. Android remains **the next new platform after Windows release sign-off**.
-
-See `docs/V1_RELEASE_CHECKLIST.md` for deliverables and acceptance criteria.
+Review the seven Canva screens with the user and correct visual copy; approve style and storyboard. Then implement v0.11 in a separate code branch with CI, preserving v0.9 local reminder data. Keep this document and the engineering log current. The Windows v1.0 release checklist remains deferred, and Android follows a mature Windows release.
