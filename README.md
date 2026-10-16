@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current deliverable:** Windows Alpha v0.6 editing + daily/weekly repeats. GitHub Windows x64 CI passed **49** core tests and produced an unsigned ZIP; laptop UI/voice/power behavior still needs testing. This is not a production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current deliverable:** Windows Alpha v0.7 pet experience in development, pending Windows CI. User reports v0.6 works; independent lock/sleep/multi-monitor testing remains open. This is not a production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -39,9 +39,9 @@ No license granted yet. Product source is created for this user project; select 
 ## No-SDK visual preview (Windows only)
 Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an optional voice preview. This standalone PowerShell/WPF script is a **visual/overlay capability probe**, not the actual reminder application: it does not save or schedule real reminders. Snooze in this preview is deliberately 10 **seconds**. Inspect the source first if you wish; it does not require admin rights and does not download anything.
 
-## v0.6 build and testing
+## v0.7 build and testing
 - The Windows build workflow runs on pushes to `main` and can also be triggered manually in **Actions → Build Windows Alpha**.
-- When the run succeeds, open its **Artifacts** section and download `PetPing-Windows-v0.6-unsigned`.
+- When the run succeeds, open its **Artifacts** section and download `PetPing-Windows-v0.7-unsigned`.
 - The EXE is a self-contained unsigned **alpha**, not an installer or a verified consumer release; Windows may display a SmartScreen warning.
 - Reminders recover on restart when they were delivered but not acknowledged within 15 minutes. Older ones remain visible in the reminder history.
 - Optional **Start with Windows** registers this executable for the current user with `--background` (without automatically showing the dashboard).
@@ -87,4 +87,12 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 
 ## Latest v0.6 build evidence
 - Windows GitHub Actions: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 — 49 core checks + executable publish succeeded.
-- Artifact: `PetPing-Windows-v0.6-unsigned` (time-limited retention). The release is a test ZIP, not an installed/signed consumer build.
+- Artifact: `PetPing-Windows-v0.7-unsigned` (time-limited retention). The release is a test ZIP, not an installed/signed consumer build.
+
+## v0.7 pet interaction and preferences
+- Cat now blinks occasionally and displays a small talking mouth synchronized to **local Windows TTS speech-start/speech-complete events**.
+- **Pet appears** preference offers Auto, Top right, Bottom right, Top left, and Bottom left. Auto uses top-right when a maximized foreground window is detected; otherwise bottom-right.
+- **Motion** preference offers Playful (entry slide, floating, wagging, blinking and mouth animation), Gentle (minimal fade plus blink) or Off (no entry, float, wag, blink or fade; speaking mouth may show as a static state).
+- Placement chooses the screen of the currently foreground application and maps monitor pixels into WPF logical coordinates. Mixed-DPI hardware still requires physical testing.
+- Settings are saved independently at `%LOCALAPPDATA%\PetPing\pet-appearance.json`; old reminders and repeat rules are left unchanged. Settings apply to the next pet popup.
+- The pet remains a single original orange vector cat; alternate animals and new illustrated packs are deferred, not silently claimed as implemented.

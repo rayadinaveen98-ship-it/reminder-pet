@@ -20,9 +20,9 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**v0.6 — recurrence and editing**. Merged to `main` via PR #5, squash commit `f75fef016eb650e25fc9d40248c73ec61d6208ca`.
+**v0.7 — pet experience**. Branch `feature/windows-v0.7-pet-experience`. Source committed; Windows PR/CI pending.
 
-Current status: **v0.6 MERGED + CI-VERIFIED (49 core checks, Windows x64 executable)**. User device QA of the new edit/repeat interface, sleep/lock and speech is still outstanding; not production-ready.
+Current status: **v0.7 DEVELOPMENT / CI PENDING**. Last CI-verified release v0.6 (49 checks). User reports v0.6 works. Lock/sleep/multi-monitor testing remains unverified.
 
 Priority work:
 1. Handle presentation failures safely and visibly; do not lose state because a pet popup or speech cannot render.
@@ -62,5 +62,11 @@ Priority work:
 - Edit ordinary future unsent reminders and adjust repeat settings; previous history stays intact.
 - Added deterministic recurrence, DST, long-offline, legacy-file, rollback regression tests. **49 core checks passed** and a Windows artifact was uploaded in GitHub run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 .
 
+## v0.7 scope / implementation
+- Persistent `pet-appearance.json` independent of reminders, with Auto/Top/Bottom corner selection and Playful/Gentle/Off motion.
+- Original vector cat blinking eyes and speech-mouth driven by Windows TTS started/completed events.
+- Uses foreground-monitor coordinate conversion to improve placement, but physical mixed-DPI QA is pending.
+- No alternate pet animals or compiled APK in this phase.
+
 ## Next action
-Distribute the latest `PetPing-Windows-v0.6-unsigned` (artifact ID 12032645056, green run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868752195). Ask user to test on Windows: create Daily at a future time, edit an upcoming Weekly reminder, snooze today's repeat and verify tomorrow appears once, close to tray and reopen, and confirm old saved reminders remain. The prior v0.5 power/lock and voice QA remains open until evidenced. Prioritize reported P0 bugs; otherwise proceed to v0.7 pet character/animation polish.
+Open a PR for v0.7, inspect Windows CI and fix failures, update this file with exact passing build and merge commit. Then share unsigned Windows v0.7 archive and request hands-on testing of pet position, motion options and speaking. Preserve user-reported v0.6 working state and outstanding lock/sleep QA.

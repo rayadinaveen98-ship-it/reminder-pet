@@ -61,3 +61,10 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Target: make the existing orange-cat companion more expressive without altering reminder schema or recurrence: blinking/speaking feedback, reduced-motion mode, user-selectable corner placement, and safe settings persistence.
 - Keep Windows first, Android second, local-first, zero-cost software/hosting. Commit code and resume documents, run green Windows CI, then merge and share the unsigned alpha.
 - Branch: `feature/windows-v0.7-pet-experience`; PR and CI pending.
+
+## 2026-10-16 — v0.7 engineering checkpoint
+- Feature branch: `feature/windows-v0.7-pet-experience`.
+- Initial commits: pet appearance preference store; vector-cat blink/mouth elements; WPF speech-linked expression, reduced-motion modes and monitor-corner positioning; app/dashboard integration.
+- Settings are local and independent of the reminder JSON. Existing daily/weekly engine intentionally unchanged.
+- Added smoke checks for preference persistence, invalid enum, disk write rollback and corrupt settings isolation.
+- Windows compile and hands-on appearance tests pending at this checkpoint. Next: PR, CI, bug fixes, status refresh, merge.
