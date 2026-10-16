@@ -24,11 +24,11 @@ jobs:
       - name: Core reminder tests
         run: dotnet run --project tests/PetPing.CoreChecks/PetPing.CoreChecks.csproj -c Release
       - name: Build portable Windows EXE
-        run: dotnet publish desktop/PetPing.Windows/PetPing.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/PetPing-Windows-v0.5
+        run: dotnet publish desktop/PetPing.Windows/PetPing.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/PetPing-Windows-v0.6
       - name: Upload unsigned alpha
         uses: actions/upload-artifact@v4
         with:
-          name: PetPing-Windows-v0.5-unsigned
-          path: artifacts/PetPing-Windows-v0.5/
+          name: PetPing-Windows-v0.6-unsigned
+          path: artifacts/PetPing-Windows-v0.6/
           if-no-files-found: error
           retention-days: 7

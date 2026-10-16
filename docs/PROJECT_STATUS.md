@@ -19,9 +19,9 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**v0.5 — reliability and diagnostics**. Implemented and merged into `main` via PR #4 (squash commit `4bf88f2ba8329435c760c8c10af3817f199f9a99`).
+**v0.6 — recurrence and editing**. Feature branch: `feature/windows-v0.6-edit-recurrence`. Windows UI and recurrence source committed; PR build is pending.
 
-Current status: **MERGED TO MAIN + CI-VERIFIED ALPHA (32/32 core checks); manual device QA pending.** Do not call it production-ready until physical Windows scenarios pass.
+Current status: **v0.6 IN DEVELOPMENT; last CI-verified version is v0.5 (32 tests passed)**. Manual lock/wake/voice evidence is still incomplete. Do not claim v0.6 compiled until CI passes.
 
 Priority work:
 1. Handle presentation failures safely and visibly; do not lose state because a pet popup or speech cannot render.
@@ -55,5 +55,11 @@ Priority work:
 - ✅ GitHub PR #4 merged to `main`; last CI run (docs updated): https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38864751672 — success, 32 checks, portable ZIP uploaded.
 - ⏳ Actual device tests; cannot be marked passed based only on CI.
 
+## v0.6 engineering checkpoint
+- Repeating reminders: Daily and Weekly based on local wall time in saved timezone, including DST gaps/ambiguous times.
+- Separate persistent occurrence records and atomic next-event creation on delivery/miss, with snooze continuation flag to prevent duplicates.
+- Edit ordinary future unsent reminders and adjust repeat settings; previous history stays intact.
+- Added deterministic recurrence, DST, long-offline, legacy-file, rollback regression tests. Await PR CI and Windows artifact.
+
 ## Next action
-**Collect v0.5 Windows laptop QA** (the user has a compiled ZIP): 1-minute reminder with dashboard closed to tray; Test voice on/off; lock/unlock while speaking; sleep/wake inside/outside 15-minute catch-up; snooze/Done; and check `%LOCALAPPDATA%\PetPing\diagnostics.log` for event codes without titles. Record each actual pass/fail in this file and `docs/TEST_PLAN.md` before claiming Windows reliability. Fix any P0 failures in v0.5.x. Then plan v0.6 editing/recurrence and later Android.
+Open a pull request from `feature/windows-v0.6-edit-recurrence`, inspect Windows CI and fix compiler/test failures. Merge only when green, update this status and engineering log, share the unsigned v0.6 ZIP, then obtain physical Windows repeat/edit/voice testing. The v0.5 power/lock QA remains open until evidenced.

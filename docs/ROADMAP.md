@@ -72,3 +72,15 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Regression checks for blocked writes, rollback and diagnostics privacy
 - [x] Windows CI compile and 32 core checks for v0.5
 - [ ] Physical laptop validation: popup and speech on/off, lock/unlock, sleep/wake, startup, duplicate alert prevention
+
+## Milestone W1.4 — v0.6 reminder editing & recurrence
+- [x] Additive schema preserving older one-time JSON
+- [x] Daily and weekly (same weekday) scheduling using saved timezone / local wall time
+- [x] Separate historical occurrences and one future repeat on delivery or missed
+- [x] Guard against duplicate next schedule on snooze/second delivery
+- [x] Edit upcoming unsent reminder title, date, time and repetition
+- [x] Repeat picker, edit/cancel controls and repeat labels in dashboard
+- [x] Regression tests for DST, long downtime, legacy JSON and failed recurrence writes
+- [ ] Windows CI verified and merged to main
+- [ ] Device QA: repeat, edit, tray restart, sleep resume, voice and multiple monitors
+- [ ] Custom weekly days, series-level history management and richer Today/Upcoming view (subsequent phase)

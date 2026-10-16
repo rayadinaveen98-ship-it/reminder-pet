@@ -69,3 +69,13 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Disable toast/balloon notifications: the dashboard Needs Attention must remain the source of truth.
 - Force pet presentation failure in developer QA: generic tray notification attempt without losing Delivered state. Do not claim this fallback always shows under Focus Assist.
 - Verify no high CPU or repeating log spam after filesystem failure; scheduler retry backoff 30 seconds.
+
+## v0.6 repeat/edit QA
+- New daily repeat: choose tomorrow at 19:00. Confirm list says Every day, then after delivery see a separate future occurrence and previous Needs Attention until completed.
+- Weekly: choose Sunday, confirm next event remains on Sunday at the same local wall-clock time.
+- Snooze one delivered daily occurrence: tomorrow's recurrence should remain exactly once and the snoozed event should announce once later.
+- Create then Edit upcoming to a new title/date/time; confirm persisted after app close/restart.
+- Edit an upcoming repeat to One time; confirm future series no longer advances after that standalone reminder is delivered.
+- Old JSON from v0.5 should load; never wipe `%LOCALAPPDATA%\PetPing` during upgrade.
+- Sleep for more than one repeat period; on wake no flood of hundreds of stale alerts; one future pending occurrence remains.
+- Lock/unlock and voiced reminders require physical Windows QA as before.
