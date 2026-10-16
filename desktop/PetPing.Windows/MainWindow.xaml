@@ -287,7 +287,7 @@
                       <CheckBox x:Name="RepeatSun" Content="Sun" Margin="0,0,15,10"
                                 Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Sunday"/>
                     </WrapPanel>
-                    <TextBlock Text="Custom repeats are saved on this PC. Earlier completed reminders stay unchanged."
+                    <TextBlock Text="EXPERIMENTAL: This preview saves to PetPing-Experimental, not your v0.17 profile. Back up any important reminders before testing."
                                Style="{StaticResource SecondaryBody}" TextWrapping="Wrap"/>
                   </StackPanel>
                 </Border>
@@ -617,7 +617,7 @@
                 <Button Content="Open data and diagnostics folder" HorizontalAlignment="Left"
                         Click="OnOpenDataFolder" Background="#F2EEE8"
                         AutomationProperties.Name="Open local reminder data and diagnostics folder"/>
-                <TextBlock Text="PetPing Windows v0.17 • preview" FontSize="11"
+                <TextBlock Text="PetPing v0.18 • EXPERIMENTAL (separate data)" FontSize="11"
                            Foreground="{StaticResource MutedBrush}" Margin="0,14,0,0"/>
               </StackPanel>
             </Border>
