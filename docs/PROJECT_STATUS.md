@@ -22,16 +22,16 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**v0.7 — pet experience**. Branch `feature/windows-v0.7-pet-experience`. Source committed and PR #6 opened. Initial CI run #38872180216 passed with 56 checks, then a user-action save consistency fix was added and final CI is pending.
+**v0.9 — safe reminder recovery and beta-quality checks**, feature branch `feature/windows-v0.9-recovery-quality`.
 
-Current status: **v0.8 MERGED + CI VERIFIED (64 core checks, portable ZIP and installer smoke tested)**. User reports v0.7 works. v0.8 interactive installation, Windows settings, lock/sleep/mixed-DPI and screen-reader QA remain open; this is an unsigned alpha, not a production release.
+Status: **SOURCE + REGRESSION TESTS COMMITTED, PR/CI NOT YET VERIFIED**. Last confirmed merged build is v0.8 (64 core checks, installer install/uninstall smoke). User asked to continue; v0.8 interactive installer/sleep/lock QA remains unverified.
 
-Priority work:
-1. Handle presentation failures safely and visibly; do not lose state because a pet popup or speech cannot render.
-2. Prevent scheduler failures from silently stopping the app; add private local diagnostics and a clear manual recovery route.
-3. Add deterministic tests for time boundaries, multiple reminders, restart/snooze/corrupt storage scenarios.
-4. Improve resume/lock safety, avoid spoken alerts on the secure lock screen.
-5. Produce new CI-verified unsigned Windows alpha ZIP.
+Planned v0.9 scope:
+1. On unreadable `reminders.json`, offer a **user-confirmed** restore of `reminders.json.bak` only if its contents pass validation. The backup may be older and can omit recent changes. Cancel must leave all files unchanged. On restore, preserve unreadable primary as a separately named file.
+2. Provide a visible dashboard button that opens the private data/diagnostics folder; never upload reminder contents.
+3. Test backup eligibility, preserved damaged primary, non-destructive restore, failure on bad backup and reminder state migration.
+4. Installer repair/reinstall smoke: execute same version twice, then uninstall, preserving a LocalAppData sentinel. True older-to-newer-version installation still needs manual QA.
+5. Compile Windows app and optional unsigned installer in GitHub Actions, update this status and merge only on green CI.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -76,4 +76,6 @@ Priority work:
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-**User device QA for Windows v0.8:** Quit previous PetPing from tray. Install `PetPing-Setup-v0.8-unsigned.exe` (downloaded from artifact 12036600668) OR extract the v0.8 portable ZIP (artifact 12035474939). Verify dashboard filters, shortcut keys Ctrl+N/F5/Esc, delete confirmation, existing daily/weekly reminders, speech, pet popup and preservation of `%LOCALAPPDATA%\PetPing` after uninstall/reinstall. For the installer, test startup registration migration from portable EXE if previously enabled, Start Menu shortcut, optional desktop shortcut, and Windows uninstall. Record real pass/fail; fix P0 issues before claiming Windows beta. After this proceed v0.9 Windows quality/release gates, and Android only after Windows v1.0 acceptance.
+Open PR from `feature/windows-v0.9-recovery-quality`, run Windows CI, inspect failure logs and correct source/installer as required. Merge only with green core tests, portable Windows compile, per-user installer build, reinstall/uninstall storage-preservation smoke. Update this handoff with the final commit/run/artifact IDs and share a testable v0.9 build. User device QA: corrupt-file prompt Yes/No paths (with test data only), open-data-folder action, installer upgrade from v0.8, recurring reminders, tray, lock/unlock and sleep/wake.
+
+**Release warning:** an automated CI pass does NOT prove that real laptop recovery or OS-specific notification behavior works. Windows v1.0 remains pending device acceptance; Android starts later.

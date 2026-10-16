@@ -12,30 +12,87 @@ public sealed class ReminderStore
         Converters = { new JsonStringEnumConverter() }
     };
 
+    public static string DefaultDataDirectory => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PetPing");
+
     private readonly string _dataPath;
     public List<Reminder> Reminders { get; private set; } = [];
 
     public ReminderStore(string? dataDirectory = null)
     {
-        var folder = dataDirectory ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PetPing");
+        var folder = dataDirectory ?? DefaultDataDirectory;
         Directory.CreateDirectory(folder);
         _dataPath = Path.Combine(folder, "reminders.json");
         Load();
     }
 
+    private static List<Reminder> ReadValidated(string path)
+    {
+        var restored = JsonSerializer.Deserialize<List<Reminder>>(File.ReadAllText(path), JsonOptions)
+            ?? throw new InvalidDataException("Reminder data is empty or invalid.");
+        if (restored.Any(r => r.Id == Guid.Empty || string.IsNullOrWhiteSpace(r.Title)))
+            throw new InvalidDataException("Reminder data contains invalid entries.");
+        if (restored.Select(r => r.Id).Distinct().Count() != restored.Count)
+            throw new InvalidDataException("Reminder data contains duplicate IDs.");
+        if (restored.Any(r => !Enum.IsDefined(r.Repeat) || !Enum.IsDefined(r.Status)))
+            throw new InvalidDataException("Reminder data contains an unsupported state.");
+        return restored;
+    }
+
     public void Load()
     {
         if (!File.Exists(_dataPath)) { Reminders = []; return; }
-        var restored = JsonSerializer.Deserialize<List<Reminder>>(File.ReadAllText(_dataPath), JsonOptions)
-            ?? throw new InvalidDataException("Your reminder file is invalid; it has not been erased.");
-        if (restored.Any(r => r.Id == Guid.Empty || string.IsNullOrWhiteSpace(r.Title)))
-            throw new InvalidDataException("Your reminder file has invalid entries; it has not been erased.");
-        if (restored.Select(r => r.Id).Distinct().Count() != restored.Count)
-            throw new InvalidDataException("Your reminder file contains duplicate IDs; it has not been erased.");
-        if (restored.Any(r => !Enum.IsDefined(r.Repeat)))
-            throw new InvalidDataException("Reminder data contains an unsupported repetition mode.");
-        Reminders = restored;
+        // Never overwrite unreadable data. The user controls whether a backup
+        // is restored through an explicit Windows confirmation prompt.
+        Reminders = ReadValidated(_dataPath);
+    }
+
+    public static bool HasValidBackup(string? dataDirectory = null)
+    {
+        var backup = Path.Combine(dataDirectory ?? DefaultDataDirectory, "reminders.json.bak");
+        if (!File.Exists(backup)) return false;
+        try
+        {
+            _ = ReadValidated(backup);
+            return true;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException
+            or System.Text.Json.JsonException or InvalidDataException)
+        { return false; }
+    }
+
+    /// <summary>
+    /// Called ONLY after the user explicitly chooses to restore. The backup is
+    /// validated before writing. The unreadable primary is preserved separately;
+    /// neither it nor the original backup is silently discarded.
+    /// </summary>
+    public static string RestoreBackupAfterConfirmation(string? dataDirectory = null)
+    {
+        var folder = dataDirectory ?? DefaultDataDirectory;
+        var primary = Path.Combine(folder, "reminders.json");
+        var backup = primary + ".bak";
+        if (!HasValidBackup(folder))
+            throw new InvalidDataException("There is no valid saved backup to restore.");
+
+        // Unique filename avoids overwriting an earlier recovery attempt.
+        var savedOriginal = Path.Combine(folder,
+            "reminders.unreadable-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") +
+            "-" + Guid.NewGuid().ToString("N")[..8] + ".json");
+        if (File.Exists(primary)) File.Copy(primary, savedOriginal);
+
+        var temp = Path.Combine(folder, "reminders.restore-" + Guid.NewGuid().ToString("N") + ".tmp");
+        try
+        {
+            File.Copy(backup, temp);
+            _ = ReadValidated(temp);
+            File.Move(temp, primary, overwrite: true);
+        }
+        finally
+        {
+            try { if (File.Exists(temp)) File.Delete(temp); }
+            catch (IOException) { /* do not mask primary result */ }
+        }
+        return File.Exists(savedOriginal) ? savedOriginal : "";
     }
 
     public void Save()

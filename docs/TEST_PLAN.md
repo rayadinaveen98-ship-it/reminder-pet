@@ -110,3 +110,12 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Windows WPF executable compiled and portable ZIP uploaded.
 - Inno Setup 6 installer compiled. Windows hosted runner installed it silently, checked `PetPing.Windows.exe`, uninstalled it silently, and checked that a sentinel in `%LOCALAPPDATA%\PetPing` survived.
 - **Not tested by CI:** interactive installer wizard, Start Menu use, real user SmartScreen decisions, Windows screen readers, actual lock/sleep, mixed DPI or correctness of existing data after a real user's upgrade.
+
+## v0.9 manual recovery and installer beta-quality checks
+- **Back up the entire `%LOCALAPPDATA%\PetPing` folder first.** Use a test folder/mock reminders for destructive corruption tests; never intentionally corrupt live reminders.
+- Simulate malformed primary JSON with a known-good older `.bak` file on a disposable test account. Start PetPing: recovery prompt should clearly say the backup is older and might omit latest edits.
+- Choose No: startup aborts and both primary and backup remain unchanged. Choose Yes: it starts from valid backup, retains the unreadable original as `reminders.unreadable-*.json`, and leaves `.bak` intact.
+- Test absent or corrupt `.bak`: no restore action offered, primary remains intact and user gets a startup error. Do not silently start with zero reminders.
+- Click Open data and diagnostics folder: Windows Explorer opens user LocalAppData PetPing. Confirm log files contain no reminder text; no uploads are triggered.
+- Perform an **actual v0.8 installer → v0.9 installer upgrade** from a backed-up live account. Verify Start with Windows when selected, recurrence history, voice, pet settings and uninstall does not remove data.
+- Test screen-reader focus, DPI 125–200%, second monitor, lock/sleep/wake and multiple overdue reminders. These remain unverified by CI alone.

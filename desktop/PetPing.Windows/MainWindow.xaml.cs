@@ -288,6 +288,26 @@ public partial class MainWindow : Window
         catch (IOException ex) { ShowError("Could not delete reminder: " + ex.Message); }
     }
 
+    private void OnOpenDataFolder(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var directory = ReminderStore.DefaultDataDirectory;
+            Directory.CreateDirectory(directory);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = directory,
+                UseShellExecute = true
+            });
+            ValidationMessage.Visibility = Visibility.Collapsed;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException
+            or System.ComponentModel.Win32Exception)
+        {
+            ShowError("Could not open the local data folder: " + error.Message);
+        }
+    }
+
     private void OnTestPet(object sender, RoutedEventArgs e) => _testPet();
 
     private void OnTestVoice(object sender, RoutedEventArgs e)

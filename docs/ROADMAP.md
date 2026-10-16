@@ -106,3 +106,13 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Windows CI green: 64 core checks, portable ZIP + installer and silent install/uninstall data-preservation test; PR #7 merged
 - [ ] Real-device font scaling, multi-monitor, speech, lock and sleep/wake acceptance
 - [ ] Official code signing and automated upgrades (not implemented in v0.8)
+
+## Milestone W1.7 — v0.9 recovery and Windows beta-quality gate
+- [x] Explicit opt-in validated backup restore; preserve unreadable primary
+- [x] Do not silently overwrite corrupted files; warn earlier backup may miss recent edits
+- [x] Dashboard opens local data/diagnostics folder for manual backup and inspection
+- [x] Core regressions for valid/invalid backup and non-destructive recovery
+- [x] Installer same-version repair/reinstall smoke (not a cross-version test)
+- [ ] GitHub Windows CI verified, v0.9 artifacts uploaded, source merged to main
+- [ ] Real laptop test recovery with test data, installer upgrade from v0.8, lock/sleep and mixed DPI
+- [ ] Windows beta/v1.0 release gating: signer, accessibility and actual device reliability

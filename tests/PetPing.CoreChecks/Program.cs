@@ -324,6 +324,49 @@ try
     Check(inboxItems.Count == 5 && inboxItems[0].Status == ReminderStatus.Pending,
         "filtering never changes reminder storage state");
 
+
+    // v0.9: do not overwrite corrupted reminder data without a user's explicit
+    // confirmation. Backup is an older snapshot, not a guaranteed full recovery.
+    var recoveryDir = Path.Combine(temp, "backup-recovery");
+    Directory.CreateDirectory(recoveryDir);
+    var recoveryStore = new ReminderStore(recoveryDir);
+    recoveryStore.Add("Original older reminder", current.AddHours(3));
+    recoveryStore.Add("Newer reminder may not be in backup", current.AddHours(4));
+    var recoveryPrimary = Path.Combine(recoveryDir, "reminders.json");
+    var recoveryBackup = recoveryPrimary + ".bak";
+    Check(File.Exists(recoveryBackup) && ReminderStore.HasValidBackup(recoveryDir),
+        "second save created a readable previous-version backup");
+    var backupBefore = File.ReadAllText(recoveryBackup);
+    File.WriteAllText(recoveryPrimary, "damaged-primary-file-KEEP-ME");
+    bool unreadableRejected = false;
+    try { _ = new ReminderStore(recoveryDir); }
+    catch (JsonException) { unreadableRejected = true; }
+    Check(unreadableRejected && File.ReadAllText(recoveryPrimary) == "damaged-primary-file-KEEP-ME",
+        "corrupted primary is rejected without automatic restore or deletion");
+    Check(File.ReadAllText(recoveryBackup) == backupBefore,
+        "backup inspection does not mutate existing backup");
+
+    var retainedOriginal = ReminderStore.RestoreBackupAfterConfirmation(recoveryDir);
+    Check(File.Exists(retainedOriginal) &&
+          File.ReadAllText(retainedOriginal) == "damaged-primary-file-KEEP-ME",
+        "explicit recovery keeps a separate original corrupted copy");
+    var afterRecovery = new ReminderStore(recoveryDir);
+    Check(afterRecovery.Reminders.Count == 1 &&
+          afterRecovery.Reminders[0].Title == "Original older reminder",
+        "restored backup contains prior saved state, not unsaved newer changes");
+    Check(File.ReadAllText(recoveryBackup) == backupBefore,
+        "restore never changes source backup");
+
+    File.WriteAllText(recoveryBackup, "also-broken-backup");
+    Check(!ReminderStore.HasValidBackup(recoveryDir),
+        "corrupted backup is detected and cannot be offered for restore");
+    bool invalidBackupRefused = false;
+    try { ReminderStore.RestoreBackupAfterConfirmation(recoveryDir); }
+    catch (InvalidDataException) { invalidBackupRefused = true; }
+    Check(invalidBackupRefused &&
+          new ReminderStore(recoveryDir).Reminders.Count == 1,
+        "invalid backup cannot overwrite a healthy primary file");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;

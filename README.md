@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current deliverable:** Windows Alpha **v0.8**: dashboard polish plus an optional per-user Windows installer. GitHub Actions passed **64 core tests**, Windows x64 publish, installer compilation, and silent installation/uninstallation with preserved data. This is an unsigned alpha, not a signed production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current deliverable:** Windows **v0.9** recovery and installer-quality update under development. v0.8 was compiled and installer smoke-tested in Windows CI (64 core checks). v0.9 source/CI must pass before download; this is not a signed production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -41,7 +41,7 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 
 ## v0.7 build and testing
 - The Windows build workflow runs on pushes to `main` and can also be triggered manually in **Actions → Build Windows Alpha**.
-- When the run succeeds, open its **Artifacts** section and download `PetPing-Windows-v0.8-unsigned`.
+- When the run succeeds, open its **Artifacts** section and download `PetPing-Windows-v0.9-unsigned`.
 - The EXE is a self-contained unsigned **alpha**, not an installer or a verified consumer release; Windows may display a SmartScreen warning.
 - Reminders recover on restart when they were delivered but not acknowledged within 15 minutes. Older ones remain visible in the reminder history.
 - Optional **Start with Windows** registers this executable for the current user with `--background` (without automatically showing the dashboard).
@@ -87,7 +87,7 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 
 ## Latest v0.6 build evidence
 - Windows GitHub Actions: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 — 49 core checks + executable publish succeeded.
-- Artifact: `PetPing-Windows-v0.8-unsigned` (time-limited retention). The release is a test ZIP, not an installed/signed consumer build.
+- Artifact: `PetPing-Windows-v0.9-unsigned` (time-limited retention). The release is a test ZIP, not an installed/signed consumer build.
 
 ## v0.7 pet interaction and preferences
 - Cat now blinks occasionally and displays a small talking mouth synchronized to **local Windows TTS speech-start/speech-complete events**.
@@ -117,7 +117,14 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 ## Final v0.8 build and installation evidence
 - PR #7 merged: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/7
 - Final CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38877847189 — 64 core checks passed, WPF compiled, installer built, silent install/uninstall and local data-preservation smoke passed.
-- Portable ZIP: `PetPing-Windows-v0.8-unsigned` (artifact 12035474939). Installer ZIP: `PetPing-Installer-v0.8-unsigned` (artifact 12036600668), containing `PetPing-Setup-v0.8-unsigned.exe`.
+- Portable ZIP: `PetPing-Windows-v0.9-unsigned` (artifact 12035474939). Installer ZIP: `PetPing-Installer-v0.9-unsigned` (artifact 12036600668), containing `PetPing-Setup-v0.8-unsigned.exe`.
 - To upgrade from the portable alpha, **Quit PetPing from the tray first**. Run the installer with your regular Windows account, choose desktop shortcut if desired, and test that your saved reminders still appear. The Inno Setup uninstaller is under Windows installed applications.
 - Installing/uninstalling never intentionally removes `%LOCALAPPDATA%\PetPing`. You must separately delete that folder if you explicitly want to erase your reminder data.
 - Installer signing/SmartScreen reputation, screen-reader QA, Win10/11 sleep/lock and mixed-DPI acceptance remain unresolved. Never claim complete production reliability from CI alone.
+
+## v0.9 backup recovery and diagnostics
+- When `reminders.json` is unreadable but its `.bak` copy is valid, the desktop app asks **whether to restore**. It explicitly warns the backup may be older, so latest edits may not be present. No silent data loss or automatic blank reset.
+- If approved, the damaged original is copied to a unique `reminders.unreadable-*.json` file in LocalAppData; the backup is validated and used as current reminders. If denied, files remain unchanged and startup stops.
+- A broken/absent backup is not offered for restoration; manual support/inspection is required.
+- The dashboard's **Open data and diagnostics folder** opens Windows Explorer so a user can make their own copies; no reminder texts are sent anywhere.
+- Installer CI now also checks same-version reinstall/repair before uninstall, preserving a local data file. Upgrading an actual v0.8 installation to v0.9 remains a physical Windows acceptance test.
