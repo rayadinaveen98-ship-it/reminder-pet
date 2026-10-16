@@ -1,12 +1,12 @@
 # PetPing Windows installer — current developer preview
 
-The packaged Windows app is **version 0.15** while the v0.17 Companion Beacon redesign passes quality gates. Do not describe it as a fully released v0.17.
+The packaged Windows app is now a **v0.17 unsigned design preview candidate** for laptop testing. It is not a fully approved or signed stable release.
 
 ## Build (Windows)
 - Requirements: free .NET 10 SDK, Windows PowerShell (STA), Inno Setup 6 for the installer.
 - Run `desktop/BUILD_WINDOWS.cmd`, or `dotnet publish desktop/PetPing.Windows/PetPing.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false`.
 - The app project runs `tools/Build-BrandIcons.ps1` automatically before compilation. The script loads selected original `BrandMark.xaml` and generates 7 ICO sizes inside `desktop/PetPing.Windows/Assets/PetPing.ico`.
-- Build Inno Setup using `installer/PetPing.iss` after the app publishes to `artifacts/PetPing-Windows-v0.15/`. Setup icon and executable/shortcuts use the same approved logo.
+- Build Inno Setup using `installer/PetPing.iss` after the app publishes to `artifacts/PetPing-Windows-v0.17/`. Setup icon and executable/shortcuts use the same approved logo.
 - GitHub Windows Actions builds and uploads an unsigned portable package and per-user installer. It validates icon frames, publishes WPF, and runs data-preserving upgrade/install/uninstall smokes.
 
 ## Data/privacy and upgrade

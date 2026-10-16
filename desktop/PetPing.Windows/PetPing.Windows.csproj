@@ -7,9 +7,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>PetPing.Windows</AssemblyName>
-    <Version>0.15.0</Version>
-    <FileVersion>0.15.0.0</FileVersion>
-    <InformationalVersion>0.15.0-preview</InformationalVersion>
+    <Version>0.17.0</Version>
+    <FileVersion>0.17.0.0</FileVersion>
+    <InformationalVersion>0.17.0-preview</InformationalVersion>
     <RootNamespace>PetPing.Windows</RootNamespace>
     <ApplicationIcon>Assets\PetPing.ico</ApplicationIcon>
   </PropertyGroup>

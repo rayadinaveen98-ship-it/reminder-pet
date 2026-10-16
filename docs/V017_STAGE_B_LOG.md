@@ -30,3 +30,8 @@ No physical device test is claimed completed.
 - UI refinements: honest readable labels, highlighted selected pet, responsive stacked pet cards and two-column Studio groups on compact windows, accessible Settings help that expands only when requested.
 - Installer and source version remain 0.15.0 in this integration slice; v0.17 release approval has NOT occurred.
 - PR #18: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/18 . Await latest Windows CI, physical small-icon inspection and actual Windows layout/speech/lock testing. Preserve all local reminder and profile data.
+
+## v0.17 preview candidate
+- PR #18 merged brand packaging and companion screens, green Windows CI including seven-frame ICO verification, installer and v0.14→v0.15 data preservation.
+- Candidate preview branch bumps WPF FileVersion, installer version and GitHub artifacts to 0.17; the upgrade smoke must now rebuild an actual pinned v0.15 installer and confirm surviving local JSON across an in-place v0.15→v0.17 upgrade.
+- This is a test build, not a stable product release or proof of live reminders under sleep/lock.
