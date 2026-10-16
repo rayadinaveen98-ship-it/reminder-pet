@@ -413,7 +413,8 @@ try
 
 
     // v0.12: new Home never fabricates reminder counts or mutates persistence.
-    var sampleTime = new DateTimeOffset(2026, 10, 16, 10, 0, 0, TimeSpan.Zero);
+    var localSampleDay = new DateTime(2026, 10, 16, 10, 0, 0, DateTimeKind.Unspecified);
+    var sampleTime = new DateTimeOffset(localSampleDay, TimeZoneInfo.Local.GetUtcOffset(localSampleDay));
     var sampleTasks = new List<Reminder>
     {
         new() { Title = "Video edit", DueAt = sampleTime.AddHours(4), Status = ReminderStatus.Pending },
@@ -423,7 +424,7 @@ try
         new() { Title = "Needs attention", DueAt = sampleTime.AddHours(-1), Status = ReminderStatus.Delivered },
         new() { Title = "Finished", DueAt = sampleTime, Status = ReminderStatus.Completed }
     };
-    var snapshot = DashboardSummaryRules.Build(sampleTasks, sampleTime.UtcDateTime);
+    var snapshot = DashboardSummaryRules.Build(sampleTasks, localSampleDay);
     Check(snapshot.UpcomingCount == 4 && snapshot.AttentionCount == 1,
         "Home counts are computed from stored reminder states");
     Check(snapshot.TodayCount == 2,
