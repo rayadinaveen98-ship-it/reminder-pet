@@ -1,8 +1,8 @@
-; PetPing v0.13 Windows per-user installer (unsigned alpha)
+; PetPing v0.14 Windows per-user installer (unsigned alpha)
 ; Compile after publishing the win-x64 self-contained application.
 ; Installer binaries are created by the Windows GitHub Actions runner.
 #define AppName "PetPing"
-#define AppVersion "0.13.0"
+#define AppVersion "0.14.0"
 #define ExeName "PetPing.Windows.exe"
 
 [Setup]
@@ -17,8 +17,8 @@ PrivilegesRequired=lowest
 WizardStyle=modern
 Compression=lzma
 SolidCompression=yes
-OutputDir=..\artifacts\PetPing-Installer-v0.13
-OutputBaseFilename=PetPing-Setup-v0.13-unsigned
+OutputDir=..\artifacts\PetPing-Installer-v0.14
+OutputBaseFilename=PetPing-Setup-v0.14-unsigned
 UninstallDisplayName=PetPing
 CloseApplications=yes
 CloseApplicationsFilter=PetPing.Windows.exe
@@ -29,7 +29,7 @@ UsePreviousAppDir=yes
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
 
 [Files]
-Source: "..\artifacts\PetPing-Windows-v0.13\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\artifacts\PetPing-Windows-v0.14\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\PetPing"; Filename: "{app}\{#ExeName}"; WorkingDir: "{app}"
