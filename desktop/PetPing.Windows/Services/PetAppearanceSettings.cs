@@ -24,8 +24,7 @@ public sealed class PetAppearanceSettings
 
     public PetAppearanceSettings(string? directory = null)
     {
-        var folder = directory ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PetPing");
+        var folder = directory ?? PetPingDataRoot.DefaultDirectory;
         Directory.CreateDirectory(folder);
         _path = Path.Combine(folder, "pet-appearance.json");
         if (!File.Exists(_path)) return;
