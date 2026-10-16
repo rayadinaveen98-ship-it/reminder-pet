@@ -38,7 +38,7 @@ Create the common reminder with **Title + When + Save**, with optional repeat. A
 ## 3. Scheduling domain: exact semantics
 
 ### Domain entity design (candidate, not migration yet)
-\`\`\`text
+```text
 ReminderDefinition:
   DefinitionId (GUID)
   Title (plain text, 1–120 visible characters)
@@ -53,7 +53,7 @@ ReminderDefinition:
 ReminderOccurrence:
   OccurrenceId, DefinitionId, ScheduledAtInstant, OriginalLocalWallTime
   DueAtInstant, Status, DeliveredAt?, FinishedAt?, SnoozeCount, ContinuationCreated
-\`\`\`
+```
 Do **not** swap the existing Reminder/SeriesId format until round-trip fixtures, a migration strategy and a rollback path are proven. Schema version and source version must be explicit. Separate recurrence *definition* from occurrences only if it demonstrably improves safety; don't rewrite all history for a cosmetic requirement.
 
 ### Recurrence rules
