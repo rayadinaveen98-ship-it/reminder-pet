@@ -12,8 +12,7 @@ public sealed class ReminderStore
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public static string DefaultDataDirectory => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PetPing");
+    public static string DefaultDataDirectory => PetPingDataRoot.DefaultDirectory;
 
     private readonly string _dataPath;
     public List<Reminder> Reminders { get; private set; } = [];
