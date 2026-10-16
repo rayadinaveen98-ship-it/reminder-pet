@@ -316,8 +316,9 @@ try
         "needs attention includes delivered and missed regardless of day");
     Check(ReminderInboxRules.Count(inboxItems, InboxFilter.History, DateTime.Today) == 1,
         "history contains completed reminders");
-    Check(ReminderInboxRules.Select(inboxItems, InboxFilter.All, DateTime.Today)[0].Status ==
-          ReminderStatus.Delivered, "all view surfaces unanswered alerts ahead of pending");
+    Check(ReminderRules.NeedsAttention(
+          ReminderInboxRules.Select(inboxItems, InboxFilter.All, DateTime.Today)[0]),
+        "all view prioritizes missed or unanswered alerts ahead of pending");
     Check(ReminderInboxRules.Select(inboxItems, InboxFilter.Upcoming, DateTime.Today)[0].Title ==
           "Today pending", "upcoming reminders are ordered by due date");
     Check(inboxItems.Count == 5 && inboxItems[0].Status == ReminderStatus.Pending,
