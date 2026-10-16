@@ -29,3 +29,22 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - v0.5 package: `PetPing-Windows-v0.5-unsigned.zip` (artifact 12029754579); ZIP verified readable with executable inside. The ZIP is not an installed/signed Windows package.
 - Required next step: physical Windows QA for tray/voice/lock/sleep and report any failures. Do not mark manual testing as done by inference.
 - User's continuity requirement: this log + `docs/PROJECT_STATUS.md` and README are the durable reference for future chats. Update them whenever milestone code/test/status changes.
+
+## 2026-10-16 — v0.6 kickoff
+- User approved proceeding after v0.5 and said that the test is good; detailed locked-screen/sleep/voice device-by-device evidence is not yet recorded, so the production reliability gate remains open.
+- Scope: Windows-first edit **pending** reminders and repeat daily/weekly; retain individual occurrence history and prevent duplicate future occurrences. The first implementation has no custom weekly-day selection or multi-device sync.
+- Plan: add a recurrence engine with timezone-aware local wall time, atomic occurrence advancement during delivery/miss; UI edit/create controls; regression tests including restart, long downtime and DST. Run Windows CI, review and merge. Update PROJECT_STATUS and ROADMAP on completion.
+
+## 2026-10-16 — v0.6 recurrence/edit implementation checkpoint
+- User approved moving to next phase and wants every meaningful progress checkpoint in GitHub for smooth cross-chat continuity.
+- Branch: `feature/windows-v0.6-edit-recurrence`. Model + recurrence and atomic persisted store: commit `66dd1a1c411b90a6ecf0bd8321522effd60fdc56`. Dashboard create/edit picker and controls: commit `fec743e2a611283f378d08d608bca8b6b2fe0b07`.
+- Design: each delivery/miss creates one *new* future record transactionally; prior occurrence remains in history. Old snoozed occurrences retain continuation marker; long offline gaps jump forward rather than producing unbounded missed instances.
+- Local wall-clock recurrence stores zone ID and time of day. Spring gaps use next valid minute, autumn ambiguity earlier instant. Existing old JSON defaults to one time.
+- Added tests for daily/weekly, edit/cancel recurrence, DST, historical records, rollback and migration. CI/build pending at this checkpoint; do not state passed until verified.
+
+## 2026-10-16 — v0.6 first CI verification
+- PR #5: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/5
+- Windows x64 Actions run: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 — **success**.
+- Static XAML, C# core regression and dotnet publish passed; **49 core tests** passed (vs. 32 in v0.5).
+- Unsigned artifact PetPing-Windows-v0.6-unsigned uploaded (artifact ID 12032022285). Physical desktop QA is not inferred from CI.
+- Next: merge PR #5 after handoff refresh, share test build, gather editing/repeat/voice/lock results.

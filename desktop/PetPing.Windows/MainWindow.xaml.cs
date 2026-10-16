@@ -13,6 +13,7 @@ public partial class MainWindow : Window
     private readonly Action _testPet;
     private readonly Action<Reminder> _reminderChanged;
     private bool _reallyQuit;
+    private Reminder? _editing;
 
     public MainWindow(ReminderStore store, VoiceService voice, SpeechSettings speechSettings,
         Action testPet, Action<Reminder> reminderChanged)
@@ -22,7 +23,6 @@ public partial class MainWindow : Window
         _voice = voice;
         _speechSettings = speechSettings;
         _testPet = testPet;
-        _reminderChanged = reminderChanged;
         ReminderDate.SelectedDate = DateTime.Today;
         ReminderTime.Text = DateTime.Now.AddMinutes(5).ToString("HH:mm");
         VoiceToggle.IsChecked = _speechSettings.Enabled;
@@ -44,43 +44,110 @@ public partial class MainWindow : Window
             : $"{upcoming} upcoming";
         AttentionHint.Text = attention > 0
             ? "Unanswered and missed reminders stay here until you complete or snooze them."
-            : "Your pet will appear when a reminder is due.";
+            : "Select an upcoming reminder to edit. Weekly repeats on the same day each week.";
     }
 
     public void OpenDashboard() { Show(); WindowState = WindowState.Normal; Activate(); }
     public void AllowQuit() => _reallyQuit = true;
 
+    private static RepeatPattern PickerPattern(int index) => index switch
+    {
+        1 => RepeatPattern.Daily,
+        2 => RepeatPattern.Weekly,
+        _ => RepeatPattern.None
+    };
+
+    private DateTimeOffset ReadDueAt()
+    {
+        if (ReminderDate.SelectedDate is not DateTime date)
+            throw new ArgumentException("Please choose a date.");
+        if (!TimeSpan.TryParseExact(ReminderTime.Text.Trim(), @"hh\:mm",
+                CultureInfo.InvariantCulture, out var time) || time.TotalHours >= 24)
+            throw new ArgumentException("Use a time like 09:30 or 19:00.");
+
+        var local = DateTime.SpecifyKind(date.Date.Add(time), DateTimeKind.Unspecified);
+        if (TimeZoneInfo.Local.IsInvalidTime(local))
+            throw new ArgumentException("That time does not exist because the clocks change. Choose another.");
+        if (TimeZoneInfo.Local.IsAmbiguousTime(local))
+            throw new ArgumentException("That time happens twice because the clocks change. Choose another.");
+        return new DateTimeOffset(local, TimeZoneInfo.Local.GetUtcOffset(local));
+    }
+
     private void OnAddReminder(object sender, RoutedEventArgs e)
     {
         try
         {
-            if (ReminderDate.SelectedDate is not DateTime date)
-                throw new ArgumentException("Please choose a date.");
-            if (!TimeSpan.TryParseExact(ReminderTime.Text.Trim(), @"hh\:mm", CultureInfo.InvariantCulture, out var time)
-                || time.TotalHours >= 24)
-                throw new ArgumentException("Use a time like 09:30 or 19:00.");
-            var local = DateTime.SpecifyKind(date.Date.Add(time), DateTimeKind.Unspecified);
-            if (TimeZoneInfo.Local.IsInvalidTime(local))
-                throw new ArgumentException("That local time does not exist because the clocks change. Choose another time.");
-            if (TimeZoneInfo.Local.IsAmbiguousTime(local))
-                throw new ArgumentException("That time happens twice because the clocks change. Choose another time.");
-            AddReminder(ReminderName.Text, new DateTimeOffset(local, TimeZoneInfo.Local.GetUtcOffset(local)));
+            var due = ReadDueAt();
+            var mode = PickerPattern(RepeatPicker.SelectedIndex);
+            if (_editing is { } previous)
+            {
+                _store.Edit(previous, ReminderName.Text, due, mode);
+                _reminderChanged(previous);
+            }
+            else
+                _store.Add(ReminderName.Text, due, mode);
+            ResetForm();
+            RefreshList();
         }
-        catch (Exception ex) when (ex is ArgumentException or IOException) { ShowError(ex.Message); }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException
+            or IOException or TimeZoneNotFoundException or InvalidTimeZoneException)
+        { ShowError(ex.Message); }
     }
 
     private void OnQuickAdd(object sender, RoutedEventArgs e)
     {
-        try { AddReminder(ReminderName.Text, DateTimeOffset.Now.AddMinutes(1)); }
-        catch (Exception ex) when (ex is ArgumentException or IOException) { ShowError(ex.Message); }
+        if (_editing is not null) { ShowError("Finish or cancel editing first."); return; }
+        try
+        {
+            _store.Add(ReminderName.Text, DateTimeOffset.Now.AddMinutes(1),
+                PickerPattern(RepeatPicker.SelectedIndex));
+            ResetForm();
+            RefreshList();
+        }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or IOException)
+        { ShowError(ex.Message); }
     }
 
-    private void AddReminder(string title, DateTimeOffset due)
+    private void OnSelectedEdit(object sender, RoutedEventArgs e)
     {
-        _store.Add(title, due);
-        ReminderName.Clear();
+        var reminder = SelectedOrWarn();
+        if (reminder is null) return;
+        if (reminder.Status != ReminderStatus.Pending || reminder.RepeatContinuationCreated)
+        {
+            ShowError("Only upcoming reminders that haven't already repeated can be edited.");
+            return;
+        }
+        _editing = reminder;
+        ReminderName.Text = reminder.Title;
+        var local = reminder.DueAt.ToLocalTime();
+        ReminderDate.SelectedDate = local.Date;
+        ReminderTime.Text = local.ToString("HH:mm", CultureInfo.InvariantCulture);
+        RepeatPicker.SelectedIndex = reminder.Repeat switch
+        {
+            RepeatPattern.Daily => 1,
+            RepeatPattern.Weekly => 2,
+            _ => 0
+        };
+        QuickAddButton.Visibility = Visibility.Collapsed;
+        CancelEditButton.Visibility = Visibility.Visible;
+        AddButton.Content = "Save changes";
         ValidationMessage.Visibility = Visibility.Collapsed;
-        RefreshList();
+        ReminderName.Focus();
+    }
+
+    private void OnCancelEdit(object sender, RoutedEventArgs e) => ResetForm();
+
+    private void ResetForm()
+    {
+        _editing = null;
+        ReminderName.Clear();
+        ReminderDate.SelectedDate = DateTime.Today;
+        ReminderTime.Text = DateTime.Now.AddMinutes(5).ToString("HH:mm");
+        RepeatPicker.SelectedIndex = 0;
+        QuickAddButton.Visibility = Visibility.Visible;
+        CancelEditButton.Visibility = Visibility.Collapsed;
+        AddButton.Content = "Add reminder";
+        ValidationMessage.Visibility = Visibility.Collapsed;
     }
 
     private void ShowError(string message)
@@ -105,10 +172,16 @@ public partial class MainWindow : Window
             ShowError("This reminder is already done.");
             return;
         }
-        _store.Mark(reminder, ReminderStatus.Completed);
-        _reminderChanged(reminder);
-        ValidationMessage.Visibility = Visibility.Collapsed;
-        RefreshList();
+        try
+        {
+            _store.Mark(reminder, ReminderStatus.Completed);
+            if (_editing?.Id == reminder.Id) ResetForm();
+            _reminderChanged(reminder);
+            ValidationMessage.Visibility = Visibility.Collapsed;
+            RefreshList();
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException)
+        { ShowError("Could not mark reminder done: " + ex.Message); }
     }
 
     private void OnSelectedSnooze(object sender, RoutedEventArgs e)
@@ -127,18 +200,23 @@ public partial class MainWindow : Window
             ValidationMessage.Visibility = Visibility.Collapsed;
             RefreshList();
         }
-        catch (IOException ex) { ShowError("Couldn't save snooze: " + ex.Message); }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException)
+        { ShowError("Couldn't save snooze: " + ex.Message); }
     }
 
     private void OnDelete(object sender, RoutedEventArgs e)
     {
         var reminder = SelectedOrWarn();
         if (reminder is null) return;
-        _store.Reminders.Remove(reminder);
-        _store.Save();
-        _reminderChanged(reminder);
-        ValidationMessage.Visibility = Visibility.Collapsed;
-        RefreshList();
+        try
+        {
+            _store.Delete(reminder);
+            if (_editing?.Id == reminder.Id) ResetForm();
+            _reminderChanged(reminder);
+            ValidationMessage.Visibility = Visibility.Collapsed;
+            RefreshList();
+        }
+        catch (IOException ex) { ShowError("Could not delete reminder: " + ex.Message); }
     }
 
     private void OnTestPet(object sender, RoutedEventArgs e) => _testPet();
@@ -157,7 +235,6 @@ public partial class MainWindow : Window
         }
         ValidationMessage.Visibility = Visibility.Collapsed;
     }
-
 
     private void OnVoiceToggled(object sender, RoutedEventArgs e)
     {

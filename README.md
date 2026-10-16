@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current deliverable:** Windows Alpha v0.5 reliability test build. GitHub Actions successfully compiled the Windows x64 app and passed **32** core tests. A physical Windows laptop still needs to verify lock/wake, voice, multi-monitor and alert reliability; this is not a production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current deliverable:** Windows Alpha v0.6 editing + daily/weekly repeats. GitHub Windows x64 CI passed **49** core tests and produced an unsigned ZIP; laptop UI/voice/power behavior still needs testing. This is not a production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -39,9 +39,9 @@ No license granted yet. Product source is created for this user project; select 
 ## No-SDK visual preview (Windows only)
 Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an optional voice preview. This standalone PowerShell/WPF script is a **visual/overlay capability probe**, not the actual reminder application: it does not save or schedule real reminders. Snooze in this preview is deliberately 10 **seconds**. Inspect the source first if you wish; it does not require admin rights and does not download anything.
 
-## v0.5 build and testing
+## v0.6 build and testing
 - The Windows build workflow runs on pushes to `main` and can also be triggered manually in **Actions → Build Windows Alpha**.
-- When the run succeeds, open its **Artifacts** section and download `PetPing-Windows-v0.5-unsigned`.
+- When the run succeeds, open its **Artifacts** section and download `PetPing-Windows-v0.6-unsigned`.
 - The EXE is a self-contained unsigned **alpha**, not an installer or a verified consumer release; Windows may display a SmartScreen warning.
 - Reminders recover on restart when they were delivered but not acknowledged within 15 minutes. Older ones remain visible in the reminder history.
 - Optional **Start with Windows** registers this executable for the current user with `--background` (without automatically showing the dashboard).
@@ -75,3 +75,16 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - v0.5 green Windows PR build: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38864475272 (32 core checks, Windows x64 compilation and unsigned ZIP artifact).
 - After source changes, keep `docs/PROJECT_STATUS.md` and `docs/ENGINEERING_LOG.md` updated before merging. They are the source of truth for resuming future conversations.
 - The user's v0.4 visual test confirmed the pet floats outside the speech bubble. The v0.5 changes have not yet been manually verified.
+
+## v0.6 editing and recurring reminders
+- Create a one-time, daily, or weekly reminder. Weekly means **same weekday**, not custom days yet.
+- Select an ordinary upcoming reminder and choose **Edit selected**; save title, date, time and repetition. Historical Delivered, Missed, Completed events cannot be edited.
+- Each repeat creates a **new occurrence** when the previous one is delivered or missed; past occurrences remain in history (and may still need attention).
+- Snoozing an old occurrence does **not** generate another future copy. A long period offline creates only one next future scheduled occurrence, rather than every missed day/week.
+- Uses the timezone from initial creation and preserves wall-clock time through daylight-saving transitions. Invalid spring-forward times shift to the next valid minute; ambiguous autumn time uses the earlier UTC instant.
+- The UI currently changes only the next scheduled unsent occurrence, **not all past instances**. Future recurrence after that edit inherits the updated title and repeat rule. To stop a repeat, edit the upcoming instance to One time or delete it.
+- See `docs/PROJECT_STATUS.md` and `docs/ENGINEERING_LOG.md` for current CI and testing status before resuming in a new chat.
+
+## Latest v0.6 build evidence
+- Windows GitHub Actions: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 — 49 core checks + executable publish succeeded.
+- Artifact: `PetPing-Windows-v0.6-unsigned` (time-limited retention). The release is a test ZIP, not an installed/signed consumer build.

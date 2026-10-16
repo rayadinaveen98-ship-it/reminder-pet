@@ -129,6 +129,131 @@ try
     Check(overlapping.Id != pending.Id && faultStore.Reminders.Count == 2,
         "two reminders may share a time without sharing identity");
 
+
+    // Recurring series tests: each attempt is an immutable historical event,
+    // with one future instance persisted atomically alongside it.
+    var repeatFolder = Path.Combine(temp, "recurring");
+    Directory.CreateDirectory(repeatFolder);
+    var repeated = new ReminderStore(repeatFolder);
+    var first = repeated.Add("Daily filmmaking practice", DateTimeOffset.Now.AddHours(2),
+        RepeatPattern.Daily);
+    Check(first.Repeat == RepeatPattern.Daily && first.SeriesId is not null &&
+          first.RepeatLocalTime is not null, "daily series stores timezone and wall time");
+    var seriesId = first.SeriesId;
+    repeated.Deliver(first, DateTimeOffset.UtcNow);
+    var child = repeated.Reminders.Single(r => r.SeriesId == seriesId && r.Status == ReminderStatus.Pending);
+    Check(repeated.Reminders.Count == 2 && first.RepeatContinuationCreated &&
+          child.Id != first.Id, "delivery creates one separate future event");
+    Check(child.DueAt > DateTimeOffset.UtcNow && child.DueAt.ToLocalTime().Hour ==
+          first.OriginalDueAt.ToLocalTime().Hour, "daily event keeps same local hour");
+    repeated.Snooze(first, TimeSpan.FromMinutes(10));
+    Check(first.RepeatContinuationCreated && first.SnoozeCount == 1,
+        "snoozing a series event keeps continuation marker");
+    repeated.Deliver(first, DateTimeOffset.UtcNow);
+    Check(repeated.Reminders.Count == 2 &&
+          repeated.Reminders.Count(r => r.SeriesId == seriesId && r.Id != first.Id) == 1,
+        "re-delivering snoozed event does not create a duplicate tomorrow");
+    repeated.Mark(first, ReminderStatus.Completed);
+    Check(repeated.Reminders.Count == 2 && new ReminderStore(repeatFolder).Reminders.Count == 2,
+        "completing prior event does not duplicate series after restart");
+
+    var week = repeated.Add("Weekly planning", DateTimeOffset.Now.AddDays(1),
+        RepeatPattern.Weekly);
+    repeated.Deliver(week, DateTimeOffset.UtcNow);
+    var nextWeek = repeated.Reminders.Single(r => r.SeriesId == week.SeriesId &&
+                                                   r.Status == ReminderStatus.Pending);
+    Check(nextWeek.DueAt > week.DueAt &&
+          nextWeek.DueAt.ToLocalTime().DayOfWeek == week.DueAt.ToLocalTime().DayOfWeek,
+        "weekly reminder stays on its original weekday");
+
+    // Edits affect only upcoming unsent instances; history remains unchanged.
+    repeated.Edit(child, "Edited daily work", DateTimeOffset.Now.AddHours(4),
+        RepeatPattern.Weekly);
+    Check(child.Title == "Edited daily work" && child.Repeat == RepeatPattern.Weekly &&
+          child.Status == ReminderStatus.Pending, "edit changes next upcoming occurrence");
+    Check(first.Title == "Daily filmmaking practice", "edit preserves historical title");
+    bool refusedEdit = false;
+    try { repeated.Edit(first, "Should fail", DateTimeOffset.Now.AddDays(3), RepeatPattern.None); }
+    catch (InvalidOperationException) { refusedEdit = true; }
+    Check(refusedEdit, "delivered historical occurrence cannot be edited");
+    repeated.Edit(child, "Standalone work", DateTimeOffset.Now.AddDays(2), RepeatPattern.None);
+    Check(child.Repeat == RepeatPattern.None && child.SeriesId is null,
+        "editing upcoming recurrence to one time stops that series");
+
+    // Restart after long downtime should jump to one future occurrence,
+    // not flood the database with weeks of old reminder events.
+    var backlogFolder = Path.Combine(temp, "long-downtime");
+    Directory.CreateDirectory(backlogFolder);
+    var backlog = new ReminderStore(backlogFolder);
+    var missed = new Reminder
+    {
+        Title = "Resume series",
+        DueAt = DateTimeOffset.UtcNow.AddDays(-90),
+        OriginalDueAt = DateTimeOffset.UtcNow.AddDays(-90),
+        Repeat = RepeatPattern.Daily,
+        SeriesId = Guid.NewGuid(),
+        RepeatTimeZoneId = TimeZoneInfo.Local.Id,
+        RepeatLocalTime = new TimeSpan(9, 0, 0)
+    };
+    backlog.Reminders.Add(missed);
+    backlog.Save();
+    backlog.Mark(missed, ReminderStatus.Missed);
+    Check(backlog.Reminders.Count == 2 &&
+          backlog.Reminders.Single(r => r.Status == ReminderStatus.Pending).DueAt > DateTimeOffset.UtcNow,
+        "90 days of downtime creates only one future daily event");
+    backlog.Mark(missed, ReminderStatus.Completed);
+    Check(backlog.Reminders.Count == 2, "marking old missed event done does not duplicate future event");
+
+    // American DST: if 02:30 is skipped on the spring-forward day,
+    // use the first valid time, then return to 02:30 on later days.
+    var eastern = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+    var beforeDst = new DateTime(2027, 3, 13, 2, 30, 0, DateTimeKind.Unspecified);
+    var dstAnchor = new DateTimeOffset(beforeDst, eastern.GetUtcOffset(beforeDst));
+    var dstRule = new Reminder
+    {
+        Title = "DST alarm", DueAt = dstAnchor, OriginalDueAt = dstAnchor,
+        Repeat = RepeatPattern.Daily, SeriesId = Guid.NewGuid(),
+        RepeatTimeZoneId = eastern.Id, RepeatLocalTime = new TimeSpan(2,30,0)
+    };
+    var dstOccurrence = RecurrenceRules.NextAfter(dstRule, dstAnchor.AddMinutes(1));
+    Check(dstOccurrence.Month == 3 && dstOccurrence.Day == 14 &&
+          dstOccurrence.Hour == 3 && dstOccurrence.Minute == 0,
+        "DST spring-forward gap moves 02:30 to first valid local minute");
+    dstRule.OriginalDueAt = dstOccurrence;
+    var afterDst = RecurrenceRules.NextAfter(dstRule, dstOccurrence.AddMinutes(1));
+    Check(afterDst.Day == 15 && afterDst.Hour == 2 && afterDst.Minute == 30,
+        "next spring-forward recurrence restores original 02:30 wall time");
+
+    var originalCount = repeated.Reminders.Count;
+    var repeatBlocked = Path.Combine(repeatFolder, "reminders.json.tmp");
+    Directory.CreateDirectory(repeatBlocked);
+    var attempt = nextWeek;
+    bool repeatWriteRejected = false;
+    try { repeated.Deliver(attempt, DateTimeOffset.UtcNow); }
+    catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+    { repeatWriteRejected = true; }
+    Check(repeatWriteRejected && repeated.Reminders.Count == originalCount &&
+          attempt.Status == ReminderStatus.Pending && !attempt.RepeatContinuationCreated,
+        "failed recurring delivery rolls back both state and future occurrence");
+    Directory.Delete(repeatBlocked);
+
+    // v0.5 JSON was one-time-only and must migrate without rewriting fields.
+    var legacyFolder = Path.Combine(temp, "legacy-json");
+    Directory.CreateDirectory(legacyFolder);
+    File.WriteAllText(Path.Combine(legacyFolder, "reminders.json"),
+        JsonSerializer.Serialize(new[] { new {
+            Id = Guid.NewGuid(), Title = "Old reminder",
+            DueAt = DateTimeOffset.UtcNow.AddHours(5),
+            OriginalDueAt = DateTimeOffset.UtcNow.AddHours(5),
+            Status = 0, DeliveredAt = (DateTimeOffset?)null,
+            FinishedAt = (DateTimeOffset?)null, SnoozeCount = 0
+        } }));
+    var legacy = new ReminderStore(legacyFolder);
+    Check(legacy.Reminders.Count == 1 &&
+          legacy.Reminders[0].Repeat == RepeatPattern.None &&
+          legacy.Reminders[0].SeriesId is null,
+        "previous-version one-time JSON loads without migration or recurrence");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
