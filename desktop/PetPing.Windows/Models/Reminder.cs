@@ -1,7 +1,7 @@
 namespace PetPing.Windows.Models;
 
 public enum ReminderStatus { Pending, Delivered, Completed, Dismissed, Missed }
-public enum RepeatPattern { None, Daily, Weekly }
+public enum RepeatPattern { None, Daily, Weekly, Custom }
 
 public sealed class Reminder
 {
@@ -23,11 +23,19 @@ public sealed class Reminder
     // occurrence a second time. Once true, it is persisted with the event.
     public bool RepeatContinuationCreated { get; set; }
 
+    // Optional only for RepeatPattern.Custom; never inferred for old schedules.
+    public CustomRepeatOptions? CustomSchedule { get; set; }
+
     public string DueLabel => DueAt.ToLocalTime().ToString("ddd, dd MMM yyyy • hh:mm tt");
     public string RepeatLabel => Repeat switch
     {
         RepeatPattern.Daily => "Every day",
         RepeatPattern.Weekly => "Every week",
+        RepeatPattern.Custom when CustomSchedule?.Kind == CustomRepeatKind.Weekdays =>
+            "Selected weekdays",
+        RepeatPattern.Custom when CustomSchedule?.Kind == CustomRepeatKind.EveryNDays =>
+            "Every N days",
+        RepeatPattern.Custom => "Custom repeat",
         _ => "One time"
     };
     public string StatusLabel => Status switch
