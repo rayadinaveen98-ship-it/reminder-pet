@@ -29,14 +29,14 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**v0.17 Stage B — Companion Beacon brand native Windows implementation. PR #17 in progress; v0.15 remains the latest released Windows executable.**
+**v0.17 Stage B — Companion Beacon brand native Windows implementation. PR #17 MERGED after green Windows CI; v0.15 remains the latest versioned Windows executable.**
 
 - User selected **Logo C / Companion Beacon** on 2026-10-16; candidate A and B are kept as historical concepts only.
 - Stage A design-only PR #16 merged and previous CI passed: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/16 .
-- Stage B feature branch and draft PR #17: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/17 .
+- Stage B PR #17 merged into main as `37f1c447d6a2ff0df268c9b88410c8ec209757fb`: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/17 . Final PR Windows CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38919598234 **passed**: WPF compile, core checks, installer build and real v0.14→v0.15 upgrade preserving saved reminder/profile JSON.
 - Native WPF changes: selected Companion Beacon vector, shared theme ResourceDictionary, branded sidebar, refined Home/Reminders, compact-width reflow for metrics/date/time/repeat fields, runtime-generated brand tray/window icons with OS fallback.
 - Fixed the previously unassigned MainWindow reminder-changed callback, which could fail when editing an upcoming reminder. Reminder scheduling/storage schema and saved pet profiles are not altered.
-- Windows CI must verify 122+ checks, native compilation and v0.14→v0.15 installer data upgrade. Real hardware DPI/voice/sleep/lock and final installer logo remain unapproved. This is **not** a fully released v0.17.
+- Windows CI verified the existing core regression suite, native compilation and upgrade preservation. Real hardware DPI/voice/sleep/lock and final packaged multi-resolution installer logo remain unapproved. This is **not** a fully released v0.17.
 - Stage C after brand readiness: My Pets, Pet Studio, Settings full visual consistency and user walkthrough. Advanced recurrence stays v0.18.
 
 ## Known constraints and risks
@@ -84,4 +84,4 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Complete PR #17 Windows CI and resolve any build/test failures. Merge only after passing checks, then obtain physical laptop visual/behavior acceptance. Produce packaged multiresolution ICO and installer mark, then Stage C My Pets/Studio/Settings before calling v0.17 complete. Keep v0.15 data compatible, with unchanged reminder JSON and local profiles.
+PR #17 is merged and CI-green. Obtain physical laptop visual/behavior acceptance. Produce packaged multiresolution ICO and installer mark, then Stage C My Pets/Studio/Settings before calling v0.17 complete. Keep v0.15 data compatible, with unchanged reminder JSON and local profiles.

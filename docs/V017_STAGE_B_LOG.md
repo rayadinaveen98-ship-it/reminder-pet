@@ -17,3 +17,9 @@ On 2026-10-16 the user selected **Logo C — Companion Beacon**. Candidates A an
 - Stage C: My Pets, Studio and Settings visual alignment, user review.
 
 No physical device test is claimed completed.
+
+## Verified integration
+- PR #17 merged to main on 2026-10-16 as `37f1c447d6a2ff0df268c9b88410c8ec209757fb`.
+- Final pre-merge Windows Actions: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38919598234 — **success** (static XAML validation, core tests, Windows x64 publish, installer, real v0.14→v0.15 upgrade data preservation, installation smoke).
+- UI side effects not verified by CI: actual tray icon appearance, window titlebar, small-screen typography/DPI, reminders after sleep/lock, motion and narration. Do not mark these passed without physical evidence.
+- Packaged multiresolution ICO and branded installer EXE remain open; no v0.17 signed release or version bump.

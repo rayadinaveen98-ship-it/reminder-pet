@@ -1,6 +1,6 @@
 # PetPing v0.17 — UI Specification & Visual Review Gate
 
-**Status:** Stage A complete. User selected Logo C / Companion Beacon on 2026-10-16; Stage B implementation is in progress on PR #17. Windows v0.15 remains the release fallback. Full physical UI QA pending.
+**Status:** Stage A complete. User selected Logo C / Companion Beacon on 2026-10-16; Stage B first native integration slice merged to main in PR #17, with green Windows CI. Windows v0.15 remains the release fallback. Full physical UI QA pending.
 **Editable Canva concept deck:** https://www.canva.com/d/rljAMk15QUasrej (8 slides; generated, requires editorial corrections below).
 **Earlier approved style reference:** https://www.canva.com/d/0LRU2hT9b1v6vBO (7 pages; preserve original).
 **Own-source identity candidates:** `design/petping-3/logos/`.
