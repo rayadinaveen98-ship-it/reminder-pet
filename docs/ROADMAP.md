@@ -127,3 +127,17 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [ ] Physical RC checks for lock/sleep/wake, multi-monitor DPI, voice, keyboard/assistive technology and install/uninstall
 - [ ] Explicit distribution/code-signing decision (unsigned limitations disclosed)
 - [ ] User sign-off for stable v1.0; then create Android A1 foundation
+
+## Milestone W1.9 — PetPing 2.0 experience (approved before Windows v1.0)
+- [x] Stable, user-tested v0.9 preserved as baseline
+- [x] v0.10 new Home/Reminders/My Pets/Pet Studio/Settings design specification
+- [x] v0.10 walking, speaking, waiting, reaction and exit storyboard
+- [x] v0.10 versioned design tokens and example pet-profile schema
+- [x] v0.10 editable seven-page Canva concept created
+- [ ] Review and correct Canva pet-care placeholder copy and speech timing
+- [ ] Approve UI visual direction and safe talking/waiting behavior
+- [ ] v0.11 moving WPF pet with unboxed reminder text, Done/Snooze/Mute/Hide and cancellable repeated narration
+- [ ] v0.12 expressive animations and action-specific effects
+- [ ] v0.13 Cat/Dog/Bunny profiles and per-pet customization
+- [ ] v0.14 full WPF dashboard/UI rework, keep reminder state compatibility
+- [ ] v0.15 Windows QA, then Windows v1.0 release candidate
