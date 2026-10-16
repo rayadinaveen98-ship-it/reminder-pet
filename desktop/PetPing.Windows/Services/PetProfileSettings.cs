@@ -61,8 +61,26 @@ public sealed class PetProfileSettings
     {
         WriteIndented = true, Converters = { new JsonStringEnumConverter() }
     };
+    private Dictionary<PetSpecies, PetProfile> _profiles = Defaults();
+    public PetSpecies SelectedSpecies { get; private set; } = PetSpecies.Cat;
+    public PetProfile Current => _profiles[SelectedSpecies];
 
-    public PetProfile Current { get; private set; } = new();
+    public PetProfile Get(PetSpecies species) =>
+        _profiles.TryGetValue(species, out var profile)
+            ? profile : throw new ArgumentException("Unknown pet species.");
+
+    private static Dictionary<PetSpecies, PetProfile> Defaults() => new()
+    {
+        [PetSpecies.Cat] = new PetProfile(),
+        [PetSpecies.Dog] = new PetProfile
+        {
+            Species = PetSpecies.Dog, Palette = PetPalette.Cocoa
+        },
+        [PetSpecies.Bunny] = new PetProfile
+        {
+            Species = PetSpecies.Bunny, Palette = PetPalette.Snow
+        }
+    };
 
     public PetProfileSettings(string? directory = null)
     {
@@ -73,25 +91,45 @@ public sealed class PetProfileSettings
         if (!File.Exists(_path)) return;
         try
         {
-            var loaded = JsonSerializer.Deserialize<PetProfile>(File.ReadAllText(_path), JsonOptions);
-            PetProfileCatalog.Validate(loaded);
-            Current = loaded!;
+            var loaded = JsonSerializer.Deserialize<PetRoster>(File.ReadAllText(_path), JsonOptions);
+            ValidateRoster(loaded);
+            _profiles = loaded!.Profiles.ToDictionary(p => p.Species);
+            SelectedSpecies = loaded.SelectedSpecies;
         }
         catch (Exception error) when (error is JsonException or IOException
             or UnauthorizedAccessException or ArgumentException)
         {
-            // Do not replace or silently erase malformed user configuration.
-            Current = new PetProfile();
+            // Corrupt profile never overwrites the original or reminder data.
+            _profiles = Defaults();
+            SelectedSpecies = PetSpecies.Cat;
         }
     }
 
-    public void Update(PetProfile next)
+    private static void ValidateRoster(PetRoster? roster)
     {
-        PetProfileCatalog.Validate(next);
+        if (roster is null || roster.SchemaVersion != 1 ||
+            !Enum.IsDefined(roster.SelectedSpecies) || roster.Profiles is null ||
+            roster.Profiles.Count != Enum.GetValues<PetSpecies>().Length)
+            throw new ArgumentException("Unsupported pet roster.");
+        foreach (var profile in roster.Profiles)
+            PetProfileCatalog.Validate(profile);
+        if (roster.Profiles.Select(p => p.Species).Distinct().Count() != roster.Profiles.Count ||
+            !roster.Profiles.Any(p => p.Species == roster.SelectedSpecies))
+            throw new ArgumentException("Invalid or duplicate pet entries.");
+    }
+
+    private void Save(Dictionary<PetSpecies, PetProfile> next, PetSpecies selection)
+    {
+        var roster = new PetRoster
+        {
+            SelectedSpecies = selection,
+            Profiles = next.Values.OrderBy(p => p.Species).ToList()
+        };
+        ValidateRoster(roster);
         var temporary = _path + ".tmp";
         try
         {
-            File.WriteAllText(temporary, JsonSerializer.Serialize(next, JsonOptions));
+            File.WriteAllText(temporary, JsonSerializer.Serialize(roster, JsonOptions));
             File.Move(temporary, _path, overwrite: true);
         }
         catch
@@ -100,6 +138,31 @@ public sealed class PetProfileSettings
             catch (IOException) { }
             throw;
         }
-        Current = next;
+        _profiles = next;
+        SelectedSpecies = selection;
+    }
+
+    public void Update(PetProfile next)
+    {
+        PetProfileCatalog.Validate(next);
+        var updated = new Dictionary<PetSpecies, PetProfile>(_profiles)
+        {
+            [next.Species] = next
+        };
+        Save(updated, next.Species);
+    }
+
+    public void Select(PetSpecies species)
+    {
+        if (!Enum.IsDefined(species)) throw new ArgumentException("Unknown pet species.");
+        if (species == SelectedSpecies) return;
+        Save(new Dictionary<PetSpecies, PetProfile>(_profiles), species);
+    }
+
+    private sealed class PetRoster
+    {
+        public int SchemaVersion { get; set; } = 1;
+        public PetSpecies SelectedSpecies { get; set; } = PetSpecies.Cat;
+        public List<PetProfile> Profiles { get; set; } = [];
     }
 }
