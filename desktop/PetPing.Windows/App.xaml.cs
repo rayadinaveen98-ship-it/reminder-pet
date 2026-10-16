@@ -8,7 +8,7 @@ using Forms = System.Windows.Forms;
 
 namespace PetPing.Windows;
 
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
     private Mutex? _singleInstance;
     private ReminderStore? _store;
@@ -28,7 +28,7 @@ public partial class App : Application
         _singleInstance = new Mutex(true, @"Local\PetPing.Windows.Instance", out bool firstInstance);
         if (!firstInstance)
         {
-            MessageBox.Show("PetPing is already running. Open it from the system tray.", "PetPing");
+            System.Windows.MessageBox.Show("PetPing is already running. Open it from the system tray.", "PetPing");
             Shutdown();
             return;
         }
@@ -61,7 +61,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            MessageBox.Show("PetPing couldn't start. Your reminders were not erased.\n\n" + ex.Message,
+            System.Windows.MessageBox.Show("PetPing couldn't start. Your reminders were not erased.\n\n" + ex.Message,
                 "Startup error", MessageBoxButton.OK, MessageBoxImage.Error);
             Quit();
         }

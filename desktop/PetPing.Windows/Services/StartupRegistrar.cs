@@ -25,6 +25,10 @@ public static class StartupRegistrar
             key.DeleteValue(EntryName, throwOnMissingValue: false);
     }
 
-    private static string QuotedExecutable() =>
-        "\"" + Environment.ProcessPath + "\"";
+    private static string QuotedExecutable()
+    {
+        var path = Environment.ProcessPath ??
+            throw new InvalidOperationException("Cannot determine the location of PetPing.");
+        return "\"" + path + "\" --background";
+    }
 }
