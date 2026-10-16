@@ -31,6 +31,9 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 
 ## Active milestone
 **Windows v0.17 unsigned DESIGN PREVIEW — GitHub verified, physical user acceptance pending.**
+
+- **v0.18 R2-B persistence and rollback integration is CI-GREEN but NOT MERGED or released:** stacked draft PR #22 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/22 targets draft PR #21. Adds versioned opt-in custom schedule records, local wall-time/time-zone anchors, one atomic successor, no-duplicate retry protection and fail-closed corrupt-schema loading. Windows CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38933010425 **passed** core regressions, WPF build, installer and v0.15→v0.17 upgrade data preservation. **No UI exposes custom repeat creation.** Downgrading an app with newly created custom records to v0.17 can refuse to read those newer records: do not activate this schema until a backup and supported migration/rollback plan is verified. Review `docs/V018_R2B_PERSISTENCE_GATE.md` on the PR branch. Physical v0.17 Windows acceptance remains required.
+
 - **v0.18 R2-B recurrence calculations are separately prototyped, NOT MERGED or shipped:** draft PR #21 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/21 . Pure selected-weekdays/every-N-weeks and every-N-days rules, synthetic DST tests and long-offline bounded next-occurrence, no saved schema/UI modifications. Windows CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38929742575 **passed**. Still requires additive migration design, recurrence/idempotency integration and physical v0.17 acceptance; details in `docs/V018_R2B_CALCULATION_PROTOTYPE.md` **on the PR branch**.
 
 
