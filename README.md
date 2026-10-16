@@ -201,3 +201,9 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - PR #14: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/14 ; Windows run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38903316350 passed 122 tests and actual v0.14→v0.15 upgrade.
 - Portable unsigned ZIP artifact ID 12046563227; installer ZIP artifact ID 12046104323. CRCs good, standalone `PetPing-Setup-v0.15-unsigned.exe` SHA-256 `d37e434ed7428a412021c74e2abb31af8bf89f86d4b2d0cbfdc15823ae2377cb`.
 - Back up `%LOCALAPPDATA%\PetPing` and quit previous tray app before upgrade. Real laptop, screen reader, scaling/monitor, power and signing QA still required for v1.0.
+
+## v0.17 Stage A design review (NOT YET IN WINDOWS)
+- Created three editable original vector icon/logo candidates: [A Friendly Signal](design/petping-3/logos/candidate-a-friendly-signal.svg), [B Companion Monogram](design/petping-3/logos/candidate-b-companion-monogram.svg), [C Companion Beacon](design/petping-3/logos/candidate-c-companion-beacon.svg). Awaiting approval; no final brand selected.
+- New [Windows UI visual specification](docs/V017_UI_SPEC.md) for accurate Home and Reminders, including responsive hierarchy, live store metrics, disabled future controls, readability and accessible focus. Draft [v0.17 visual tokens](design/petping-3/tokens.v017.candidate.json) are not loaded into WPF yet.
+- Editable Canva [PetPing Concept Review](https://www.canva.com/d/rljAMk15QUasrej) (8 pages), alongside earlier [PetPing 2.0 UX](https://www.canva.com/d/0LRU2hT9b1v6vBO) reference. Some generated text erroneously mentions pet care/analytics/online features; **reject those concepts**, follow `V017_UI_SPEC.md` rather than treating mockups as shipped behavior.
+- v0.15 remains the actual working Windows application; next is user logo/layout approval then native WPF UI implementation in testable slices.
