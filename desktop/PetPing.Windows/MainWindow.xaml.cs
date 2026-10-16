@@ -10,23 +10,30 @@ public partial class MainWindow : Window
     private readonly ReminderStore _store;
     private readonly VoiceService _voice;
     private readonly SpeechSettings _speechSettings;
+    private readonly PetAppearanceSettings _appearance;
+    private bool _loadingAppearance;
     private readonly Action _testPet;
     private readonly Action<Reminder> _reminderChanged;
     private bool _reallyQuit;
     private Reminder? _editing;
 
     public MainWindow(ReminderStore store, VoiceService voice, SpeechSettings speechSettings,
-        Action testPet, Action<Reminder> reminderChanged)
+        PetAppearanceSettings appearance, Action testPet, Action<Reminder> reminderChanged)
     {
         InitializeComponent();
         _store = store;
         _voice = voice;
         _speechSettings = speechSettings;
+        _appearance = appearance;
         _testPet = testPet;
         ReminderDate.SelectedDate = DateTime.Today;
         ReminderTime.Text = DateTime.Now.AddMinutes(5).ToString("HH:mm");
         VoiceToggle.IsChecked = _speechSettings.Enabled;
         StartupToggle.IsChecked = StartupRegistrar.IsEnabled();
+        _loadingAppearance = true;
+        PlacementPicker.SelectedIndex = (int)_appearance.Placement;
+        MotionPicker.SelectedIndex = (int)_appearance.Motion;
+        _loadingAppearance = false;
         RefreshList();
         Closing += (_, e) => { if (!_reallyQuit) { e.Cancel = true; Hide(); } };
     }
@@ -234,6 +241,29 @@ public partial class MainWindow : Window
             return;
         }
         ValidationMessage.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnAppearanceChanged(object sender,
+        System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_loadingAppearance || _appearance is null ||
+            PlacementPicker.SelectedIndex < 0 || MotionPicker.SelectedIndex < 0)
+            return;
+        try
+        {
+            _appearance.Update((PetPlacement)PlacementPicker.SelectedIndex,
+                               (PetMotion)MotionPicker.SelectedIndex);
+            ValidationMessage.Visibility = Visibility.Collapsed;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException
+            or ArgumentException)
+        {
+            _loadingAppearance = true;
+            PlacementPicker.SelectedIndex = (int)_appearance.Placement;
+            MotionPicker.SelectedIndex = (int)_appearance.Motion;
+            _loadingAppearance = false;
+            ShowError("Could not save pet preferences: " + error.Message);
+        }
     }
 
     private void OnVoiceToggled(object sender, RoutedEventArgs e)

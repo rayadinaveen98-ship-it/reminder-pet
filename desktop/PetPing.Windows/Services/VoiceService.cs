@@ -9,6 +9,7 @@ public sealed class VoiceService : IDisposable
     public bool Enabled { get; set; } = true;
     public bool IsAvailable => _speaker is not null;
     public event Action<Exception>? SpeechFailed;
+    public event Action<bool>? SpeakingChanged;
 
     public VoiceService()
     {
@@ -16,11 +17,17 @@ public sealed class VoiceService : IDisposable
         {
             _speaker = new SpeechSynthesizer();
             _speaker.SetOutputToDefaultAudioDevice();
+            _speaker.SpeakStarted += (_, _) =>
+            {
+                try { SpeakingChanged?.Invoke(true); } catch { }
+            };
             _speaker.SpeakCompleted += (_, args) =>
             {
+                try { SpeakingChanged?.Invoke(false); } catch { }
                 if (args.Error is { } error)
                     try { SpeechFailed?.Invoke(error); } catch { }
             };
+
         }
         catch { _speaker = null; }
     }
