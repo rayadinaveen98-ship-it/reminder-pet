@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current deliverable:** Windows Alpha v0.6 edit + daily/weekly repeat features under development, pending GitHub CI and physical laptop testing. v0.5 passed 32 automated core checks. This is not a production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current deliverable:** Windows Alpha v0.6 editing + daily/weekly repeats. GitHub Windows x64 CI passed **49** core tests and produced an unsigned ZIP; laptop UI/voice/power behavior still needs testing. This is not a production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -84,3 +84,7 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Uses the timezone from initial creation and preserves wall-clock time through daylight-saving transitions. Invalid spring-forward times shift to the next valid minute; ambiguous autumn time uses the earlier UTC instant.
 - The UI currently changes only the next scheduled unsent occurrence, **not all past instances**. Future recurrence after that edit inherits the updated title and repeat rule. To stop a repeat, edit the upcoming instance to One time or delete it.
 - See `docs/PROJECT_STATUS.md` and `docs/ENGINEERING_LOG.md` for current CI and testing status before resuming in a new chat.
+
+## Latest v0.6 build evidence
+- Windows GitHub Actions: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 — 49 core checks + executable publish succeeded.
+- Artifact: `PetPing-Windows-v0.6-unsigned` (time-limited retention). The release is a test ZIP, not an installed/signed consumer build.

@@ -81,6 +81,6 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Edit upcoming unsent reminder title, date, time and repetition
 - [x] Repeat picker, edit/cancel controls and repeat labels in dashboard
 - [x] Regression tests for DST, long downtime, legacy JSON and failed recurrence writes
-- [ ] Windows CI verified and merged to main
+- [x] Windows CI compiled and 49 core checks passed; PR #5 merge pending
 - [ ] Device QA: repeat, edit, tray restart, sleep resume, voice and multiple monitors
 - [ ] Custom weekly days, series-level history management and richer Today/Upcoming view (subsequent phase)

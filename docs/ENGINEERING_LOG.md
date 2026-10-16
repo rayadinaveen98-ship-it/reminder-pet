@@ -41,3 +41,10 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Design: each delivery/miss creates one *new* future record transactionally; prior occurrence remains in history. Old snoozed occurrences retain continuation marker; long offline gaps jump forward rather than producing unbounded missed instances.
 - Local wall-clock recurrence stores zone ID and time of day. Spring gaps use next valid minute, autumn ambiguity earlier instant. Existing old JSON defaults to one time.
 - Added tests for daily/weekly, edit/cancel recurrence, DST, historical records, rollback and migration. CI/build pending at this checkpoint; do not state passed until verified.
+
+## 2026-10-16 — v0.6 first CI verification
+- PR #5: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/5
+- Windows x64 Actions run: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 — **success**.
+- Static XAML, C# core regression and dotnet publish passed; **49 core tests** passed (vs. 32 in v0.5).
+- Unsigned artifact PetPing-Windows-v0.6-unsigned uploaded (artifact ID 12032022285). Physical desktop QA is not inferred from CI.
+- Next: merge PR #5 after handoff refresh, share test build, gather editing/repeat/voice/lock results.
