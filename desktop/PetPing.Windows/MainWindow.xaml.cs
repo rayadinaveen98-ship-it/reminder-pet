@@ -540,6 +540,34 @@ public partial class MainWindow : Window
         { ShowError("Could not mark reminder done: " + ex.Message); }
     }
 
+    private void OnSnoozeDurationChanged(object sender,
+        SelectionChangedEventArgs e)
+    {
+        if (SnoozeDurationPicker is null || CustomSnoozeMinutes is null) return;
+        var isCustom = (SnoozeDurationPicker.SelectedItem as ComboBoxItem)?.Tag as string
+            == "custom";
+        CustomSnoozeMinutes.Visibility = isCustom
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private TimeSpan ReadSnoozeDuration()
+    {
+        var selected = (SnoozeDurationPicker.SelectedItem as ComboBoxItem)?.Tag as string;
+        if (selected == "custom")
+        {
+            var value = CustomSnoozeMinutes.Text.Trim();
+            if (!int.TryParse(value, System.Globalization.NumberStyles.None,
+                CultureInfo.InvariantCulture, out var customMinutes))
+                throw new ArgumentException("Enter a whole number of minutes (1–1440).");
+            return SnoozePolicy.FromMinutes(customMinutes);
+        }
+        if (!int.TryParse(selected, System.Globalization.NumberStyles.None,
+            CultureInfo.InvariantCulture, out var minutes) ||
+            !SnoozePolicy.Presets.Contains(minutes))
+            throw new ArgumentException("Choose a valid snooze duration.");
+        return SnoozePolicy.FromMinutes(minutes);
+    }
+
     private void OnSelectedSnooze(object sender, RoutedEventArgs e)
     {
         var reminder = SelectedOrWarn();
@@ -551,12 +579,14 @@ public partial class MainWindow : Window
         }
         try
         {
-            _store.Snooze(reminder, TimeSpan.FromMinutes(10));
+            var duration = ReadSnoozeDuration();
+            _store.Snooze(reminder, duration);
             _reminderChanged(reminder);
             ErrorToast.Visibility = Visibility.Collapsed;
             RefreshList();
         }
-        catch (Exception ex) when (ex is IOException or InvalidOperationException)
+        catch (Exception ex) when (ex is IOException or InvalidOperationException
+            or ArgumentException)
         { ShowError("Couldn't save snooze: " + ex.Message); }
     }
 
