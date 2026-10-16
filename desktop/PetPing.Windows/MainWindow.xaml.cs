@@ -23,6 +23,7 @@ public partial class MainWindow : Window
     private readonly Action _stopNarration;
     private readonly Action<Reminder> _reminderChanged;
     private bool _reallyQuit;
+    private bool _savingReminder;
     private Reminder? _editing;
     private DashboardPage _currentPage = DashboardPage.Home;
 
@@ -46,8 +47,7 @@ public partial class MainWindow : Window
         _testPet = testPet;
         _stopNarration = stopNarration;
         _reminderChanged = reminderChanged;
-        ReminderDate.SelectedDate = DateTime.Today;
-        ReminderTime.Text = DateTime.Now.AddMinutes(5).ToString("HH:mm");
+        SetDefaultDue();
         VoiceToggle.IsChecked = _speechSettings.Enabled;
         StartupToggle.IsChecked = StartupRegistrar.IsEnabled();
         _loadingAppearance = true;
@@ -406,62 +406,106 @@ public partial class MainWindow : Window
     public void OpenDashboard() { Show(); WindowState = WindowState.Normal; Activate(); }
     public void AllowQuit() => _reallyQuit = true;
 
-    private static RepeatPattern PickerPattern(int index) => index switch
-    {
-        1 => RepeatPattern.Daily,
-        2 => RepeatPattern.Weekly,
-        _ => RepeatPattern.None
-    };
+    private static RepeatPattern PickerPattern(int index) =>
+        ReminderEditorRules.SelectRepeat(index);
 
-    private DateTimeOffset ReadDueAt()
+    private void SetDefaultDue()
     {
-        if (ReminderDate.SelectedDate is not DateTime date)
-            throw new ArgumentException("Please choose a date.");
-        if (!TimeSpan.TryParseExact(ReminderTime.Text.Trim(), @"hh\:mm",
-                CultureInfo.InvariantCulture, out var time) || time.TotalHours >= 24)
-            throw new ArgumentException("Use a time like 09:30 or 19:00.");
+        var when = ReminderEditorRules.DefaultLocalDue(DateTimeOffset.Now, TimeZoneInfo.Local);
+        ReminderDate.SelectedDate = when.Date;
+        ReminderTime.Text = when.ToString("HH:mm", CultureInfo.InvariantCulture);
+    }
 
-        var local = DateTime.SpecifyKind(date.Date.Add(time), DateTimeKind.Unspecified);
-        if (TimeZoneInfo.Local.IsInvalidTime(local))
-            throw new ArgumentException("That time does not exist because the clocks change. Choose another.");
-        if (TimeZoneInfo.Local.IsAmbiguousTime(local))
-            throw new ArgumentException("That time happens twice because the clocks change. Choose another.");
-        return new DateTimeOffset(local, TimeZoneInfo.Local.GetUtcOffset(local));
+    private DateTimeOffset ReadDueAt() =>
+        ReminderEditorRules.ReadLocalDue(ReminderDate.SelectedDate,
+            ReminderTime.Text, TimeZoneInfo.Local, DateTimeOffset.Now);
+
+    private void OnReminderEditorTextChanged(object sender, TextChangedEventArgs e) =>
+        RefreshWhenPreview();
+
+    private void OnReminderEditorSelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        RefreshWhenPreview();
+
+    private void RefreshWhenPreview()
+    {
+        // Editor events can fire while InitializeComponent is still wiring fields.
+        if (ReminderWhenPreview is null || ReminderDate is null ||
+            ReminderTime is null || RepeatPicker is null) return;
+        try
+        {
+            var due = ReadDueAt();
+            var repeat = PickerPattern(RepeatPicker.SelectedIndex);
+            var text = repeat switch
+            {
+                RepeatPattern.Daily => "Every day",
+                RepeatPattern.Weekly => "Every week",
+                _ => "One time"
+            };
+            ReminderWhenPreview.Text =
+                $"Next reminder: {due.ToLocalTime():ddd, dd MMM yyyy • HH:mm}  •  {text}";
+        }
+        catch (ArgumentException error)
+        {
+            ReminderWhenPreview.Text = error.Message;
+        }
     }
 
     private void OnAddReminder(object sender, RoutedEventArgs e)
     {
+        if (_savingReminder) return;
+        _savingReminder = true;
+        AddButton.IsEnabled = false;
+        QuickAddButton.IsEnabled = false;
         try
         {
+            var title = ReminderEditorRules.ValidateTitle(ReminderName.Text);
             var due = ReadDueAt();
             var mode = PickerPattern(RepeatPicker.SelectedIndex);
             if (_editing is { } previous)
             {
-                _store.Edit(previous, ReminderName.Text, due, mode);
+                _store.Edit(previous, title, due, mode);
                 _reminderChanged(previous);
             }
             else
-                _store.Add(ReminderName.Text, due, mode);
+                _store.Add(title, due, mode);
             ResetForm();
             RefreshList();
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException
             or IOException or TimeZoneNotFoundException or InvalidTimeZoneException)
         { ShowError(ex.Message); }
+        finally
+        {
+            _savingReminder = false;
+            AddButton.IsEnabled = true;
+            QuickAddButton.IsEnabled = true;
+        }
     }
 
     private void OnQuickAdd(object sender, RoutedEventArgs e)
     {
+        if (_savingReminder) return;
         if (_editing is not null) { ShowError("Finish or cancel editing first."); return; }
+        _savingReminder = true;
+        AddButton.IsEnabled = false;
+        QuickAddButton.IsEnabled = false;
         try
         {
-            _store.Add(ReminderName.Text, DateTimeOffset.Now.AddMinutes(1),
+            var title = ReminderEditorRules.ValidateTitle(ReminderName.Text);
+            _store.Add(title, DateTimeOffset.Now.AddMinutes(1),
                 PickerPattern(RepeatPicker.SelectedIndex));
             ResetForm();
             RefreshList();
         }
-        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or IOException)
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException
+            or IOException or TimeZoneNotFoundException or InvalidTimeZoneException)
         { ShowError(ex.Message); }
+        finally
+        {
+            _savingReminder = false;
+            AddButton.IsEnabled = true;
+            QuickAddButton.IsEnabled = true;
+        }
     }
 
     private void OnSelectedEdit(object sender, RoutedEventArgs e)
@@ -497,8 +541,7 @@ public partial class MainWindow : Window
     {
         _editing = null;
         ReminderName.Clear();
-        ReminderDate.SelectedDate = DateTime.Today;
-        ReminderTime.Text = DateTime.Now.AddMinutes(5).ToString("HH:mm");
+        SetDefaultDue();
         RepeatPicker.SelectedIndex = 0;
         QuickAddButton.Visibility = Visibility.Visible;
         CancelEditButton.Visibility = Visibility.Collapsed;
