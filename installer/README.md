@@ -1,13 +1,13 @@
-# Windows v0.8 installer — packaging notes
+# Windows v0.9 installer — packaging notes
 
 ## Goal
 Provide an optional per-user desktop installer (Inno Setup 6, no license fee) alongside the portable ZIP. No Windows Store/MSIX registration or code-signing certificate is involved.
 
 ## Build
 Windows GitHub Actions:
-1. Publish Windows x64 self-contained .NET WPF files into artifacts/PetPing-Windows-v0.8/.
+1. Publish Windows x64 self-contained .NET WPF files into artifacts/PetPing-Windows-v0.9/.
 2. Use Chocolatey to install the free Inno Setup 6 compiler on the ephemeral Windows runner.
-3. Compile installer/PetPing.iss to artifacts/PetPing-Installer-v0.8/PetPing-Setup-v0.8-unsigned.exe.
+3. Compile installer/PetPing.iss to artifacts/PetPing-Installer-v0.9/PetPing-Setup-v0.9-unsigned.exe.
 4. Run an automated **silent install -> check executable -> silent uninstall** sequence with a sentinel file inside LocalAppData/PetPing, verifying that user reminder data survives.
 5. Upload both portable ZIP and installer EXE as time-limited workflow artifacts.
 
@@ -23,3 +23,6 @@ Windows GitHub Actions:
 
 ## Manual QA pending
 Test installation on a normal Windows account, upgrade from a portable build, Start with Windows persistence, Windows uninstall UI, high-DPI dashboard and actual lock/wake behavior. CI proves packaging and simple lifecycle only, not user-facing visual perfection.
+
+## v0.9 beta-quality smoke
+CI runs setup twice into the same per-user folder, verifies the installed executable and LocalAppData sentinel after the second install, then uninstalls and verifies the sentinel remains. This is a **repair/reinstall** smoke test, not a fully historical v0.8→v0.9 upgrade test. Physical upgrade acceptance is still required.

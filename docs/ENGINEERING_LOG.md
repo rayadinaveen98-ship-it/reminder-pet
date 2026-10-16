@@ -111,3 +111,10 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Release focus: protect reminders if the primary JSON becomes unreadable; offer **explicit opt-in restore from validated previous backup**, preserving the unreadable original for inspection. Add a clear **Open data folder** tool. Improve CI to test installer repair/reinstall without deleting personal data.
 - Design constraints: never silently restore or wipe files; backup may be older than latest reminder and restore can lose newest edits, so confirmation must be clear. No cloud sync or account. Keep existing reminder model/pet/recurrence intact.
 - Next: commit incremental source and tests, Windows CI, update handoff and merge only after green tests and install smoke. This does not automatically satisfy physical screen reader, lock/sleep and mixed DPI QA.
+
+## 2026-10-16 — v0.9 code and regression checkpoint
+- Added ReminderStore backup validation and an explicit, opt-in restore routine that saves the unreadable primary under a unique `reminders.unreadable-*.json` name while retaining the prior `.bak` file.
+- Windows startup asks a visible Yes/No recovery question only for unreadable primary + valid backup. Warns the backup can be older and newer entries might be missing; cancel leaves files unchanged.
+- Dashboard includes **Open data and diagnostics folder** to let users inspect and copy local JSON/logs when troubleshooting. No automatic collection/upload.
+- Added deterministic regression scenarios: backup eligibility, damaged original preserved, earlier version restored, invalid backup refused. Installer CI repair/reinstall now runs a second install before uninstall to test data preservation.
+- Reminder schema and pet design remain unchanged. PR and CI still pending at checkpoint.
