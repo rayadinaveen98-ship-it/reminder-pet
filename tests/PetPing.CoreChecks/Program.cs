@@ -841,6 +841,101 @@ try
           new ReminderStore(repeatFolder).Reminders.All(r => r.CustomSchedule is null),
         "preexisting daily/weekly reminder data loads without new custom metadata");
 
+    // R2-B custom editor/domain: create and update only a future unsent
+    // occurrence, leave past history and prior-version recovery data alone.
+    var editorStoreFolder = Path.Combine(temp, "custom-editor-safety");
+    var editorStore = new ReminderStore(editorStoreFolder);
+    var legacyBeforeCustom = editorStore.Add("Original daily reminder",
+        DateTimeOffset.UtcNow.AddHours(6), RepeatPattern.Daily);
+    var initialLegacyBytes = File.ReadAllText(
+        Path.Combine(editorStoreFolder, "reminders.json"));
+    var editorAnchor = DateTime.SpecifyKind(DateTime.UtcNow.Date.AddDays(4),
+        DateTimeKind.Unspecified);
+    var editorOptions = new CustomRepeatOptions
+    {
+        Kind = CustomRepeatKind.EveryNDays,
+        AnchorLocalDate = editorAnchor,
+        Interval = 3,
+        WeekdayMask = 0
+    };
+    var editTarget = editorStore.AddCustom("Custom learning routine",
+        TimeSpan.FromHours(10), TimeZoneInfo.Utc.Id, editorOptions);
+    var backupPath = Path.Combine(editorStoreFolder, "reminders.pre-custom-v017.json");
+    Check(File.Exists(backupPath) &&
+          File.ReadAllText(backupPath) == initialLegacyBytes &&
+          new ReminderStore(editorStoreFolder).Reminders.Count == 2,
+        "first custom schedule creates a non-overwriting legacy-readable backup");
+    var oldSeriesId = editTarget.SeriesId;
+    var nextOptions = editorOptions with { Interval = 5 };
+    editorStore.EditCustom(editTarget, "Updated custom learning",
+        TimeSpan.FromHours(11), TimeZoneInfo.Utc.Id, nextOptions);
+    Check(editTarget.Title == "Updated custom learning" &&
+          editTarget.CustomSchedule == nextOptions &&
+          editTarget.RepeatLocalTime == TimeSpan.FromHours(11) &&
+          editTarget.SeriesId == oldSeriesId &&
+          editTarget.RepeatContinuationCreated == false &&
+          editorStore.Reminders.Count == 2,
+        "editing a future unsent custom occurrence updates time/schedule without new series");
+    Check(File.ReadAllText(backupPath) == initialLegacyBytes &&
+          new ReminderStore(editorStoreFolder).Reminders.Single(r => r.Id == editTarget.Id)
+              .CustomSchedule == nextOptions,
+        "custom edit persists and keeps the initial pre-custom downgrade backup immutable");
+
+    var beforeRejectedEdit = File.ReadAllText(
+        Path.Combine(editorStoreFolder, "reminders.json"));
+    bool invalidCustomEditRejected = false;
+    try
+    {
+        editorStore.EditCustom(editTarget, "Not saved",
+            TimeSpan.FromHours(12), TimeZoneInfo.Utc.Id,
+            nextOptions with { Interval = 366 });
+    }
+    catch (InvalidDataException) { invalidCustomEditRejected = true; }
+    Check(invalidCustomEditRejected &&
+          File.ReadAllText(Path.Combine(editorStoreFolder, "reminders.json")) ==
+              beforeRejectedEdit && editTarget.Title == "Updated custom learning",
+        "invalid edited custom schedule never mutates saved JSON or visible in-memory data");
+
+    var tempBlockedCustom = Path.Combine(editorStoreFolder, "reminders.json.tmp");
+    Directory.CreateDirectory(tempBlockedCustom);
+    bool customEditRollback = false;
+    try
+    {
+        editorStore.EditCustom(editTarget, "Not persisted during disk fault",
+            TimeSpan.FromHours(13), TimeZoneInfo.Utc.Id,
+            nextOptions with { Interval = 2 });
+    }
+    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+    { customEditRollback = true; }
+    Check(customEditRollback &&
+          editTarget.Title == "Updated custom learning" &&
+          editTarget.CustomSchedule == nextOptions &&
+          File.ReadAllText(Path.Combine(editorStoreFolder, "reminders.json")) ==
+              beforeRejectedEdit,
+        "custom edit rolls back edited fields when disk save fails");
+    Directory.Delete(tempBlockedCustom);
+
+    editorStore.Deliver(editTarget, DateTimeOffset.UtcNow);
+    bool historicalEditRejected = false;
+    try
+    {
+        editorStore.EditCustom(editTarget, "Try changing delivered history",
+            TimeSpan.FromHours(8), TimeZoneInfo.Utc.Id, nextOptions);
+    }
+    catch (InvalidOperationException) { historicalEditRejected = true; }
+    Check(historicalEditRejected &&
+          editTarget.Title == "Updated custom learning" &&
+          editorStore.Reminders.Count(r => r.SeriesId == oldSeriesId &&
+              r.Status == ReminderStatus.Pending) == 1,
+        "once delivered, a custom occurrence's historical schedule cannot be silently edited");
+
+    var corruptBackup = File.ReadAllText(backupPath);
+    var subsequentCustom = editorStore.AddCustom("Another custom routine",
+        TimeSpan.FromHours(15), TimeZoneInfo.Utc.Id, editorOptions);
+    Check(subsequentCustom.Repeat == RepeatPattern.Custom &&
+          File.ReadAllText(backupPath) == corruptBackup,
+        "additional custom reminder creation never replaces initial pre-custom backup");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
