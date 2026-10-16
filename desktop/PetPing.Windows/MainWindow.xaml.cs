@@ -89,7 +89,7 @@ public partial class MainWindow : Window
             RefreshList();
     }
 
-    private void OnDashboardKeyDown(object sender, KeyEventArgs e)
+    private void OnDashboardKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && e.Key == Key.N)
         {
