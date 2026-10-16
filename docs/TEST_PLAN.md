@@ -138,3 +138,11 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 ### v0.11 Windows automated verification (manual QA still open)
 - GitHub run 38890848806 succeeded: 86 smoke checks including geometry/voice repeat rules, compiled Windows WPF and unsigned Inno installer, verified install/reinstall/uninstall preserved test data.
 - No claim that real pet crossing animation, button visibility/hit testing, speech repeat exact timing or Windows sleep behavior is verified by CI. User testing required.
+
+## v0.13 three-pet physical QA
+- Open My Pets. Choose each Cat/Dog/Bunny and preview the next on-desktop walking reminder. Confirm visible anatomical differences and corresponding name in UI; not merely changed label or thumbnail.
+- Open Pet Studio: change palettes Apricot/Cocoa/Snow/Lavender, None/Bow/Scarf accessory, Small/Medium/Large, personality and Done/Snooze action. See preview update and test pet behavior on screen.
+- Change narrator repeat to 30, 60 and 120 seconds; ensure actual reannouncement follows the chosen delay after speech finishes. Confirm Mute and Hide stop repeating immediately.
+- Quit tray app and reopen: same pet, palette, accessories, size and actions remain. Existing saved reminders must not change.
+- Corrupt only a **disposable test** pet-profile.json and restart: app chooses safe cat default without deleting the corrupt file or reminders.
+- Physical tests for 100–200% scaling, pet controls and keyboard focus, second monitor, session lock, suspend/resume. CI is not physical confirmation.
