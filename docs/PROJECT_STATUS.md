@@ -31,6 +31,8 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 
 ## Active milestone
 **Windows v0.17 unsigned DESIGN PREVIEW — GitHub verified, physical user acceptance pending.**
+- **v0.18 R2-B recurrence calculations are separately prototyped, NOT MERGED or shipped:** draft PR #21 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/21 . Pure selected-weekdays/every-N-weeks and every-N-days rules, synthetic DST tests and long-offline bounded next-occurrence, no saved schema/UI modifications. Windows CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38929742575 **passed**. Still requires additive migration design, recurrence/idempotency integration and physical v0.17 acceptance; details in `docs/V018_R2B_CALCULATION_PROTOTYPE.md` **on the PR branch**.
+
 
 - **v0.18 R2-A is underway but NOT MERGED or released:** draft PR #20 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/20 . Flexible snooze (5/10/15/30/60min, custom <=24h), shared reminder editor rules, true local next-due preview, midnight/DST validation and store safety tests. Code CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38928471033 **passed** core checks, Windows build, installer and real v0.15→v0.17 upgrade. Preserve the v0.17 laptop review gate; see `docs/V018_R2A_EDITOR_IMPLEMENTATION.md` and `docs/V018_R2A_SNOOZE_IMPLEMENTATION.md` **on the PR branch**.
 
