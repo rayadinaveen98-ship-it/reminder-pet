@@ -62,3 +62,13 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Hover pauses popup timeout; hidden reminders remain Needs Attention
 - [ ] Hands-on Windows QA for UI, screen scaling, fullscreen and speech
 - [ ] Focus/quiet modes, user-selectable popup placement and mixed-DPI multi-monitor placement
+
+## Milestone W1.3 — reliability & observability (v0.5)
+- [x] Privacy-preserving bounded local diagnostics (no reminder titles in logs)
+- [x] Dispatcher-timer error boundary and storage retry cooldown
+- [x] Roll back in-memory changes on failed persistent writes
+- [x] Generic tray fallback if pet popup rendering fails (not guaranteed by Windows)
+- [x] Speech test button and stop speech on lock/suspend
+- [x] Regression checks for blocked writes, rollback and diagnostics privacy
+- [ ] Windows CI compile and core checks for v0.5
+- [ ] Physical laptop validation: popup and speech on/off, lock/unlock, sleep/wake, startup, duplicate alert prevention

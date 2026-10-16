@@ -20,7 +20,7 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 ## Active milestone
 **v0.5 — reliability and diagnostics**. Branch: `feature/windows-v0.5-reliability`.
 
-Current status: **IN PROGRESS — build/CI pending**. Do not call v0.5 complete until CI passes and manual tests are recorded.
+Current status: **IN PROGRESS — source changes committed, v0.5 CI pending**. Do not call v0.5 complete until CI passes and manual tests are recorded.
 
 Priority work:
 1. Handle presentation failures safely and visibly; do not lose state because a pet popup or speech cannot render.
@@ -46,5 +46,12 @@ Priority work:
 ## Resume prompt (copy into a new chat)
 > Continue the **reminder-pet** project from GitHub `rayadinaveen98-ship-it/reminder-pet`. Read `docs/PROJECT_STATUS.md` and `docs/ENGINEERING_LOG.md`, check open PRs and the latest CI run, then proceed with the next unchecked milestone. Windows first, Android second; no paid backend. Commit meaningful increments, update handoff docs, verify CI before merging, and distinguish automated build success from actual device testing.
 
+## Implementation progress — v0.5
+- ✅ Git continuity: `docs/PROJECT_STATUS.md` and `docs/ENGINEERING_LOG.md` created and committed to the feature branch.
+- ✅ Core changes: storage mutation rollback, crash-safe scheduler fault boundaries + 30s write retry cooldown, local bounded diagnostics, generic tray fallback, speech test, and stopping voice on lock/suspend.
+- ✅ Regression tests added for failed writes, diagnostics privacy, multiple same-time IDs.
+- ⏳ Windows Actions CI to be run, reviewed and fixed before merging.
+- ⏳ Actual device tests; cannot be marked passed based only on CI.
+
 ## Next action
-Finish v0.5 code and CI on the existing feature branch. If CI fails, use Windows job logs and fix before merge.
+Open a PR from `feature/windows-v0.5-reliability`, run Windows CI, fix any compile/test failures, merge to `main` only when green, update this file and download latest v0.5 test ZIP. Then get the user's hands-on lock/wake/voice test results.

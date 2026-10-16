@@ -1,6 +1,8 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current deliverable:** Windows Alpha v0.4 floating pet redesign + Windows CI build and reminder-core checks. This is an unsigned engineering alpha, not a verified consumer release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current deliverable:** Windows Alpha v0.5 reliability in development. The last verified build was v0.4. The v0.5 CI compilation and manual device tests must be confirmed before release. Android is next in the roadmap; no Android APK has been produced yet.
+
+**Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
 ## Contents
 - `docs/PRODUCT_BLUEPRINT.md`: product goals, UX principles, scope.
@@ -37,9 +39,9 @@ No license granted yet. Product source is created for this user project; select 
 ## No-SDK visual preview (Windows only)
 Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an optional voice preview. This standalone PowerShell/WPF script is a **visual/overlay capability probe**, not the actual reminder application: it does not save or schedule real reminders. Snooze in this preview is deliberately 10 **seconds**. Inspect the source first if you wish; it does not require admin rights and does not download anything.
 
-## v0.4 build and testing
+## v0.5 build and testing
 - The Windows build workflow runs on pushes to `main` and can also be triggered manually in **Actions → Build Windows Alpha**.
-- When the run succeeds, open its **Artifacts** section and download `PetPing-Windows-v0.4-unsigned`.
+- When the run succeeds, open its **Artifacts** section and download `PetPing-Windows-v0.5-unsigned`.
 - The EXE is a self-contained unsigned **alpha**, not an installer or a verified consumer release; Windows may display a SmartScreen warning.
 - Reminders recover on restart when they were delivered but not acknowledged within 15 minutes. Older ones remain visible in the reminder history.
 - Optional **Start with Windows** registers this executable for the current user with `--background` (without automatically showing the dashboard).
@@ -60,3 +62,11 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Snooze 10m, Done, and × (hide without completing) remain available. Hover pauses automatic dismissal. After timeout the reminder remains in Needs Attention.
 - See `docs/V0_4_FLOATING_PET.md` for interaction details, limitations and hands-on acceptance checks.
 - The `preview/RunPreview.cmd` experiment is a **legacy v0.1 preview**; use the compiled v0.4 EXE to evaluate the redesigned pet.
+
+## v0.5 reliability changes (pending CI and physical testing)
+- Logging under `%LOCALAPPDATA%\PetPing\diagnostics.log`, bounded to approximately 256KB with one rotated previous file. Logs include event identifiers and exception types, not reminder names or exception messages. Local-only, no upload.
+- Scheduler catches presentation and persistence failures; retries failed storage updates with 30-second cooldown while the tray process remains running, instead of crashing the dispatcher.
+- Failed reminder writes restore prior in-memory state, preventing false completion/delivery claims.
+- Generic tray fallback notice if the pet popup cannot render; Notifications may be suppressed by Windows and are NOT a guaranteed alternative alarm.
+- Voice test in dashboard, local TTS failure diagnostics and stopping speech when session locks / machine suspends.
+- Manual release gate remains Windows lock, wake, and speech confirmation.
