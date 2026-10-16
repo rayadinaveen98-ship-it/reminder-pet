@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "stage": "v0.16 exploratory tokens — user review needed",
+  "product": "PetPing",
+  "note": "Not loaded by v0.15. WPF theme implementation in v0.17 is gated on design review.",
+  "color": {
+    "light": {
+      "canvas": "#F8F6F2",
+      "panel": "#FFFFFF",
+      "panelQuiet": "#F1EEE9",
+      "ink": "#24272E",
+      "subtleInk": "#626672",
+      "lavender": "#7562D4",
+      "apricot": "#FFAB7E",
+      "mint": "#80C9AF",
+      "warning": "#9B6233",
+      "danger": "#B34448",
+      "stroke": "#DEDCE4",
+      "focus": "#5943C8"
+    },
+    "dark": {
+      "canvas": "#191922",
+      "panel": "#262631",
+      "panelQuiet": "#30303C",
+      "ink": "#F6F5FA",
+      "subtleInk": "#BCB9C8",
+      "lavender": "#B6A6FF",
+      "apricot": "#FFC29E",
+      "mint": "#97D9C5",
+      "warning": "#F1B87E",
+      "danger": "#FF9C9C",
+      "stroke": "#4B495B",
+      "focus": "#D5C8FF"
+    }
+  },
+  "typography": {
+    "platformDefault": "Segoe UI",
+    "weights": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "fontSizeDip": {
+      "caption": 12,
+      "body": 14,
+      "secondary": 13,
+      "button": 14,
+      "formLabel": 13,
+      "pageTitle": 24,
+      "sectionTitle": 18,
+      "hero": 28,
+      "overlay": 21
+    },
+    "lineHeight": {
+      "body": 1.4,
+      "heading": 1.18
+    }
+  },
+  "spacingDip": {
+    "unit": 4,
+    "buttonY": 10,
+    "buttonX": 14,
+    "fieldY": 10,
+    "fieldX": 12,
+    "card": 20,
+    "section": 24,
+    "outerMargin": 28
+  },
+  "radiusDip": {
+    "input": 10,
+    "button": 12,
+    "card": 18,
+    "featureCard": 22,
+    "pill": 999
+  },
+  "layout": {
+    "sidebarDip": 218,
+    "sidebarNarrowDip": 76,
+    "desktopMinWidthDip": 810,
+    "desktopMinHeightDip": 640,
+    "wideBreakpointDip": 1120,
+    "headerHeightDip": 72,
+    "overlayMessageWidthMaxDip": 460,
+    "actionMinHitDip": 40
+  },
+  "states": {
+    "focusRingDip": 2,
+    "disabledOpacity": 0.46,
+    "hoverOpacity": 0.88,
+    "savedStateMs": 1100,
+    "validationIsPersistentUntilCorrected": true
+  },
+  "motion": {
+    "normalFpsTarget": 60,
+    "lowPowerFpsTarget": 30,
+    "idleOffscreenFpsTarget": 0,
+    "enterMs": [
+      250,
+      450
+    ],
+    "travelMs": [
+      1800,
+      3200
+    ],
+    "settleMs": [
+      200,
+      500
+    ],
+    "reactionMs": [
+      400,
+      950
+    ],
+    "exitMs": [
+      450,
+      1500
+    ],
+    "maxReactionParticles": 10,
+    "reducedMotion": "static no effects"
+  },
+  "overlay": {
+    "defaultMessageHasFilledBackplate": false,
+    "textHasAdaptiveStroke": true,
+    "actionChipsHaveFilledBackground": true,
+    "explicitHighContrastSupportAllowed": true,
+    "dismissActionDoesNotComplete": true,
+    "keyboardFocusMustBeVisible": true
+  },
+  "accessibility": {
+    "targetWCAG": "AA for important text and controls; measure after render",
+    "supportWindowsTextScaling": true,
+    "supportedDpiScaleChecklist": [
+      100,
+      125,
+      150,
+      200
+    ],
+    "reducedMotionOverride": "system and in-app",
+    "noForcedTts": true,
+    "noFullscreenClickCapture": true
+  }
+}
