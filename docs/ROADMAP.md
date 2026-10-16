@@ -148,3 +148,14 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Session-tagged local speech repeat after 60s of silence; interrupted on action/lock/suspend
 - [x] Windows WPF / Installer CI passed with 86 checks; PR #10 merged
 - [ ] User verifies screen-sized walking, text legibility, correct controls and voice on physical Windows device
+
+## Revised PetPing 2.0 schedule — user-approved priority shift
+- [x] v0.12 source: Home/Reminders/My Pets/Pet Studio/Settings real WPF navigation and cohesive visual styling
+- [x] v0.12 Home counts/next reminders driven by actual saved data, with deterministic core tests
+- [x] v0.12 retain existing reminder editor, filters, voice, start-at-login, pet appearance and tray flow
+- [x] v0.12 honestly mark Dog/Bunny and behavior customization as coming soon, without fake state controls
+- [ ] v0.12 Windows CI build, installer preservation check, merge and physical laptop UI acceptance
+- [ ] v0.13 native Cat/Dog/Bunny characters, profile storage and genuine customization with previews
+- [ ] v0.14 walk/action effects, pet-specific reactions, celebration and snooze animations
+- [ ] v0.15 integration QA, accessibility, DPI, Windows upgrade data retention and perf
+- [ ] Windows v1.0 release candidate after user approval. Android remains next platform.
