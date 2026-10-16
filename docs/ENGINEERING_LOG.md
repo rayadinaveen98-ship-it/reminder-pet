@@ -214,3 +214,12 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Artifacts: `PetPing-Windows-v0.14-unsigned` (12045033789) and `PetPing-Installer-v0.14-unsigned` (12044899354); both archives downloaded and CRC checks passed. Extracted setup `PetPing-Setup-v0.14-unsigned.exe` (~52 MB); SHA-256 `47414e3f92db6c52f2f5c6887f996de98f5d77f8a7b671340571c1f3b235ec77`.
 - Legacy v0.13 profile test passed with new default effects value; no reminder schema modifications. Previews change only visuals, not task state. Animated effects capped at 10 transient shapes; cleanup on exit and power/session shutdown.
 - **Unverified:** actual movement aesthetics, WPF hit testing, keyboard screen reader, multiple monitors/DPI, real speech timing and Windows lock/sleep. User must test on laptop. Next v0.15 integrated release reliability.
+
+## 2026-10-16 — v0.15 integration hardening implementation checkpoint
+- User accepted v0.14 and authorized v0.15 focused reliability and final Windows integration before v1.0.
+- Created `feature/v015-reliability`, preserving reminder data and 3 saved pet profiles without migration.
+- Fixed voice toggle Off to cancel current Windows SpeechSynthesizer utterance **and** active reminder post-voice repeat timer; toggling back On cannot inherit an old repeat.
+- Fixed source callback paths for actual pet Done/Snooze: durable store write is separated from best-effort dashboard/tray refresh, so a later presentation failure is not falsely returned as a storage failure. Failed store actions now show an inline retry message and keep controls actionable.
+- Added visible high-contrast WPF keyboard focus border on reminder buttons, assembly v0.15 version metadata and installer 0.15.0 label.
+- Expanded CI to rebuild pinned v0.14 original release source from Git history and execute a real v0.14→v0.15 installer upgrade with SHA-256 data checks for synthetic reminders and pet profiles; existing same-version preservation checks remain. CI has NOT yet passed at this checkpoint.
+- No new pet species, app redesign or cloud services; Windows v1.0 remains dependent on QA and user signoff.
