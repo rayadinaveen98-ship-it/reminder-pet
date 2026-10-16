@@ -116,3 +116,14 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] GitHub Windows CI green: 72 core checks, portable ZIP and installer, reinstall/uninstall data smoke; PR #8 merged
 - [ ] Real laptop test recovery with test data, installer upgrade from v0.8, lock/sleep and mixed DPI
 - [ ] Windows beta/v1.0 release gating: signer, accessibility and actual device reliability
+
+## Milestone W1.8 — Windows v1.0 RC / final release quality
+- [x] v0.9 broad hands-on experience reported working by user (2026-10-16); detailed scenario results not individually logged
+- [ ] Feature freeze, v1.0 RC branch and consistent application/installer version identity
+- [ ] Original app icon, distribution metadata and coherent Windows startup/shortcut UX
+- [ ] CI simulated **v0.9 → RC upgrade** using a saved-data fixture (not just same-version reinstall)
+- [ ] Release notes, privacy/offline data note, troubleshooting and backup guidance
+- [ ] Windows RC ZIP + installer, checksum, tests and tagged GitHub pre-release
+- [ ] Physical RC checks for lock/sleep/wake, multi-monitor DPI, voice, keyboard/assistive technology and install/uninstall
+- [ ] Explicit distribution/code-signing decision (unsigned limitations disclosed)
+- [ ] User sign-off for stable v1.0; then create Android A1 foundation

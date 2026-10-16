@@ -23,16 +23,20 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**v0.9 — safe reminder recovery and beta-quality checks**, merged to `main` via PR #8.
+**Windows v1.0 release candidate (RC1) — planning and acceptance.**
 
-Status: **MERGED + CI VERIFIED — 72 core checks and both unsigned Windows artifacts ready.** The user's physical v0.9 recovery and installer QA remains pending. v0.8 interaction was not formally measured.
+- v0.9 is merged and CI-verified (72 automated core checks; Windows x64 installer build and same-version install/reinstall/uninstall smoke).
+- On 2026-10-16, the user reported: **"all working good bro tested everything"** for v0.9. Treat this as broad **user-reported acceptance** of the current Windows build; do not invent a detailed pass/fail transcript for separate tests such as mixed DPI, screen reader, lock/sleep, or a real v0.8→v0.9 installer upgrade.
+- v1.0 RC feature freeze proposed: keep existing pet, reminders, recurring schedule, offline preferences and installer stable. Focus on reliability, release presentation and distribution instead of unrelated new features.
+- No v1.0 code or installer release has been built yet. v0.9 remains the latest confirmed artifact.
 
-Planned v0.9 scope:
-1. On unreadable `reminders.json`, offer a **user-confirmed** restore of `reminders.json.bak` only if its contents pass validation. The backup may be older and can omit recent changes. Cancel must leave all files unchanged. On restore, preserve unreadable primary as a separately named file.
-2. Provide a visible dashboard button that opens the private data/diagnostics folder; never upload reminder contents.
-3. Test backup eligibility, preserved damaged primary, non-destructive restore, failure on bad backup and reminder state migration.
-4. Installer repair/reinstall smoke: execute same version twice, then uninstall, preserving a LocalAppData sentinel. True older-to-newer-version installation still needs manual QA.
-5. Compile Windows app and optional unsigned installer in GitHub Actions, update this status and merge only on green CI.
+### RC1 build objectives
+1. Give all binaries and installer a consistent v1.0 RC identity/version and suitable first-party icon/resources.
+2. Extend Windows CI with an actual **v0.9→RC upgrade simulation**, verifying persisted reminders/settings before and after; retain install/uninstall preserve-data checks.
+3. Do a final keyboard/focus, screen scaling, monitor placement, sleep/resume, lock/unlock and optional speech smoke checklist, recording user results distinctly from automated tests.
+4. Prepare privacy/data-handling note, troubleshooting, backup/restore instructions, changelog and install/upgrade/uninstall guide.
+5. Publish reproducible Windows RC artifacts, checksums and concise release notes. Public distribution requires an explicit plan for unsigned Windows warnings/code signing; do not claim SmartScreen trust.
+6. After acceptance, decide whether to designate v1.0 stable, then start Android native foundation without promising equivalent overlays under Android OS restrictions.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -77,9 +81,8 @@ Planned v0.9 scope:
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-User should install v0.9 from the validated unsigned installer `PetPing-Setup-v0.9-unsigned.exe` or portable ZIP after quitting the previous tray process. Check Today/Upcoming/Attention/History dashboard, Run at Login preference, saved recurring reminders, Open data folder, pet motion/voice and restart persistence.
+**Proposed next implementation: `Windows v1.0 RC1`.** Start a dedicated release-candidate branch, add release versioning/branding and a true prior-version installer upgrade regression to CI, then prepare release notes and distributable outputs. Keep user reminders and on-device data intact. Do not add cloud sync, AI, subscriptions or new pet species during the release freeze.
 
-**Data recovery QA:** Back up actual reminders before any fault tests. Simulate malformed primary with a known valid backup only on disposable test data. Verify No leaves both files unchanged; Yes restores the older backup, preserves unreadable original under `reminders.unreadable-*.json` and warns of potentially lost recent edits. No valid backup must not reset to blank.
+Ask user for a visual/installation feedback report if any problems arise, but their broad v0.9 all-working report is now recorded. Identify exact physical test evidence still missing without calling their tests failed. Do not merge v1.0 or publish it as stable without a green build and clear release gates. Android remains **the next new platform after Windows release sign-off**.
 
-**Release gate:** real v0.8 → v0.9 upgrade, accessible keyboard/screen reader, DPI 125–200%, lock/sleep/wake and multiple-monitor tests have NOT been verified. Fix P0 issues before Windows v1.0. Otherwise plan a focused Windows v1.0 release-quality phase (signing strategy, reliability validation, UI accessibility, no auto-update promise) and then Android.
-
+See `docs/V1_RELEASE_CHECKLIST.md` for deliverables and acceptance criteria.

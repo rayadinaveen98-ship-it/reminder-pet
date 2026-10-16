@@ -127,3 +127,10 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Backup feature is explicitly opt-in and warns earlier backup may omit recent entries; restores only a validated `.bak` and keeps unreadable primary. No cloud uploads.
 - Physical Windows acceptance still pending: on-screen recovery prompts, real cross-version installer upgrade, Windows SmartScreen, accessible font/DPI, lock/sleep/multi-monitor and voice interactions. Do not call this production-ready.
 - Resume from `docs/PROJECT_STATUS.md` and this engineering log on main. Next: user QA, P0 defect fixes or Windows v1.0 quality milestone; Android after Windows release gate.
+
+## 2026-10-16 — user-reported v0.9 acceptance; v1.0 RC plan
+- User said **"yeah all working good bro tested everything"** after receiving v0.9. Record as a broad positive user-device report, not as independent test logs for every unenumerated scenario.
+- No v0.9 defect reported; proceed to v1.0 **release candidate** planning, not directly to Android or a declaration of certified stable release.
+- Release-candidate feature freeze: preserve reminder scheduling/recurrence and pet UI; focus on versioning, branding/icon polish, installer upgrade from the previous real version, privacy documentation, accessibility QA, repeatable Windows artifact builds and signing/distribution strategy.
+- The signing certificate and Windows SmartScreen reputation are unresolved; an unsigned personal alpha can work without treating it as ready for frictionless public distribution.
+- Added `docs/V1_RELEASE_CHECKLIST.md` with measurable acceptance gates. Next step is a new release-candidate development branch; **no RC executable exists at this checkpoint**.
