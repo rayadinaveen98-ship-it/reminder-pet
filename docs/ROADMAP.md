@@ -217,7 +217,7 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Locate and preserve earlier 7-page Canva concept
 - [x] Draft 3 source-editable ORIGINAL SVG identity candidates, not yet selected
 - [x] Create new 8-page editable Canva design review, audit and document off-target generated copy
-- [x] Create precise Home/Reminders WPF layout and interaction spec with no fake enabled controls
+- [x] Create precise Home/Reminders WPF layout and interaction spec, plus original 1440×900 editable SVG screen mockups with explicit sample-watermark
 - [x] Refine semantic UI tokens; flag failing mint/white color contrast
 - [ ] User visual approval of logo A/B/C, general UI language and high-fidelity layout
 - [ ] Stage B final logo master/ICO and coherent WPF resources, Home & Reminders implementation with real reminder data
