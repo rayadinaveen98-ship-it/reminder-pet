@@ -1,6 +1,6 @@
 # Windows v1.0 RC1 — product/release checklist
 
-_Proposed 2026-10-16. This is a plan, **not** a claim that v1.0 RC is built._
+_Deferred 2026-10-16: user approved PetPing 2.0 animation and UI development before v1.0. Revisit this checklist after v0.10–v0.15; there is no v1.0 RC executable yet._
 
 ## Product intent
 Ship one reliable offline-first Windows reminder companion, not an expanded game. Keep WPF/.NET 10 local desktop and the original floating orange cat. User broadly reported v0.9 working on their Windows laptop; detailed per-scenario certification remains incomplete.
