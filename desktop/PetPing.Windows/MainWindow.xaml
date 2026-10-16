@@ -109,7 +109,7 @@
                     <Button Content="+ Add reminder" Background="{StaticResource AccentBrush}"
                             Foreground="White" BorderBrush="#8575DD"
                             Click="OnHomeAdd" AutomationProperties.Name="Create a reminder"/>
-                    <Button Content="Say hello to Milo" Click="OnTestPet"
+                    <Button x:Name="HomeHelloButton" Content="Say hello to Milo" Click="OnTestPet"
                             Background="White" BorderBrush="#E1D9EF"/>
                   </WrapPanel>
                 </StackPanel>
