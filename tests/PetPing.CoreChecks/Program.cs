@@ -619,6 +619,72 @@ try
     Check(new ReminderStore(repeatFolder).Reminders.Count == reminderCountBefore,
         "v0.14 effects configuration leaves reminder data unchanged");
 
+    // v0.18 R2-A: bounded, flexible snooze is additive to the legacy
+    // one-time / daily / weekly schema; saved history and series anchor stay intact.
+    Check(SnoozePolicy.Presets.SequenceEqual([5, 10, 15, 30, 60]),
+        "flexible snooze offers five predictable, ascending preset durations");
+    Check(SnoozePolicy.FromMinutes(1) == TimeSpan.FromMinutes(1) &&
+          SnoozePolicy.FromMinutes(1440) == TimeSpan.FromDays(1),
+        "custom snooze accepts the inclusive 1-minute to 24-hour bounds");
+    bool negativeSnoozeRejected = false;
+    bool zeroSnoozeRejected = false;
+    bool overlongSnoozeRejected = false;
+    bool fractionalUnderMinimumRejected = false;
+    try { SnoozePolicy.FromMinutes(-5); }
+    catch (ArgumentOutOfRangeException) { negativeSnoozeRejected = true; }
+    try { SnoozePolicy.FromMinutes(0); }
+    catch (ArgumentOutOfRangeException) { zeroSnoozeRejected = true; }
+    try { SnoozePolicy.FromMinutes(1441); }
+    catch (ArgumentOutOfRangeException) { overlongSnoozeRejected = true; }
+    try { SnoozePolicy.Validate(TimeSpan.FromSeconds(59)); }
+    catch (ArgumentOutOfRangeException) { fractionalUnderMinimumRejected = true; }
+    Check(negativeSnoozeRejected && zeroSnoozeRejected &&
+          overlongSnoozeRejected && fractionalUnderMinimumRejected,
+        "snooze policy rejects negative, zero, under-one-minute and >24h durations");
+
+    var flexibleFolder = Path.Combine(temp, "flexible-snooze");
+    var flexibleStore = new ReminderStore(flexibleFolder);
+    var flexible = flexibleStore.Add("Reminder with flexible snooze",
+        DateTimeOffset.Now.AddMinutes(30), RepeatPattern.Daily);
+    flexibleStore.Deliver(flexible, DateTimeOffset.UtcNow);
+    var pendingFutureId = flexibleStore.Reminders.Single(r =>
+        r.SeriesId == flexible.SeriesId && r.Status == ReminderStatus.Pending).Id;
+    var beforeShortSnooze = DateTimeOffset.UtcNow;
+    flexibleStore.Snooze(flexible, SnoozePolicy.FromMinutes(5));
+    Check(flexible.Status == ReminderStatus.Pending &&
+          flexible.SnoozeCount == 1 &&
+          flexible.DueAt >= beforeShortSnooze.AddMinutes(5) &&
+          flexible.DueAt <= DateTimeOffset.UtcNow.AddMinutes(5) &&
+          flexible.OriginalDueAt != flexible.DueAt,
+        "5-minute snooze persists future due while keeping original recurrence anchor");
+    Check(new ReminderStore(flexibleFolder).Reminders.Count == 2 &&
+          flexibleStore.Reminders.Single(r => r.Id == pendingFutureId).Status ==
+          ReminderStatus.Pending && flexible.RepeatContinuationCreated,
+        "snoozing a delivered daily series does not duplicate its next occurrence");
+    flexibleStore.Mark(flexible, ReminderStatus.Missed);
+    var beforeLongSnooze = DateTimeOffset.UtcNow;
+    flexibleStore.Snooze(flexible, SnoozePolicy.FromMinutes(1440));
+    Check(flexible.SnoozeCount == 2 &&
+          flexible.DueAt >= beforeLongSnooze.AddDays(1) &&
+          flexible.DueAt <= DateTimeOffset.UtcNow.AddDays(1) &&
+          flexibleStore.Reminders.Count == 2,
+        "24-hour snooze saves the due time and does not generate extra repeats");
+    var reopenedFlexible = new ReminderStore(flexibleFolder);
+    var matchingFlexible = reopenedFlexible.Reminders.Single(r => r.Id == flexible.Id);
+    Check(matchingFlexible.SnoozeCount == 2 &&
+          matchingFlexible.OriginalDueAt == flexible.OriginalDueAt &&
+          matchingFlexible.RepeatContinuationCreated &&
+          reopenedFlexible.Reminders.Count == 2,
+        "flexible snooze round-trip preserves occurrence history and series identity");
+    var stateBeforeInvalidSnooze = matchingFlexible.DueAt;
+    bool storeLongRejected = false;
+    try { reopenedFlexible.Snooze(matchingFlexible, TimeSpan.FromDays(2)); }
+    catch (ArgumentOutOfRangeException) { storeLongRejected = true; }
+    Check(storeLongRejected && matchingFlexible.DueAt == stateBeforeInvalidSnooze &&
+          new ReminderStore(flexibleFolder).Reminders.Single(r => r.Id == flexible.Id).DueAt
+              == stateBeforeInvalidSnooze,
+        "storage-layer duration validation rejects oversized snooze without mutation");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
