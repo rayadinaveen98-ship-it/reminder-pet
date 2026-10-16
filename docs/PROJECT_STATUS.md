@@ -11,6 +11,7 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - No paid APIs or mandatory hosted services for alpha.
 
 ## Verified build status
+- **v0.14 expressive pets:** PR #13 merged as `4f8be7cae20651161651bbec444f412fa34902df`. Windows CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38900092320 passed **122 core tests**, WPF win-x64 publish and unsigned installer smoke (same-version install/reinstall/uninstall without removing LocalAppData test data). Portable artifact `PetPing-Windows-v0.14-unsigned` ID 12045033789; installer artifact `PetPing-Installer-v0.14-unsigned` ID 12044899354. Both ZIP CRCs passed. Extracted `PetPing-Setup-v0.14-unsigned.exe`, SHA-256 `47414e3f92db6c52f2f5c6887f996de98f5d77f8a7b671340571c1f3b235ec77`. Physical UI/motion test pending.
 - **v0.13 multi-pet Windows preview:** PR #12 merged as `6410b4400651c8a6ac473dafa6331aa8f0f1217c`. Windows run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38897525278 passed **105 core checks**, WPF compile and install/reinstall/uninstall storage-preservation smoke. Portable artifact `PetPing-Windows-v0.13-unsigned` ID 12044223333, installer `PetPing-Installer-v0.13-unsigned` ID 12045065431; downloaded both ZIPs and CRC verified; setup EXE SHA-256 `fbb7e06bac08ec1f5d600a529a127cba289759b213d26c953b56f5e40c71944f`. Laptop visual QA pending.
 - **v0.12 redesigned dashboard preview:** PR #11 merged 8d5b0ba00d41aea2d76e94ea4de86361a3c0076a. CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38893597316 green, 91 core checks and Windows installer smoke. Artifacts 12042344606 (portable) and 12043370603 (setup). UI physical testing open.
 - **v0.9 Windows alpha (merged and CI verified, laptop QA pending):** PR #8 merged into main as `946e90be775afda0b06946f4b5331761942b9f58`. GitHub Actions https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38881511852 passed **72 core checks**, compiled win-x64 WPF, built Inno Setup 6 installer, and passed silent install, same-version reinstall, uninstall and preservation of a test reminder-data file. Artifact IDs: portable 12038021245, installer 12037687579. Both ZIP archives verified intact and `PetPing-Setup-v0.9-unsigned.exe` extracted.
@@ -25,17 +26,17 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**PetPing 2.0 v0.14 — expressive original pet actions, safe celebration effects (source committed; Windows CI pending).**
+**PetPing 2.0 v0.14 — expressive pet actions and celebration effects. MERGED + WINDOWS CI VERIFIED (122 checks); laptop QA pending.**
 
 - The user accepted v0.13 and explicitly authorized the next milestone. v0.13 baseline remains merged, installer built and CI-verified (105 core checks), though no detailed UI acceptance transcript has been recorded.
-- Development branch: `feature/windows-v0.14-expressive-animations`. No production ZIP or installer for v0.14 is verified at this checkpoint.
+- Development branch `feature/windows-v0.14-expressive-animations` merged into main via PR #13, commit `4f8be7cae20651161651bbec444f412fa34902df`. Both v0.14 unsigned Windows artifacts were downloaded and integrity checked. This is a test build, not a signed production release.
 - Extended shared WPF `PetCharacter` rig with independent animated paws, dog ear tilt, bunny ear wiggle, cat/dog tail behavior, and bounded short-lived sparkle/star burst stage. Pet actor still uses a **small transparent Window**; effects do not place click-catching overlays across the desktop.
 - Real action reaction now honors pet-specific Done Hop/Wave and Snooze Yawn/Stretch choices. Bunny hops visibly higher than puppy, puppy's tail wags faster, cat uses smaller careful steps. Dog ears droop for yawn and bunny ears react.
 - Added configurable **Effects Off / Gentle / Playful** per companion, versioned in existing `pet-profile.json` without destructive migration. Legacy v0.13 JSON missing the new property loads with Playful default.
 - Global motion modes are honored: Motion Off = no walk, no particle bursts or animated reactions; Gentle = shorter/smaller movement without particles; Full allows per-pet effects intensity.
 - Pet Studio offers non-destructive **Try Done effect / Try Snooze effect** buttons, plus an Effects picker that saves per species. Only actual reminder events update the reminder database.
 - Pure motion rules `PetAnimationRules` define deterministic gait and finite particle/duration budget (<=10 per reaction); old animation timers are stopped on close/lock/suspend and transient effects cleaned.
-- Regression checks added for species differences, reduced motion, reaction quotas, profile persistence and v0.13 compatibility. CI compile and physical Windows QA pending at this checkpoint.
+- **122 regression checks passed**, including species differences, reduced motion, bounded particles, pet-profile round-trip and v0.13 compatibility. WPF compile and installer data preservation CI passed. Physical appearance, DPI, pet controls and voice QA remain unverified.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -81,4 +82,4 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Open v0.14 PR, inspect Windows Actions static XAML and .NET tests, build win-x64 WPF and unsigned Inno installer, validate install/reinstall/uninstall preserving reminder data. Fix failures before merge. Record exact PR/CI/commit/artifacts after green builds. Physical Windows test: use Pet Studio preview on all 3 pets and inspect ears/paws/tails, Done/Snooze, playful/gentle/off effects and safe preview; then create real reminder and check transitions, TTS cancellation and no blocked desktop clicks. v0.15 remains integration/release-quality QA, v1.0 candidate later.
+Share verified v0.14 installer and portable ZIP. User should back up `%LOCALAPPDATA%\PetPing`, quit previous tray app, then test Pet Studio on all 3 pets, checking ears/paws/tails, Try Done/Snooze, effects Off/Gentle/Playful and global Motion Off. Try an actual due reminder, Done/Snooze persistence, TTS cancellation, Windows desktop click pass-through and optionally 125–200% DPI and lock/sleep. Record actual pass/fail and fix P0 issues. If stable, v0.15 is release-quality integration and battery/multi-display QA; Windows v1.0 still requires acceptance.

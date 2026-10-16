@@ -157,3 +157,7 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Set global Motion Off: no animated effects even if pet Effects=Playful. Gentle motion keeps a short reaction without particles; Playful motion allows effect style.
 - Real reminder Done/Snooze still saves before showing success; if save fails, controls remain actionable with an error. Hide/Mute stop TTS and attention/voice semantics remain correct.
 - Test fullscreen video, many reminders in a row, login lock/unlock and laptop sleep/wake: no buildup of sparkles/timers, no unexpected overlay on secure screen. Check CPU/memory over ~10 cycles and WPF mixed DPI. Automated tests do not replace actual device observation.
+
+## v0.14 verified automated build, outstanding device evidence
+- Run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38900092320 passed **122** smoke tests, WPF compiler, installer build, same-version reinstall/uninstall data preservation; portable and setup archives CRC-verified.
+- User must still confirm actual eye/ear/paw visual movement, particle style, reduced-motion behavior and speech/desktop controls on a Windows device. CI is not a visual acceptance test.

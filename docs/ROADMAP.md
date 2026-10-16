@@ -179,6 +179,6 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Per-species Off/Gentle/Playful effects and global Motion Off/Gentle override
 - [x] Pet Studio non-destructive reaction previews and safe reset/cleanup
 - [x] Pure regression checks for motion/legacy settings, no reminder data change
-- [ ] v0.14 Windows WPF/test/installer CI green and merge
+- [x] v0.14 Windows WPF/test/installer CI passed 122 checks, PR #13 merged and unsigned ZIPs verified
 - [ ] v0.14 on-device cat/dog/bunny rendering, effects, accessible controls and power QA
 - [ ] v0.15 integration/battery/multi-DPI and Windows release QA

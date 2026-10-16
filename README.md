@@ -169,8 +169,13 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Portable Windows ZIP artifact: 12044223333. Installer ZIP artifact: 12045065431. Both archives verified intact and the installer executable extracted.
 - v0.13 profile settings are independent from reminder data. User device acceptance is still pending.
 
-## PetPing v0.14 expressive animations (Windows CI pending)
+## PetPing v0.14 expressive animations (Windows CI verified)
 - Cat careful steps/tail, dog jaunty trot/wagging and moving ears, bunny small hops/ear twitches. Shared rig remains used on Home/My Pets/Studio and real walking reminder.
 - Done choice (hop or wave) and Snooze choice (yawn or stretch) are now distinct visual reactions with short-lived species-colored sparkles/stars, **after the reminder is saved**.
 - Per-pet Effects Off, Gentle, Playful stored in existing local profile without reminder-data changes. Global Motion Off suppresses movement/effects, Gentle motion reduces effects, and effect bursts are capped at 10 particles.
-- Pet Studio includes Try Done/Try Snooze buttons that preview effects without changing task state. v0.14 Windows CI/installer and user laptop validation pending.
+- Pet Studio includes Try Done/Try Snooze buttons that preview effects without changing task state. v0.14 Windows CI/installer verified (122 tests), physical Windows laptop acceptance still pending.
+
+## Final v0.14 build and download evidence
+- Merged PR #13: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/13 ; green CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38900092320 (122 tests, WPF, installer preservation).
+- Portable unsigned ZIP: `PetPing-Windows-v0.14-unsigned` artifact ID 12045033789. Installer ZIP: `PetPing-Installer-v0.14-unsigned` ID 12044899354; contains `PetPing-Setup-v0.14-unsigned.exe`, SHA-256 `47414e3f92db6c52f2f5c6887f996de98f5d77f8a7b671340571c1f3b235ec77`.
+- Back up `%LOCALAPPDATA%\PetPing`, quit previous tray copy, then install. Test Pet Studio effects previews before trying a live reminder. Real device visuals and accessibility are pending; installer remains unsigned.

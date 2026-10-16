@@ -207,3 +207,10 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Added Pet Studio non-destructive Try Done / Try Snooze effect previews and guarded cleanup so a stale particle completion cannot affect a subsequent preview.
 - Walk/speak/snooze/complete persistence remains in existing scheduler/actor; animation success plays **after** the database saves Done or Snooze. Popups and timers are cleaned on close or power/session events.
 - Regression smoke checks for different gaits, effects budgets, invalid settings, round-trip and legacy compatibility. Windows CI and hands-on laptop QA pending at this checkpoint.
+
+## 2026-10-16 — v0.14 complete and verified Windows packages
+- PR #13 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/13 merged on `main` as squash commit `4f8be7cae20651161651bbec444f412fa34902df`.
+- Windows Actions https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38900092320 completed successfully: **122 core checks**, XAML static validation, WPF Windows x64 self-contained publish, Inno Setup compile, silent install/reinstall/uninstall and retained LocalAppData sentinel.
+- Artifacts: `PetPing-Windows-v0.14-unsigned` (12045033789) and `PetPing-Installer-v0.14-unsigned` (12044899354); both archives downloaded and CRC checks passed. Extracted setup `PetPing-Setup-v0.14-unsigned.exe` (~52 MB); SHA-256 `47414e3f92db6c52f2f5c6887f996de98f5d77f8a7b671340571c1f3b235ec77`.
+- Legacy v0.13 profile test passed with new default effects value; no reminder schema modifications. Previews change only visuals, not task state. Animated effects capped at 10 transient shapes; cleanup on exit and power/session shutdown.
+- **Unverified:** actual movement aesthetics, WPF hit testing, keyboard screen reader, multiple monitors/DPI, real speech timing and Windows lock/sleep. User must test on laptop. Next v0.15 integrated release reliability.
