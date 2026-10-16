@@ -86,7 +86,12 @@ jobs:
           $profileHash = (Get-FileHash $profiles -Algorithm SHA256).Hash
           $newInstall = Start-Process -FilePath $newSetup -ArgumentList $installArgs -Wait -PassThru
           if ($newInstall.ExitCode -ne 0) { throw "v0.15 upgrade failed" }
-          if (!(Test-Path (Join-Path $installDir "PetPing.Windows.exe"))) { throw "Upgraded binary missing" }
+          $upgradedExe = Join-Path $installDir "PetPing.Windows.exe"
+          if (!(Test-Path $upgradedExe)) { throw "Upgraded binary missing" }
+          $upgradedVersion = (Get-Item $upgradedExe).VersionInfo.FileVersion
+          if ($upgradedVersion -notlike '0.15.0*') {
+            throw "Upgrade did not install new v0.15 binary: $upgradedVersion"
+          }
           if ((Get-FileHash $reminders -Algorithm SHA256).Hash -ne $reminderHash -or
               (Get-FileHash $profiles -Algorithm SHA256).Hash -ne $profileHash) {
             throw "v0.14 -> v0.15 upgrade changed reminder or pet data"
