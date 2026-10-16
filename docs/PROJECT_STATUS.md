@@ -11,7 +11,7 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - No paid APIs or mandatory hosted services for alpha.
 
 ## Verified build status
-- **v0.6 Windows alpha (CI-verified, manual QA pending):** Windows x64 compilation and **49** core regression checks passed. GitHub CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 ; artifact `PetPing-Windows-v0.6-unsigned` (artifact ID 12032022285).
+- **v0.6 Windows alpha (CI-verified, manual QA pending):** Windows x64 compilation and **49** core regression checks passed. GitHub CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 ; artifact `PetPing-Windows-v0.6-unsigned` (final artifact ID 12032645056; CI run 38868752195).
 - **v0.5 Windows alpha:** compiled Windows x64 and passed **32** core regression checks. GitHub CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38864475272 ; artifact: `PetPing-Windows-v0.5-unsigned` (GitHub Actions retention applies).
 - **v0.4 user-tested baseline:** compiled and passed 21 core checks. User confirmed the floating character is outside the bubble and shows over ordinary desktop apps. CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38862763782 .
 - User manually confirmed: the pet appears above desktop apps, and in v0.4 the character is outside the notification bubble and works. Whether spoken text is consistently audible remains **unconfirmed**.
@@ -20,9 +20,9 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**v0.6 — recurrence and editing**. PR #5 on `feature/windows-v0.6-edit-recurrence`; first Windows CI and 49 regression checks passed. Awaiting final merge.
+**v0.6 — recurrence and editing**. Merged to `main` via PR #5, squash commit `f75fef016eb650e25fc9d40248c73ec61d6208ca`.
 
-Current status: **v0.6 CI-VERIFIED (49 core checks, x64 compiled), PR #5 pending merge**. Manual lock/wake/voice evidence remains incomplete; not production-ready.
+Current status: **v0.6 MERGED + CI-VERIFIED (49 core checks, Windows x64 executable)**. User device QA of the new edit/repeat interface, sleep/lock and speech is still outstanding; not production-ready.
 
 Priority work:
 1. Handle presentation failures safely and visibly; do not lose state because a pet popup or speech cannot render.
@@ -41,7 +41,7 @@ Priority work:
 - Never store reminder text in diagnostics unnecessarily.
 
 ## Release path
-- Current CI-verified alpha test build: **v0.6**, unsigned portable Windows x64 artifact `PetPing-Windows-v0.6-unsigned` (artifact ID 12032022285, run 38868473793). v0.5 also passed CI; user confirmed v0.4's floating pet appearance. v0.6 manual laptop QA is open.
+- Current CI-verified alpha test build: **v0.6**, unsigned portable Windows x64 artifact `PetPing-Windows-v0.6-unsigned` (artifact ID 12032645056, run 38868752195). v0.5 also passed CI; user confirmed v0.4's floating pet appearance. v0.6 manual laptop QA is open.
 - After v0.5: v0.6 daily/weekly repeat, edit reminders and better dashboard; v0.7 expressive characters; v0.8–1.0 Windows packaging/QA; then Android foundation.
 - Keep `docs/ROADMAP.md`, `docs/TEST_PLAN.md`, `README.md`, this file and `docs/ENGINEERING_LOG.md` synchronized at milestone boundaries.
 
@@ -63,4 +63,4 @@ Priority work:
 - Added deterministic recurrence, DST, long-offline, legacy-file, rollback regression tests. **49 core checks passed** and a Windows artifact was uploaded in GitHub run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 .
 
 ## Next action
-Merge green PR #5 and confirm the `main` head; distribute `PetPing-Windows-v0.6-unsigned` from GitHub artifact ID 12032022285. Test on Windows: create Daily at a future time, edit an upcoming Weekly reminder, snooze today's repeat and verify tomorrow exists once, close to tray and reopen, verify old saved reminders remain. The v0.5 power/lock QA remains open until evidenced. Then start v0.7 pet expression improvements or follow up P0 defects.
+Distribute the latest `PetPing-Windows-v0.6-unsigned` (artifact ID 12032645056, green run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868752195). Ask user to test on Windows: create Daily at a future time, edit an upcoming Weekly reminder, snooze today's repeat and verify tomorrow appears once, close to tray and reopen, and confirm old saved reminders remain. The prior v0.5 power/lock and voice QA remains open until evidenced. Prioritize reported P0 bugs; otherwise proceed to v0.7 pet character/animation polish.
