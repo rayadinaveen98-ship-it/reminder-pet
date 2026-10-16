@@ -27,16 +27,14 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**PetPing 2.0 v0.15 — Windows integration and upgrade reliability. MERGED + CI VERIFIED (122 checks); real laptop QA pending.**
+**v0.16 — Product Blueprint Refresh: USER-APPROVED SCOPE LOCK; design/technical specification committed, not yet a new application build.**
 
-- User reported **"all good"** for v0.14 and authorized v0.15. Record as broad user-reported working confirmation, not proof of separately witnessed lock/sleep, screen-reader or mixed-DPI cases.
-- v0.14 remains previous merged/CI-verified fallback: PR #13, run 38900092320, 122 checks; expressive cat/dog/bunny motion and effects.
-- Development branch `feature/v015-reliability` merged to main via PR #14, squash commit `3ec779352c0a35f83981ac01d01a7947429b0e2f`. This is an unsigned release-quality test build, **not** Windows v1.0.
-- Fixes: turning Speech Off immediately stops both the active Windows utterance and any pending post-speech repeat; a dashboard/tray refresh exception after a successfully saved Done/Snooze can no longer cause the pet to report that persisted action as failed.
-- A failed Done/Snooze save leaves the pet controls available and now displays an unboxed inline "Couldn't save" message instead of relying only on tray notifications.
-- Reminder action chips have visible focus borders; app assembly and installer consistently identify as v0.15 preview.
-- Windows Actions **passed a pinned real v0.14 to v0.15 upgrade**, rebuilding **actual v0.14** at commit `4f8be7cae20651161651bbec444f412fa34902df`, install its unsigned setup, seed valid synthetic reminders and three pet profiles, **upgrade** to v0.15 and verify hashes through uninstall. This passed alongside the existing same-version install/reinstall/uninstall data-sentinel check. No actual user reminders were used. Verified run 38903316350.
-- Core reminders and profile JSON schemas remain unchanged. No new accounts, analytics, network dependency, background updater or paid services.
+- User requested a full premium evolution: authentic original visual identity/logo, rich desktop UI, stronger reminders, handcrafted species-specific characters and customization, smooth readable beginning-to-end pet performance, welcome/setup/onboarding/guidance and complete Windows release polish.
+- User explicitly approved the expanded six-version sequence: **v0.16 product blueprint → v0.17 brand/UI → v0.18 reminder 2.0 → v0.19 character scene 2.0 → v0.20 welcome/onboarding → v0.21 integrated Windows QA → v1.0 RC → Windows stable → Android**.
+- Current canonical source work: branch `planning/v0.16-product-blueprint-refresh`. The v0.16 files are specifications and draft design tokens; **no new v0.16 Windows EXE, logo asset or onboarding code is claimed**.
+- New authoritative docs: `docs/V016_PRODUCT_BLUEPRINT.md` (PRD, target audience, architecture, P0/P1/P2 and KPIs), `docs/V016_REMINDER_SPEC.md` (recurrence/snooze/priority/quiet/migrations), `docs/V016_CHARACTER_EXPERIENCE.md` (art bible, full reminder scene and motion budget), `docs/V016_BRAND_ONBOARDING.md` (logo directions, rich UI and first-run), `docs/V016_DELIVERY_PLAN.md` (versions, risk log, quality gates), `design/petping-3/tokens.v016.draft.json` (light/dark visual proposals).
+- **Existing production code remains unchanged** from merged v0.15. Last green code CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38903316350, 122 core checks and successful synthetic v0.14→v0.15 installer upgrade. User reports working core functionality; independent mixed-DPI, screen-reader, power and real full-device QA remains open.
+- Original legacy `docs/PRODUCT_BLUEPRINT.md` is historical; v0.16 PRD supersedes its initial v0.1 scope. Previous `docs/V1_RELEASE_CHECKLIST.md` remains a deferred release QA reference.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -48,10 +46,11 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Never store reminder text in diagnostics unnecessarily.
 
 ## Release path
-- **Latest CI-verified test preview: v0.11** (86 automated core checks, unsigned portable + setup), laptop QA pending. Prior user-tested baseline is v0.9.
-- Latest previously user-verified alpha: **v0.9**, unsigned Windows installer and portable ZIP (CI 38881511852; portable artifact 12038021245, installer 12037687579). User confirmed earlier releases generally work, but detailed v0.9 recovery/upgrade/laptop QA remains pending.
-- After v0.5: v0.6 daily/weekly repeat, edit reminders and better dashboard; v0.7 expressive characters; v0.8–1.0 Windows packaging/QA; then Android foundation.
-- Keep `docs/ROADMAP.md`, `docs/TEST_PLAN.md`, `README.md`, this file and `docs/ENGINEERING_LOG.md` synchronized at milestone boundaries.
+- **Latest completed Windows code preview: v0.15**, PR #14 merged at `3ec779352c0a35f83981ac01d01a7947429b0e2f`. Windows CI run 38903316350 passed 122 checks, WPF/installer compilation, same-version data-preservation and a **real pinned v0.14→v0.15 upgrade** preserving synthetic reminder/pet files. Artifacts: portable 12046563227, installer 12046104323. Build is unsigned and not a public-certified release.
+- User accepted recent functionality broadly, but this is **not a detailed manual pass** for all Windows scenarios or a claim of user v0.15 installer acceptance.
+- **Current planning version v0.16 is documents/tokens only**, with no new executable or paid design tool dependencies. Windows source remains version 0.15 until future code phases are built and tested.
+- v0.17 focuses original logo concepts, native design tokens and screens; v0.18 advanced reminder semantics; v0.19 art & animation; v0.20 onboarding; v0.21 integrated QA. After Windows v1.0 quality signoff, Android native project follows.
+- Keep `docs/ROADMAP.md`, `docs/TEST_PLAN.md`, `README.md`, this file and `docs/ENGINEERING_LOG.md` synchronized at each milestone.
 
 ## Resume prompt (copy into a new chat)
 > Continue the **reminder-pet** project from GitHub `rayadinaveen98-ship-it/reminder-pet`. Read `docs/PROJECT_STATUS.md` and `docs/ENGINEERING_LOG.md`, check open PRs and the latest CI run, then proceed with the next unchecked milestone. Windows first, Android second; no paid backend. Commit meaningful increments, update handoff docs, verify CI before merging, and distinguish automated build success from actual device testing.
@@ -82,4 +81,5 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Run v0.15 PR Windows CI, resolve XAML/C#/PowerShell/Inno issues until green. Verify real v0.14→v0.15 upgrade and existing same-version repair/uninstall data preservation, core smoke checks and portable Windows EXE. After green checks, merge PR, download/CRC verify both packages, record IDs and hashes, update handoff. User should back up `%LOCALAPPDATA%\PetPing`, quit the previous tray app, install v0.15 and check live voice Off/On, repeated announcements, failed-save UI if test data, pets/effects, saved reminder persistence and reinstall. Physical Windows 100–200% scaling, multi-monitor, lock/sleep, keyboard focus/screen reader and SmartScreen signing still require separate manual results. Plan Windows v1.0 RC only after these are reviewed.
+Finish and merge the **v0.16 design-only PR**, inspect the resulting documentation and optional CI without pretending it is a new release. Then start **v0.17 Stage A**: explore three original PetPing logo/icon families, create refined UI palette and typography variants, and produce editable high-fidelity concepts for Home/Reminders (then Pet Studio, Settings and onboarding). User selects visual identity before mass WPF repaint. Follow with implementation branches, Windows CI and physical QA. Preserve existing v0.15 reminder/profile files and original code throughout brand exploration.
+
