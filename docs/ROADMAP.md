@@ -203,7 +203,7 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] v0.16 character art and full reminder-scene quality contract
 - [x] v0.16 logo exploration / onboarding brief and design-token draft
 - [x] v0.16 sequenced delivery plan with explicit exit gates and risks
-- [ ] v0.16 review and merge documentation; no new EXE expected
+- [x] v0.16 merged design-only PR #15 and Windows CI passed 122 legacy checks; no new EXE expected
 - [ ] v0.17 original logo/icon concept families and high fidelity WPF UI visual designs; user art review
 - [ ] v0.17 native UI component system, accessibility and responsive layout, Windows CI and manual test
 - [ ] v0.18 stronger snooze/recurrence/priority/categories/quiet modes in gated slices; backwards-compatible migrations

@@ -239,3 +239,10 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Decisions LOCKED: dependability first; original 3 pets, local-first, Windows-first, no forced login/paid APIs, rich but readable floating unboxed text, optional voice/reduced motion, new first-run wizard must not reset upgraded users, versions 0.16 through 0.21 then RC. Final logo/artwork, recurrence edge policies, dark theme shipping and signed distribution are subject to explicit future approvals.
 - Old README and PROJECT_STATUS had outdated baseline references (v0.9/v0.11/v0.13) and a stale v0.15 pending-CI step. Corrected to v0.15 actual verified baseline and v0.16 design-only current stage.
 - NEXT: complete v0.16 PR/CI, merge into main, begin v0.17 Stage A visual identity research and editable UX prototypes with user visual approval before native code replacement.
+
+## 2026-10-16 — v0.16 product blueprint locked and merged
+- Design-only PR #15 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/15 merged into `main` as squash commit `9d3b6b0a42963c4b181c7b3d68436145ef46f085`.
+- Final GitHub Actions https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38907615968 **success**: 122 existing core checks, Windows x64 WPF publish, Inno installer, real v0.14→v0.15 synthetic reminder/profile upgrade and same-version installer preservation. This confirms no code regression from docs-only PR, **not** the new features.
+- Completed canonical documents: PRODUCT_BLUEPRINT, REMINDER_SPEC, CHARACTER_EXPERIENCE, BRAND_ONBOARDING, DELIVERY_PLAN under V016; validated draft visual JSON tokens. Corrected stale README and PROJECT_STATUS latest-build statements. v0.16 contains no user-installable new version.
+- Lock: scope and version sequence v0.16 to v0.21 before v1.0. Still pending: original final logo artwork, visual user selection, advanced recurrence coding, new rigs, welcome/onboarding screens and real device QA.
+- NEXT: v0.17 Stage A brand/icon identity concepts and high-fidelity Home/Reminders design, user visual approval, then native WPF implementation in a separate CI-verified PR. Keep v0.15 user data and previous test installer safe.
