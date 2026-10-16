@@ -11,6 +11,7 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - No paid APIs or mandatory hosted services for alpha.
 
 ## Verified build status
+- **v0.7 Windows alpha (merged, CI-verified, hands-on QA pending):** Windows run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38872547917 passed 56 core tests, compiled and uploaded `PetPing-Windows-v0.7-unsigned` (artifact 12034680037); ZIP extracted and checked for `PetPing.Windows.exe`.
 - **v0.6 Windows alpha (CI-verified, manual QA pending):** Windows x64 compilation and **49** core regression checks passed. GitHub CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 ; artifact `PetPing-Windows-v0.6-unsigned` (final artifact ID 12032645056; CI run 38868752195).
 - **v0.5 Windows alpha:** compiled Windows x64 and passed **32** core regression checks. GitHub CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38864475272 ; artifact: `PetPing-Windows-v0.5-unsigned` (GitHub Actions retention applies).
 - **v0.4 user-tested baseline:** compiled and passed 21 core checks. User confirmed the floating character is outside the bubble and shows over ordinary desktop apps. CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38862763782 .
@@ -22,7 +23,7 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 ## Active milestone
 **v0.7 — pet experience**. Branch `feature/windows-v0.7-pet-experience`. Source committed and PR #6 opened. Initial CI run #38872180216 passed with 56 checks, then a user-action save consistency fix was added and final CI is pending.
 
-Current status: **v0.7 IN PULL REQUEST #6; initial Windows CI 56/56 passed, final post-fix CI pending.** Last merged version v0.6 works for the user. Formal lock/sleep/multi-monitor testing remains unverified.
+Current status: **v0.7 MERGED + CI VERIFIED (56/56 core checks, Windows x64 publish, ZIP integrity verified)**. Previous v0.6 was reported working by user; v0.7 has not yet been tested interactively. Formal lock/sleep/multi-monitor testing remains unverified.
 
 Priority work:
 1. Handle presentation failures safely and visibly; do not lose state because a pet popup or speech cannot render.
@@ -41,7 +42,7 @@ Priority work:
 - Never store reminder text in diagnostics unnecessarily.
 
 ## Release path
-- Current CI-verified alpha test build: **v0.6**, unsigned portable Windows x64 artifact `PetPing-Windows-v0.6-unsigned` (artifact ID 12032645056, run 38868752195). v0.5 also passed CI; user confirmed v0.4's floating pet appearance. v0.6 manual laptop QA is open.
+- Current CI-verified alpha test build: **v0.7** unsigned Windows x64 ZIP (`PetPing-Windows-v0.7-unsigned`, artifact 12034680037, CI 38872547917). User reports v0.6 functioning. v0.7 screen/motion/voice reactions still need user testing.
 - After v0.5: v0.6 daily/weekly repeat, edit reminders and better dashboard; v0.7 expressive characters; v0.8–1.0 Windows packaging/QA; then Android foundation.
 - Keep `docs/ROADMAP.md`, `docs/TEST_PLAN.md`, `README.md`, this file and `docs/ENGINEERING_LOG.md` synchronized at milestone boundaries.
 
@@ -69,4 +70,4 @@ Priority work:
 - No alternate pet animals or compiled APK in this phase.
 
 ## Next action
-Check latest CI for PR #6 after the save-consistency fix, repair any compiler/test failures, merge when green. Update Git handoff with run/commit IDs. Provide unsigned Windows v0.7 archive and ask user to test: placement choices, Playful/Gentle/Off, spoken mouth, saved preferences and Done/Snooze reactions. Formal lock/sleep QA remains outstanding.
+Share the v0.7 unsigned Windows ZIP. Request manual testing: Pet placement Auto/top/bottom/left/right; Playful/Gentle/Off; voice-speaking mouth; blinking; Done/Snooze happy/acknowledgement reaction; restart preference persistence; regular reminders and daily/weekly recurrence. Record user evidence, fix P0 problems. Then plan v0.8 packaging and quality, **Windows before Android**, preserving zero-cost local-first architecture. Formal lock/sleep and mixed-DPI QA still open.
