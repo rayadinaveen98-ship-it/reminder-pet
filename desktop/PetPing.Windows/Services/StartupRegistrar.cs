@@ -5,7 +5,7 @@ namespace PetPing.Windows.Services;
 public static class StartupRegistrar
 {
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string EntryName = "PetPingReminder";
+    private const string EntryName = "PetPingExperimentalReminder";
 
     public static bool IsEnabled()
     {
