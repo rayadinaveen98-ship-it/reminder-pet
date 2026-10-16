@@ -82,38 +82,87 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
 
     public void FaceToward(bool movingRight) => PetFacing.ScaleX = movingRight ? 1 : -1;
 
-    public void Walk(bool active)
+    private void ResetCharacterMotion()
     {
         LeftFootShift.BeginAnimation(TranslateTransform.YProperty, null);
         RightFootShift.BeginAnimation(TranslateTransform.YProperty, null);
+        PetFloat.BeginAnimation(TranslateTransform.YProperty, null);
         TailWag.BeginAnimation(RotateTransform.AngleProperty, null);
         DogTailWag.BeginAnimation(RotateTransform.AngleProperty, null);
+        DogEarTilt.BeginAnimation(RotateTransform.AngleProperty, null);
+        BunnyEarTilt.BeginAnimation(RotateTransform.AngleProperty, null);
+        PawWaveLeft.BeginAnimation(RotateTransform.AngleProperty, null);
+        PawWaveRight.BeginAnimation(RotateTransform.AngleProperty, null);
         LeftFootShift.Y = 0;
         RightFootShift.Y = 0;
-        if (!active) return;
-        var step = _profile.Personality == PetPersonality.Calm ? 300 : 190;
-        LeftFootShift.BeginAnimation(TranslateTransform.YProperty,
-            new DoubleAnimation(0, -10, TimeSpan.FromMilliseconds(step))
-            { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
-        RightFootShift.BeginAnimation(TranslateTransform.YProperty,
-            new DoubleAnimation(-10, 0, TimeSpan.FromMilliseconds(step))
-            { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
-        var tail = new DoubleAnimation(-8, 12, TimeSpan.FromMilliseconds(step * 2))
-        { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever };
-        if (_profile.Species == PetSpecies.Dog)
-            DogTailWag.BeginAnimation(RotateTransform.AngleProperty, tail);
-        else if (_profile.Species == PetSpecies.Cat)
-            TailWag.BeginAnimation(RotateTransform.AngleProperty, tail);
+        PetFloat.Y = 0;
+        TailWag.Angle = 0;
+        DogTailWag.Angle = 0;
+        DogEarTilt.Angle = 0;
+        BunnyEarTilt.Angle = 0;
+        PawWaveLeft.Angle = 0;
+        PawWaveRight.Angle = 0;
     }
 
+    private static DoubleAnimation Cycle(double start, double end, int milliseconds) => new(
+        start, end, TimeSpan.FromMilliseconds(milliseconds))
+    {
+        AutoReverse = true,
+        RepeatBehavior = RepeatBehavior.Forever,
+        EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+    };
+
+    public void Walk(bool active)
+    {
+        ResetCharacterMotion();
+        if (!active) return;
+        var gait = PetAnimationRules.Gait(_profile.Species, _profile.Personality);
+        LeftFootShift.BeginAnimation(TranslateTransform.YProperty,
+            Cycle(0, -gait.FootLift, gait.StepMilliseconds));
+        RightFootShift.BeginAnimation(TranslateTransform.YProperty,
+            Cycle(-gait.FootLift, 0, gait.StepMilliseconds));
+        PetFloat.BeginAnimation(TranslateTransform.YProperty,
+            Cycle(0, -gait.BobHeight, gait.BobMilliseconds / 2));
+
+        switch (_profile.Species)
+        {
+            case PetSpecies.Cat:
+                TailWag.BeginAnimation(RotateTransform.AngleProperty,
+                    Cycle(-gait.TailAngle, gait.TailAngle, 390));
+                break;
+            case PetSpecies.Dog:
+                DogTailWag.BeginAnimation(RotateTransform.AngleProperty,
+                    Cycle(-gait.TailAngle, gait.TailAngle, 205));
+                DogEarTilt.BeginAnimation(RotateTransform.AngleProperty,
+                    Cycle(-5, 5, 290));
+                break;
+            case PetSpecies.Bunny:
+                BunnyEarTilt.BeginAnimation(RotateTransform.AngleProperty,
+                    Cycle(-7, 7, gait.EarWiggleMilliseconds));
+                break;
+        }
+    }
+
+    /// <summary>Species-specific idle, stopped on voice reaction, exit or sleep.</summary>
     public void Float(bool active)
     {
-        PetFloat.BeginAnimation(TranslateTransform.YProperty, null);
-        if (active)
-            PetFloat.BeginAnimation(TranslateTransform.YProperty,
-                new DoubleAnimation(0, -5, TimeSpan.FromSeconds(
-                    _profile.Personality == PetPersonality.Calm ? 2 : 1.2))
-                { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
+        ResetCharacterMotion();
+        if (!active) return;
+        var calm = _profile.Personality == PetPersonality.Calm;
+        var bob = _profile.Species == PetSpecies.Bunny ? -7.0 : -3.0;
+        PetFloat.BeginAnimation(TranslateTransform.YProperty,
+            Cycle(0, bob, calm ? 1300 : 800));
+        if (_profile.Species == PetSpecies.Cat)
+            TailWag.BeginAnimation(RotateTransform.AngleProperty, Cycle(-5, 9, 1200));
+        else if (_profile.Species == PetSpecies.Dog)
+        {
+            DogTailWag.BeginAnimation(RotateTransform.AngleProperty,
+                Cycle(-17, 17, calm ? 550 : 310));
+            DogEarTilt.BeginAnimation(RotateTransform.AngleProperty, Cycle(-3, 3, 900));
+        }
+        else
+            BunnyEarTilt.BeginAnimation(RotateTransform.AngleProperty,
+                Cycle(-7, 8, calm ? 1450 : 740));
     }
 
     public void Blink()
@@ -131,37 +180,140 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
         MouthSpeak.BeginAnimation(OpacityProperty, null);
         if (speaking && animate)
             MouthSpeak.BeginAnimation(OpacityProperty,
-                new DoubleAnimation(1, .5, TimeSpan.FromMilliseconds(190))
-                { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
+                Cycle(.55, 1, _profile.Species == PetSpecies.Bunny ? 250 : 185));
     }
 
-    public void React(bool completed, bool animate)
+    /// <summary>
+    /// Called only after the Done/Snooze storage operation succeeded. All
+    /// effects are finite, bounded by PetAnimationRules, and stoppable.
+    /// </summary>
+    public int React(bool completed, PetMotion motion)
     {
-        Walk(false);
-        Float(false);
-        SetSpeaking(false, false);
-        if (!animate) return;
-
-        if (completed && _profile.DoneAction == PetDoneAction.Hop)
-            PetFloat.BeginAnimation(TranslateTransform.YProperty,
-                new DoubleAnimation(0, _profile.Species == PetSpecies.Bunny ? -36 : -24,
-                    TimeSpan.FromMilliseconds(270)) { AutoReverse = true });
-        else if (completed)
-            PetFacing.BeginAnimation(ScaleTransform.ScaleXProperty,
-                new DoubleAnimation(PetFacing.ScaleX, PetFacing.ScaleX * .8,
-                    TimeSpan.FromMilliseconds(250)) { AutoReverse = true });
+        var plan = PetAnimationRules.Reaction(_profile, completed, motion);
+        Stop();
+        if (motion == PetMotion.Off) return plan.DurationMilliseconds;
+        var shortMotion = motion == PetMotion.Gentle;
+        var speed = shortMotion ? 210 : 310;
+        if (completed)
+        {
+            if (_profile.DoneAction == PetDoneAction.Hop)
+                PetFloat.BeginAnimation(TranslateTransform.YProperty,
+                    new DoubleAnimation(0, -plan.HopHeight, TimeSpan.FromMilliseconds(speed))
+                    { AutoReverse = true, EasingFunction = new SineEase() });
+            else
+            {
+                PawWaveLeft.BeginAnimation(RotateTransform.AngleProperty,
+                    new DoubleAnimation(0, -34, TimeSpan.FromMilliseconds(speed))
+                    { AutoReverse = true });
+                PawWaveRight.BeginAnimation(RotateTransform.AngleProperty,
+                    new DoubleAnimation(0, 27, TimeSpan.FromMilliseconds(speed))
+                    { AutoReverse = true });
+            }
+            if (!shortMotion && _profile.Species == PetSpecies.Dog)
+                DogTailWag.BeginAnimation(RotateTransform.AngleProperty,
+                    Cycle(-24, 24, 145));
+            if (!shortMotion && _profile.Species == PetSpecies.Bunny)
+                BunnyEarTilt.BeginAnimation(RotateTransform.AngleProperty,
+                    Cycle(-12, 12, 180));
+        }
         else if (_profile.SnoozeAction == PetSnoozeAction.Yawn)
+        {
+            MouthSmile.Visibility = Visibility.Collapsed;
             MouthSpeak.Visibility = Visibility.Visible;
-        else
-            PetFloat.BeginAnimation(TranslateTransform.YProperty,
-                new DoubleAnimation(0, 8, TimeSpan.FromMilliseconds(270))
+            MouthSpeak.BeginAnimation(OpacityProperty,
+                new DoubleAnimation(.75, 1, TimeSpan.FromMilliseconds(340))
                 { AutoReverse = true });
+            if (!shortMotion)
+            {
+                // Droopy ears and sleepy eyes give bunny/dog a distinct yawn.
+                Blink();
+                if (_profile.Species == PetSpecies.Bunny)
+                    BunnyEarTilt.BeginAnimation(RotateTransform.AngleProperty,
+                        new DoubleAnimation(0, -13, TimeSpan.FromMilliseconds(340))
+                        { AutoReverse = true });
+                if (_profile.Species == PetSpecies.Dog)
+                    DogEarTilt.BeginAnimation(RotateTransform.AngleProperty,
+                        new DoubleAnimation(0, 10, TimeSpan.FromMilliseconds(340))
+                        { AutoReverse = true });
+            }
+        }
+        else
+        {
+            PawWaveLeft.BeginAnimation(RotateTransform.AngleProperty,
+                new DoubleAnimation(0, -20, TimeSpan.FromMilliseconds(speed))
+                { AutoReverse = true });
+            PawWaveRight.BeginAnimation(RotateTransform.AngleProperty,
+                new DoubleAnimation(0, 17, TimeSpan.FromMilliseconds(speed))
+                { AutoReverse = true });
+            PetFloat.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(0, 7, TimeSpan.FromMilliseconds(speed))
+                { AutoReverse = true });
+        }
+
+        if (plan.ParticleCount > 0)
+            PlayParticles(plan, completed);
+        return plan.DurationMilliseconds;
+    }
+
+    private void PlayParticles(PetReactionPlan plan, bool completed)
+    {
+        // At most ten short-lived shapes; never allocate particles on a frame
+        // tick, and do not add a fullscreen or click-catching effect layer.
+        EffectStage.Children.Clear();
+        var colors = _profile.Species switch
+        {
+            PetSpecies.Dog => new[] { "#F3BD59", "#FFAB7E", "#FFF5CF" },
+            PetSpecies.Bunny => new[] { "#CEB4F0", "#FFC6DE", "#FFF2C9" },
+            _ => new[] { "#FFC778", "#FFE3A2", "#D1B4F5" }
+        };
+        for (var i = 0; i < Math.Min(plan.ParticleCount, PetAnimationRules.MaxParticles); i++)
+        {
+            var angle = 2 * Math.PI * i / plan.ParticleCount - Math.PI / 2;
+            var distance = completed ? 58 : 37;
+            var particle = new System.Windows.Shapes.Path
+            {
+                Data = Geometry.Parse("M 6,0 L 7.7,4.1 L 12,5.2 L 8.2,8 L 9.3,12 L 6,9.5 L 2.7,12 L 3.8,8 L 0,5.2 L 4.3,4.1 Z"),
+                Fill = new SolidColorBrush(
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(
+                        colors[i % colors.Length])),
+                Width = 12,
+                Height = 12,
+                Opacity = 0,
+                RenderTransform = new TranslateTransform(),
+                IsHitTestVisible = false
+            };
+            System.Windows.Controls.Canvas.SetLeft(particle, 75);
+            System.Windows.Controls.Canvas.SetTop(particle, completed ? 88 : 135);
+            EffectStage.Children.Add(particle);
+
+            var travel = (TranslateTransform)particle.RenderTransform;
+            var time = TimeSpan.FromMilliseconds(Math.Max(280, plan.DurationMilliseconds - 75));
+            travel.BeginAnimation(TranslateTransform.XProperty,
+                new DoubleAnimation(0, Math.Cos(angle) * distance, time));
+            travel.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(0, Math.Sin(angle) * distance - 17, time));
+            var fade = new DoubleAnimation(1, 0, time);
+            if (i == plan.ParticleCount - 1)
+                fade.Completed += (_, _) => EffectStage.Children.Clear();
+            particle.BeginAnimation(OpacityProperty, fade);
+        }
     }
 
     public void Stop()
     {
-        Walk(false);
-        Float(false);
+        ResetCharacterMotion();
         MouthSpeak.BeginAnimation(OpacityProperty, null);
+        MouthSpeak.Visibility = Visibility.Collapsed;
+        MouthSmile.Visibility = Visibility.Visible;
+        foreach (System.Windows.UIElement particle in EffectStage.Children)
+        {
+            particle.BeginAnimation(OpacityProperty, null);
+            if (particle.RenderTransform is TranslateTransform transform)
+            {
+                transform.BeginAnimation(TranslateTransform.XProperty, null);
+                transform.BeginAnimation(TranslateTransform.YProperty, null);
+            }
+        }
+        EffectStage.Children.Clear();
     }
 }
