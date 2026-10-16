@@ -191,3 +191,10 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Clarified the persistence model: Milo, Buddy and Luna each retain **their own** palette, accessory, size, personality and actions when user switches away and back; last selected species also persists.
 - Modified the profile JSON to hold a validated species roster rather than one shared active profile. Added switch-and-restart regression tests and safely resized preview artwork through WPF Viewbox so no ears/feet are cropped in cards.
 - First v0.13 CI run #38896987114 passed, but these additional per-pet edits require a new green run before merge and distribution.
+
+## 2026-10-16 — v0.13 final CI, merge and download package
+- PR #12 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/12 merged into main at squash commit `6410b4400651c8a6ac473dafa6331aa8f0f1217c`.
+- Final green GitHub Windows run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38897525278: **105 core regression checks** passed, WPF app compiled, Inno Setup installer built, silent install/reinstall/uninstall preserved a LocalAppData data sentinel.
+- Portable ZIP artifact `PetPing-Windows-v0.13-unsigned`, ID 12044223333; installer ZIP artifact `PetPing-Installer-v0.13-unsigned`, ID 12045065431. Downloaded and CRC verified both. Extracted `PetPing-Setup-v0.13-unsigned.exe` (51,926,601 bytes), SHA-256 `fbb7e06bac08ec1f5d600a529a127cba289759b213d26c953b56f5e40c71944f`.
+- Now supports separate per-species profiles: selected pet and saved appearance/actions survive switching, restarting; actual moving WPF window receives the selected rig. Same default reminder and legacy appearance storage unaffected.
+- Known limitation: CI does not visually inspect vector rigs, scaling or TTS timing on user's physical Windows machine. Test v0.13 before v0.14 advanced expressive pet effects.
