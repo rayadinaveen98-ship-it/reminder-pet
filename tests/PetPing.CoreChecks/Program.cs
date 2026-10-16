@@ -676,6 +676,10 @@ try
           matchingFlexible.RepeatContinuationCreated &&
           reopenedFlexible.Reminders.Count == 2,
         "flexible snooze round-trip preserves occurrence history and series identity");
+    // Snooze is permitted only for Delivered/Missed, not already Pending.
+    // Recreate a Needs Attention state so this verifies bounds at the store
+    // boundary without bypassing its existing status protection.
+    reopenedFlexible.Mark(matchingFlexible, ReminderStatus.Missed);
     var stateBeforeInvalidSnooze = matchingFlexible.DueAt;
     bool storeLongRejected = false;
     try { reopenedFlexible.Snooze(matchingFlexible, TimeSpan.FromDays(2)); }
