@@ -78,7 +78,7 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
     }
 
     private static SolidColorBrush Brush(string hex) =>
-        new((System.Windows.Media.Color)ColorConverter.ConvertFromString(hex));
+        new((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex));
 
     public void FaceToward(bool movingRight) => PetFacing.ScaleX = movingRight ? 1 : -1;
 
