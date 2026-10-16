@@ -163,3 +163,11 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Portable artifact `PetPing-Windows-v0.11-unsigned` ID 12042450420; installer artifact `PetPing-Installer-v0.11-unsigned` ID 12041443215. Both GitHub ZIPs downloaded and checked for CRC corruption. Standalone `PetPing-Setup-v0.11-unsigned.exe` extracted from installer ZIP (~52 MB).
 - Walking/unboxed text and speech-repeat features are implemented, but actual Windows full-window transparency hit-testing, visual layout and voice timing **not yet physically observed**. User v0.9 working baseline remains backed up; no data migrations.
 - Next: user tests v0.11; fix issues, then v0.12 celebration and action effects. Leave v1.0 deferred and Android after Windows maturity.
+
+## 2026-10-16 — v0.12 UI redesign implementation checkpoint
+- User accepted the new Canva direction and requested implementation earlier than originally scheduled. Revised order: v0.12 UI, v0.13 multi-pet, v0.14 expressive actions/effects, v0.15 integration QA, Windows v1.0 later.
+- Branch `feature/windows-v0.12-navigation-redesign` created from current main; preserves v0.11 walking/voice and all saved reminder schemas.
+- Implemented new WPF app-wide ivory/lavender theme, sidebar navigation, Home live metrics and upcoming list, a restructured functional Reminders page, My Pets gallery, early Pet Studio, and Settings.
+- Added original reusable WPF vector CatPortrait. Only Milo the Cat is selectable today; Dog and Bunny are future scope, clearly labelled rather than faked. Existing arrival and Playful/Gentle/Off motion preferences remain functional via Pet Studio.
+- Added DashboardSummaryRules and deterministic smoke tests for accurate Home counts and no fake data. Installer/portable artifact bumped to v0.12.
+- Windows compilation, executable output and hands-on user testing PENDING at this checkpoint.
