@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Input;
+using System.Windows.Threading;
 using PetPing.Windows.Models;
 using PetPing.Windows.Services;
 
@@ -16,6 +17,7 @@ public partial class MainWindow : Window
     private readonly PetAppearanceSettings _appearance;
     private readonly PetProfileSettings _petProfiles;
     private bool _loadingProfile;
+    private readonly DispatcherTimer _studioReactionReset = new();
     private bool _loadingAppearance;
     private readonly Action _testPet;
     private readonly Action<Reminder> _reminderChanged;
@@ -35,6 +37,11 @@ public partial class MainWindow : Window
         _speechSettings = speechSettings;
         _appearance = appearance;
         _petProfiles = petProfiles;
+        _studioReactionReset.Tick += (_, _) =>
+        {
+            _studioReactionReset.Stop();
+            StudioCharacter.Stop();
+        };
         _testPet = testPet;
         ReminderDate.SelectedDate = DateTime.Today;
         ReminderTime.Text = DateTime.Now.AddMinutes(5).ToString("HH:mm");
@@ -137,6 +144,7 @@ public partial class MainWindow : Window
         PetPersonalityPicker.SelectedIndex = (int)current.Personality;
         PetDonePicker.SelectedIndex = (int)current.DoneAction;
         PetSnoozePicker.SelectedIndex = (int)current.SnoozeAction;
+        PetEffectsPicker.SelectedIndex = (int)current.Effects;
         PetRepeatPicker.SelectedIndex = current.RepeatSpeechSeconds switch
         {
             30 => 0, 120 => 2, _ => 1
@@ -146,6 +154,8 @@ public partial class MainWindow : Window
 
     private void RefreshPetUI()
     {
+        _studioReactionReset.Stop();
+        StudioCharacter.Stop();
         var p = _petProfiles.Current;
         var label = PetProfileCatalog.Name(p.Species);
         StudioTitle.Text = "Make " + label.Split(' ')[0] + " your own";
@@ -185,6 +195,22 @@ public partial class MainWindow : Window
         }
     }
 
+    private void PreviewStudioReaction(bool done)
+    {
+        if (_petProfiles is null || StudioCharacter is null) return;
+        _studioReactionReset.Stop();
+        StudioCharacter.Apply(_petProfiles.Current);
+        var milliseconds = StudioCharacter.React(done, _appearance.Motion);
+        _studioReactionReset.Interval = TimeSpan.FromMilliseconds(milliseconds);
+        _studioReactionReset.Start();
+    }
+
+    private void OnPreviewDone(object sender, RoutedEventArgs e) =>
+        PreviewStudioReaction(true);
+
+    private void OnPreviewSnooze(object sender, RoutedEventArgs e) =>
+        PreviewStudioReaction(false);
+
     private void OnSelectCat(object sender, RoutedEventArgs e) => SelectPet(PetSpecies.Cat);
     private void OnSelectDog(object sender, RoutedEventArgs e) => SelectPet(PetSpecies.Dog);
     private void OnSelectBunny(object sender, RoutedEventArgs e) => SelectPet(PetSpecies.Bunny);
@@ -195,11 +221,11 @@ public partial class MainWindow : Window
         if (_loadingProfile || _petProfiles is null || PetPalettePicker is null ||
             PetAccessoryPicker is null || PetSizePicker is null ||
             PetPersonalityPicker is null || PetDonePicker is null ||
-            PetSnoozePicker is null || PetRepeatPicker is null ||
+            PetSnoozePicker is null || PetRepeatPicker is null || PetEffectsPicker is null ||
             PetPalettePicker.SelectedIndex < 0 || PetAccessoryPicker.SelectedIndex < 0 ||
             PetSizePicker.SelectedIndex < 0 || PetPersonalityPicker.SelectedIndex < 0 ||
             PetDonePicker.SelectedIndex < 0 || PetSnoozePicker.SelectedIndex < 0 ||
-            PetRepeatPicker.SelectedIndex < 0)
+            PetRepeatPicker.SelectedIndex < 0 || PetEffectsPicker.SelectedIndex < 0)
             return;
 
         var next = _petProfiles.Current with
@@ -210,6 +236,7 @@ public partial class MainWindow : Window
             Personality = (PetPersonality)PetPersonalityPicker.SelectedIndex,
             DoneAction = (PetDoneAction)PetDonePicker.SelectedIndex,
             SnoozeAction = (PetSnoozeAction)PetSnoozePicker.SelectedIndex,
+            Effects = (PetEffects)PetEffectsPicker.SelectedIndex,
             RepeatSpeechSeconds = PetRepeatPicker.SelectedIndex switch
             {
                 0 => 30, 2 => 120, _ => 60
