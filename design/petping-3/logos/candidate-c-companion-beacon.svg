@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="PetPing Companion Beacon logo candidate C">
+<title>PetPing logo candidate C Pet plus Ping</title>
+<rect x="14" y="14" width="228" height="228" rx="65" fill="#E9F7F0"/>
+<path d="M64 107c0-28 9-46 25-57 8 18 23 31 40 39 17-8 33-21 41-39 18 13 26 29 26 57v30c0 42-30 71-67 71s-65-29-65-71z" fill="#7562D4"/>
+<path d="M91 51v45M169 51v45" stroke="#7562D4" stroke-width="10" stroke-linecap="round"/>
+<path d="M98 131c13 19 46 19 61 0" fill="none" stroke="#FFF9F0" stroke-width="11" stroke-linecap="round"/>
+<circle cx="95" cy="120" r="7" fill="#FFF9F0"/><circle cx="162" cy="120" r="7" fill="#FFF9F0"/>
+<circle cx="198" cy="65" r="16" fill="#FFAB7E"/>
+<path d="M209 46c13 5 24 17 27 32" stroke="#7562D4" stroke-width="7" stroke-linecap="round" fill="none"/>
+</svg>
