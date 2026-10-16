@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Input;
 using PetPing.Windows.Models;
 using PetPing.Windows.Services;
@@ -17,6 +19,9 @@ public partial class MainWindow : Window
     private readonly Action<Reminder> _reminderChanged;
     private bool _reallyQuit;
     private Reminder? _editing;
+    private DashboardPage _currentPage = DashboardPage.Home;
+
+    private enum DashboardPage { Home, Reminders, Pets, Studio, Settings }
 
     public MainWindow(ReminderStore store, VoiceService voice, SpeechSettings speechSettings,
         PetAppearanceSettings appearance, Action testPet, Action<Reminder> reminderChanged)
@@ -37,6 +42,7 @@ public partial class MainWindow : Window
         _loadingAppearance = false;
         InboxPicker.SelectedIndex = 0;
         RefreshList();
+        NavigateTo(DashboardPage.Home);
         Closing += (_, e) => { if (!_reallyQuit) { e.Cancel = true; Hide(); } };
     }
 
@@ -71,7 +77,64 @@ public partial class MainWindow : Window
             InboxFilter.History => "Completed reminders are kept here for reference.",
             _ => "Select a reminder to edit, complete, snooze or delete."
         };
+
+        // Dashboard summary is derived from the same local reminder store.
+        var snapshot = DashboardSummaryRules.Build(_store.Reminders, DateTime.Today);
+        HomeTodayCount.Text = snapshot.TodayCount.ToString();
+        HomeUpcomingCount.Text = snapshot.UpcomingCount.ToString();
+        HomeAttentionCount.Text = snapshot.AttentionCount.ToString();
+        HomeNextList.ItemsSource = snapshot.NextReminders;
+        HomeNextList.Visibility = snapshot.NextReminders.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        HomeEmptyNext.Visibility = snapshot.NextReminders.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
+
+    private void NavigateTo(DashboardPage page)
+    {
+        _currentPage = page;
+        HomePage.Visibility = page == DashboardPage.Home ? Visibility.Visible : Visibility.Collapsed;
+        RemindersPage.Visibility = page == DashboardPage.Reminders ? Visibility.Visible : Visibility.Collapsed;
+        PetsPage.Visibility = page == DashboardPage.Pets ? Visibility.Visible : Visibility.Collapsed;
+        StudioPage.Visibility = page == DashboardPage.Studio ? Visibility.Visible : Visibility.Collapsed;
+        SettingsPage.Visibility = page == DashboardPage.Settings ? Visibility.Visible : Visibility.Collapsed;
+
+        (PageHeading.Text, PageDescription.Text) = page switch
+        {
+            DashboardPage.Home => ("Home", "Your companion and today's plans."),
+            DashboardPage.Reminders => ("Reminders", "Make space for what matters."),
+            DashboardPage.Pets => ("My Pets", "Meet your little desktop companions."),
+            DashboardPage.Studio => ("Pet Studio", "Make Milo feel more like your own."),
+            _ => ("Settings", "PetPing, just the way you like it.")
+        };
+
+        var controls = new[] { NavHome, NavReminders, NavPets, NavStudio, NavSettings };
+        for (var i = 0; i < controls.Length; i++)
+        {
+            var active = i == (int)page;
+            controls[i].Background = new SolidColorBrush(
+                active ? System.Windows.Media.Color.FromRgb(221, 211, 249) : System.Windows.Media.Colors.Transparent);
+            controls[i].Foreground = new SolidColorBrush(
+                active ? System.Windows.Media.Color.FromRgb(65, 48, 133) : System.Windows.Media.Color.FromRgb(36, 39, 46));
+            controls[i].FontWeight = active ? FontWeights.Bold : FontWeights.SemiBold;
+        }
+        ErrorToast.Visibility = Visibility.Collapsed;
+        if (page is DashboardPage.Home or DashboardPage.Reminders)
+            RefreshList();
+    }
+
+    private void OnNavigateHome(object sender, RoutedEventArgs e) => NavigateTo(DashboardPage.Home);
+    private void OnNavigateReminders(object sender, RoutedEventArgs e) => NavigateTo(DashboardPage.Reminders);
+    private void OnNavigatePets(object sender, RoutedEventArgs e) => NavigateTo(DashboardPage.Pets);
+    private void OnNavigateStudio(object sender, RoutedEventArgs e) => NavigateTo(DashboardPage.Studio);
+    private void OnNavigateSettings(object sender, RoutedEventArgs e) => NavigateTo(DashboardPage.Settings);
+
+    private void OnHomeAdd(object sender, RoutedEventArgs e)
+    {
+        NavigateTo(DashboardPage.Reminders);
+        ReminderName.Focus();
+    }
+
+    private void OnDismissError(object sender, RoutedEventArgs e) =>
+        ErrorToast.Visibility = Visibility.Collapsed;
 
     private InboxFilter CurrentFilter() => InboxPicker?.SelectedIndex switch
     {
@@ -94,6 +157,7 @@ public partial class MainWindow : Window
         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && e.Key == Key.N)
         {
             if (_editing is not null) ResetForm();
+            NavigateTo(DashboardPage.Reminders);
             ReminderName.Focus();
             e.Handled = true;
         }
@@ -194,7 +258,7 @@ public partial class MainWindow : Window
         QuickAddButton.Visibility = Visibility.Collapsed;
         CancelEditButton.Visibility = Visibility.Visible;
         AddButton.Content = "Save changes";
-        ValidationMessage.Visibility = Visibility.Collapsed;
+        ErrorToast.Visibility = Visibility.Collapsed;
         ReminderName.Focus();
     }
 
@@ -210,13 +274,13 @@ public partial class MainWindow : Window
         QuickAddButton.Visibility = Visibility.Visible;
         CancelEditButton.Visibility = Visibility.Collapsed;
         AddButton.Content = "Add reminder";
-        ValidationMessage.Visibility = Visibility.Collapsed;
+        ErrorToast.Visibility = Visibility.Collapsed;
     }
 
     private void ShowError(string message)
     {
         ValidationMessage.Text = message;
-        ValidationMessage.Visibility = Visibility.Visible;
+        ErrorToast.Visibility = Visibility.Visible;
     }
 
     private Reminder? SelectedOrWarn()
@@ -240,7 +304,7 @@ public partial class MainWindow : Window
             _store.Mark(reminder, ReminderStatus.Completed);
             if (_editing?.Id == reminder.Id) ResetForm();
             _reminderChanged(reminder);
-            ValidationMessage.Visibility = Visibility.Collapsed;
+            ErrorToast.Visibility = Visibility.Collapsed;
             RefreshList();
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException)
@@ -260,7 +324,7 @@ public partial class MainWindow : Window
         {
             _store.Snooze(reminder, TimeSpan.FromMinutes(10));
             _reminderChanged(reminder);
-            ValidationMessage.Visibility = Visibility.Collapsed;
+            ErrorToast.Visibility = Visibility.Collapsed;
             RefreshList();
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException)
@@ -282,7 +346,7 @@ public partial class MainWindow : Window
             _store.Delete(reminder);
             if (_editing?.Id == reminder.Id) ResetForm();
             _reminderChanged(reminder);
-            ValidationMessage.Visibility = Visibility.Collapsed;
+            ErrorToast.Visibility = Visibility.Collapsed;
             RefreshList();
         }
         catch (IOException ex) { ShowError("Could not delete reminder: " + ex.Message); }
@@ -299,7 +363,7 @@ public partial class MainWindow : Window
                 FileName = directory,
                 UseShellExecute = true
             });
-            ValidationMessage.Visibility = Visibility.Collapsed;
+            ErrorToast.Visibility = Visibility.Collapsed;
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException
             or System.ComponentModel.Win32Exception)
@@ -322,7 +386,7 @@ public partial class MainWindow : Window
             ShowError("Windows speech is unavailable. Visual reminders still work.");
             return;
         }
-        ValidationMessage.Visibility = Visibility.Collapsed;
+        ErrorToast.Visibility = Visibility.Collapsed;
     }
 
     private void OnAppearanceChanged(object sender,
@@ -335,7 +399,7 @@ public partial class MainWindow : Window
         {
             _appearance.Update((PetPlacement)PlacementPicker.SelectedIndex,
                                (PetMotion)MotionPicker.SelectedIndex);
-            ValidationMessage.Visibility = Visibility.Collapsed;
+            ErrorToast.Visibility = Visibility.Collapsed;
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException
             or ArgumentException)
@@ -355,7 +419,7 @@ public partial class MainWindow : Window
             var enabled = VoiceToggle.IsChecked == true;
             _speechSettings.SetEnabled(enabled);
             _voice.Enabled = enabled;
-            ValidationMessage.Visibility = Visibility.Collapsed;
+            ErrorToast.Visibility = Visibility.Collapsed;
         }
         catch (IOException ex)
         {
@@ -369,7 +433,7 @@ public partial class MainWindow : Window
         try
         {
             StartupRegistrar.SetEnabled(StartupToggle.IsChecked == true);
-            ValidationMessage.Visibility = Visibility.Collapsed;
+            ErrorToast.Visibility = Visibility.Collapsed;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
         {
