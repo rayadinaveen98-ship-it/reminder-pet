@@ -36,6 +36,24 @@ public sealed class ReminderStore
             throw new InvalidDataException("Reminder data contains duplicate IDs.");
         if (restored.Any(r => !Enum.IsDefined(r.Repeat) || !Enum.IsDefined(r.Status)))
             throw new InvalidDataException("Reminder data contains an unsupported state.");
+        foreach (var reminder in restored)
+        {
+            if (reminder.Repeat == RepeatPattern.Custom)
+            {
+                if (reminder.CustomSchedule is null ||
+                    string.IsNullOrWhiteSpace(reminder.RepeatTimeZoneId) ||
+                    reminder.RepeatLocalTime is not { } time ||
+                    time < TimeSpan.Zero || time >= TimeSpan.FromDays(1) ||
+                    reminder.SeriesId is null)
+                    throw new InvalidDataException("Custom repeat record is incomplete.");
+                reminder.CustomSchedule.Validate();
+                try { _ = TimeZoneInfo.FindSystemTimeZoneById(reminder.RepeatTimeZoneId); }
+                catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException)
+                { throw new InvalidDataException("Custom repeat has an invalid time zone.", ex); }
+            }
+            else if (reminder.CustomSchedule is not null)
+                throw new InvalidDataException("A legacy reminder has unexpected custom settings.");
+        }
         return restored;
     }
 
@@ -148,6 +166,49 @@ public sealed class ReminderStore
         return reminder;
     }
 
+    /// <summary>
+    /// Creates one future custom occurrence using a local anchor/date and
+    /// intended wall clock, without rewriting any old reminder records.
+    /// This is a domain-only entry point until a gated v0.18 editor exists.
+    /// </summary>
+    public Reminder AddCustom(string title, TimeSpan localTime, string timeZoneId,
+        CustomRepeatOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        options.Validate();
+        if (string.IsNullOrWhiteSpace(timeZoneId))
+            throw new ArgumentException("Choose a time zone.", nameof(timeZoneId));
+        var tz = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        if (localTime < TimeSpan.Zero || localTime >= TimeSpan.FromDays(1))
+            throw new ArgumentOutOfRangeException(nameof(localTime));
+        var now = DateTimeOffset.UtcNow;
+        var nextDue = options.Kind switch
+        {
+            CustomRepeatKind.Weekdays => AdvancedRepeatRules.NextWeekdayOccurrence(
+                options.AnchorLocalDate, localTime, options.SelectedWeekdays(),
+                options.Interval, tz, now),
+            CustomRepeatKind.EveryNDays => AdvancedRepeatRules.NextDayIntervalOccurrence(
+                options.AnchorLocalDate, localTime, options.Interval, tz, now),
+            _ => throw new InvalidDataException("Unsupported custom recurrence kind.")
+        };
+        ValidateTitleAndTime(title, nextDue);
+        var reminder = new Reminder
+        {
+            Title = title.Trim(),
+            DueAt = nextDue,
+            OriginalDueAt = nextDue,
+            Repeat = RepeatPattern.Custom,
+            SeriesId = Guid.NewGuid(),
+            RepeatTimeZoneId = timeZoneId,
+            RepeatLocalTime = localTime,
+            CustomSchedule = options
+        };
+        Reminders.Add(reminder);
+        try { Save(); }
+        catch { Reminders.Remove(reminder); throw; }
+        return reminder;
+    }
+
     /// <summary>Edits only the next ordinary pending occurrence. Historical events
     /// and already-snoozed recurring occurrences are intentionally immutable.</summary>
     public void Edit(Reminder reminder, string title, DateTimeOffset dueAt,
@@ -155,6 +216,8 @@ public sealed class ReminderStore
     {
         if (reminder.Status != ReminderStatus.Pending || reminder.RepeatContinuationCreated)
             throw new InvalidOperationException("Only upcoming, unsent reminders can be edited.");
+        if (reminder.Repeat == RepeatPattern.Custom || repeat == RepeatPattern.Custom)
+            throw new InvalidOperationException("Custom schedules need their dedicated editor.");
         ValidateTitleAndTime(title, dueAt);
         var tz = ValidateRecurrence(repeat, timeZoneId);
         Change(reminder, () =>
@@ -204,7 +267,8 @@ public sealed class ReminderStore
                     Repeat = reminder.Repeat,
                     SeriesId = reminder.SeriesId ?? Guid.NewGuid(),
                     RepeatTimeZoneId = reminder.RepeatTimeZoneId,
-                    RepeatLocalTime = reminder.RepeatLocalTime
+                    RepeatLocalTime = reminder.RepeatLocalTime,
+                    CustomSchedule = reminder.CustomSchedule
                 };
                 reminder.RepeatContinuationCreated = true;
                 // Defensive guard against duplicated future series occurrences.
@@ -280,6 +344,7 @@ public sealed class ReminderStore
         private readonly string? _zone = reminder.RepeatTimeZoneId;
         private readonly TimeSpan? _localTime = reminder.RepeatLocalTime;
         private readonly bool _continued = reminder.RepeatContinuationCreated;
+        private readonly CustomRepeatOptions? _custom = reminder.CustomSchedule;
 
         public void Restore(Reminder r)
         {
@@ -295,6 +360,7 @@ public sealed class ReminderStore
             r.RepeatTimeZoneId = _zone;
             r.RepeatLocalTime = _localTime;
             r.RepeatContinuationCreated = _continued;
+            r.CustomSchedule = _custom;
         }
     }
 }
