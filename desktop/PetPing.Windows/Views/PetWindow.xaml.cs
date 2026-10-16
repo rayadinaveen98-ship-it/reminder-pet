@@ -20,6 +20,7 @@ public partial class PetWindow : Window
     private readonly PetMotion _motion;
     private readonly PetProfile _profile;
     private readonly DispatcherTimer _blink = new() { Interval = TimeSpan.FromSeconds(4.3) };
+    private readonly DispatcherTimer _reactionTimer = new();
     private bool _closing;
     private bool _reacting;
     private bool _arrived;
@@ -57,10 +58,16 @@ public partial class PetWindow : Window
         SourceInitialized += (_, _) => SetInitialPosition();
         Loaded += OnPetLoaded;
         _blink.Tick += (_, _) => Blink();
+        _reactionTimer.Tick += (_, _) =>
+        {
+            _reactionTimer.Stop();
+            AnimateAway();
+        };
         Closed += (_, _) =>
         {
             _closing = true;
             _blink.Stop();
+            _reactionTimer.Stop();
             Character.Stop();
             InteractionStopped?.Invoke();
         };
@@ -188,11 +195,10 @@ public partial class PetWindow : Window
         ReminderTitle.Text = response;
         ReminderTitle.ToolTip = response;
         ActionChips.Visibility = Visibility.Collapsed;
-        Character.React(completed, _motion == PetMotion.Full);
-
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(730) };
-        timer.Tick += (_, _) => { timer.Stop(); AnimateAway(); };
-        timer.Start();
+        var duration = Character.React(completed, _motion);
+        _reactionTimer.Stop();
+        _reactionTimer.Interval = TimeSpan.FromMilliseconds(duration);
+        _reactionTimer.Start();
     }
 
     private void OnDone(object sender, RoutedEventArgs e)
@@ -214,6 +220,7 @@ public partial class PetWindow : Window
         if (_closing) return;
         _closing = true;
         _blink.Stop();
+        _reactionTimer.Stop();
         Character.Stop();
         InteractionStopped?.Invoke();
         BeginAnimation(LeftProperty, null);
