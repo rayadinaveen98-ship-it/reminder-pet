@@ -70,5 +70,5 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Generic tray fallback if pet popup rendering fails (not guaranteed by Windows)
 - [x] Speech test button and stop speech on lock/suspend
 - [x] Regression checks for blocked writes, rollback and diagnostics privacy
-- [ ] Windows CI compile and core checks for v0.5
+- [x] Windows CI compile and 32 core checks for v0.5
 - [ ] Physical laptop validation: popup and speech on/off, lock/unlock, sleep/wake, startup, duplicate alert prevention

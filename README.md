@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current deliverable:** Windows Alpha v0.5 reliability in development. The last verified build was v0.4. The v0.5 CI compilation and manual device tests must be confirmed before release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current deliverable:** Windows Alpha v0.5 reliability test build. GitHub Actions successfully compiled the Windows x64 app and passed **32** core tests. A physical Windows laptop still needs to verify lock/wake, voice, multi-monitor and alert reliability; this is not a production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -70,3 +70,8 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Generic tray fallback notice if the pet popup cannot render; Notifications may be suppressed by Windows and are NOT a guaranteed alternative alarm.
 - Voice test in dashboard, local TTS failure diagnostics and stopping speech when session locks / machine suspends.
 - Manual release gate remains Windows lock, wake, and speech confirmation.
+
+### Latest verified CI and handoff
+- v0.5 green Windows PR build: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38864475272 (32 core checks, Windows x64 compilation and unsigned ZIP artifact).
+- After source changes, keep `docs/PROJECT_STATUS.md` and `docs/ENGINEERING_LOG.md` updated before merging. They are the source of truth for resuming future conversations.
+- The user's v0.4 visual test confirmed the pet floats outside the speech bubble. The v0.5 changes have not yet been manually verified.
