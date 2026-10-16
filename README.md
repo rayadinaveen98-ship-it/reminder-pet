@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current working release:** Windows **v0.9** user-tested alpha. **Available as unsigned Windows test build:** v0.11 PetPing 2.0 walking pet experience. GitHub Actions passed 86 core checks and compiled both installer and portable build; real laptop visual/voice QA is pending. This is unsigned and not a production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current working release:** Windows **v0.9** user-tested alpha. **In implementation, CI pending:** v0.12 redesigned WPF Home/Reminders/My Pets/Pet Studio/Settings. Last merged walking-pet alpha is v0.11. GitHub Actions passed 86 core checks and compiled both installer and portable build; real laptop visual/voice QA is pending. This is unsigned and not a production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -148,3 +148,11 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Downloadable unsigned v0.11 artifacts: `PetPing-Windows-v0.11-unsigned` (ID 12042450420) and `PetPing-Installer-v0.11-unsigned` (ID 12041443215), containing `PetPing-Setup-v0.11-unsigned.exe`.
 - Back up `%LOCALAPPDATA%\PetPing`, quit previous app from tray, install or extract v0.11, then test edge-to-center walk and on-arrival narration. No data migrations. Click **Hide** to dismiss popup without completing; **Mute** stops narration but leaves pet.
 - CI does NOT verify physical per-pixel WPF click passthrough, DPI/multi-monitor fit or actual local TTS latency. Report those results before v0.12.
+
+## v0.12 redesigned Windows interface (development)
+- A new WPF native 5-screen app uses the approved Canva warm ivory/lavender direction and a reusable original orange cat portrait. Navigation: **Home**, **Reminders**, **My Pets**, **Pet Studio**, **Settings**.
+- Home derives Today/Upcoming/Needs Attention and three next reminders from the actual offline store. No mock sample metrics or unrelated pet-care reminders in the native UI.
+- Reminders includes functional date/time/one-time/daily/weekly creation and editing, list filters, Done/Snooze/Delete and existing keyboard shortcuts. Settings retains optional Windows speech, login startup and Open data folder.
+- My Pets shows Milo as the active original cat, with Dog and Bunny explicitly marked coming in v0.13. Pet Studio provides existing real motion/arrival options and pet preview; new species/action customization will be implemented in subsequent versions.
+- The walking v0.11 pet experience and reminder JSON data remain unchanged. No paid services or external Canva dependency is added to the compiled app.
+- CI artifacts are named `PetPing-Windows-v0.12-unsigned` and `PetPing-Installer-v0.12-unsigned`; they are not yet verified at this checkpoint.
