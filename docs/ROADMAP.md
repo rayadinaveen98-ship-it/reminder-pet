@@ -212,3 +212,15 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [ ] v0.21 integrated mixed-DPI, sleep, lock, screen reader, memory/CPU, installer upgrade QA
 - [ ] Windows v1.0 RC and stable with explicit signing/distribution decision and user acceptance
 - [ ] Android native A1 only after Windows release gate
+
+## v0.17 Premium Brand & UI — new implementation plan
+- [x] Locate and preserve earlier 7-page Canva concept
+- [x] Draft 3 source-editable ORIGINAL SVG identity candidates, not yet selected
+- [x] Create new 8-page editable Canva design review, audit and document off-target generated copy
+- [x] Create precise Home/Reminders WPF layout and interaction spec, plus original 1440×900 editable SVG screen mockups with explicit sample-watermark
+- [x] Refine semantic UI tokens; flag failing mint/white color contrast
+- [ ] User visual approval of logo A/B/C, general UI language and high-fidelity layout
+- [ ] Stage B final logo master/ICO and coherent WPF resources, Home & Reminders implementation with real reminder data
+- [ ] Stage C My Pets/Studio/Settings full UI polish; empty/error/loading/responsive/accessibility states
+- [ ] Windows CI and physical 100/125/150/200 DPI QA before calling v0.17 complete
+- [ ] v0.18 advanced reminder system per locked roadmap

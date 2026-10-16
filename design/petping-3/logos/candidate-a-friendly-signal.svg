@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="PetPing Friendly Signal logo candidate A">
+<title>PetPing logo candidate A Friendly Signal</title>
+<rect x="14" y="14" width="228" height="228" rx="65" fill="#7562D4"/>
+<path d="M72 113c3-38 27-64 56-64s53 26 56 64" fill="none" stroke="#E5DDFF" stroke-width="12" stroke-linecap="round"/>
+<path d="M92 125c0-24 15-43 36-43s36 19 36 43c0 25 12 30 17 44H75c5-14 17-19 17-44z" fill="#FFCAAA"/>
+<path d="M118 57l-20 22 8 17M138 57l20 22-8 17" fill="#FFCAAA" stroke="#FFCAAA" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M120 186c3 12 13 19 24 16 7-2 12-8 15-16" fill="none" stroke="#FFCAAA" stroke-width="12" stroke-linecap="round"/>
+<circle cx="190" cy="66" r="13" fill="#90D8BB"/>
+<path d="M202 62c9 6 15 14 17 25" fill="none" stroke="#E5DDFF" stroke-width="6" stroke-linecap="round"/>
+</svg>
