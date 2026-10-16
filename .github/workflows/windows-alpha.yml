@@ -73,9 +73,9 @@ jobs:
           if (!(Test-Path (Join-Path $installDir "PetPing.Windows.exe"))) { throw "v0.14 binary missing" }
           $reminders = Join-Path $dataDir "reminders.json"
           $profiles = Join-Path $dataDir "pet-profile.json"
-          $fixture = @(
+          $fixture = ConvertTo-Json -InputObject @(
             @{ Id='11111111-1111-4111-8111-111111111111'; Title='Upgrade check'; DueAt='2028-10-25T18:00:00+05:30'; OriginalDueAt='2028-10-25T18:00:00+05:30'; Status='Pending'; Repeat='None'; SnoozeCount=0; RepeatContinuationCreated=$false }
-          ) | ConvertTo-Json -Depth 5
+          ) -Depth 5
           [System.IO.File]::WriteAllText($reminders, $fixture)
           $profileObjects = @('Cat', 'Dog', 'Bunny') | ForEach-Object {
             @{ SchemaVersion=1; Species=$_; Palette='Apricot'; Accessory='None'; Size='Medium'; Personality='Playful'; Effects='Playful'; DoneAction='Hop'; SnoozeAction='Yawn'; RepeatSpeechSeconds=60 }
