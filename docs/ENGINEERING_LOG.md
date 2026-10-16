@@ -254,3 +254,9 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Created `docs/V017_UI_SPEC.md` implementation-ready Home/Reminders information hierarchy, WPF sizing, live store data rules, accessibility and generated-deck correction log. Added light-first `design/petping-3/tokens.v017.candidate.json`. Checked contrast: body 13.85:1, secondary 5.73:1, primary white/lavender 4.71:1, mint/white FAIL 1.93:1; restrict mint to accent/background with dark text.
 - Created local concept comparison PNG + three SVG ZIP files for user evaluation. Native final icon and high-fidelity WPF code not yet implemented.
 - NEXT: visually review A/B/C and screen style, choose one direction, then implement WPF shell and responsive real Home/Reminders with tests; Stage C other pages before v0.18 reminder engine.
+
+## 2026-10-16 — v0.17 Stage A precise native UI concept sources
+- Built two source-editable original 1440×900 SVG screen designs at `design/petping-3/screens/v017-home-concept.svg` and `v017-reminders-concept.svg`, with shared five-screen navigation, PetPing logo placeholder, high-contrast task hierarchy and clearly marked sample data.
+- Home composition: companion hero, real-data metric slots Today/Upcoming/Needs Attention, Coming Up, + Add reminder. Reminders composition: quick title/date/time/repeat, visible filters, list status and planned advanced drawer clearly identified as future.
+- Created screen README documenting static nature, pending WPF responsiveness and contrast testing. Verified 3 logo SVG and 2 UI SVG source files readable, v0.17 JSON parses, five nav destinations present in screen source, no pet-care sample copy, and sample watermark present.
+- Edited `docs/V017_UI_SPEC.md` to link editable screen composition source files. Still requires user visual approval; no new WPF build or new installer made.
