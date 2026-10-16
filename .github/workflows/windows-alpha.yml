@@ -1,0 +1,32 @@
+name: Build Windows Alpha
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-alpha:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Static XAML / project checks
+        run: python tools/validate_project.py
+      - name: Core reminder tests
+        run: dotnet run --project tests/PetPing.CoreChecks/PetPing.CoreChecks.csproj -c Release
+      - name: Build portable Windows EXE
+        run: dotnet publish desktop/PetPing.Windows/PetPing.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/PetPing-Windows-v0.2
+      - name: Upload unsigned alpha
+        uses: actions/upload-artifact@v4
+        with:
+          name: PetPing-Windows-v0.2-unsigned
+          path: artifacts/PetPing-Windows-v0.2/
+          if-no-files-found: error
+          retention-days: 7

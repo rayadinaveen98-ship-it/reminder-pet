@@ -5,8 +5,6 @@ namespace PetPing.Windows.Services;
 
 public sealed class ReminderScheduler
 {
-    // Reminders up to 15 minutes late are shown at resume/start. Older ones become missed.
-    public static readonly TimeSpan CatchUpWindow = TimeSpan.FromMinutes(15);
     private readonly ReminderStore _store;
     private readonly DispatcherTimer _tick;
     public event Action<Reminder>? ReminderDue;
@@ -27,20 +25,24 @@ public sealed class ReminderScheduler
         var now = DateTimeOffset.UtcNow;
         foreach (var reminder in _store.Reminders.Where(r => r.Status == ReminderStatus.Pending).OrderBy(r => r.DueAt).ToList())
         {
-            if (reminder.DueAt > now) continue;
-            if (now - reminder.DueAt > CatchUpWindow)
+            switch (ReminderRules.Evaluate(reminder, now))
             {
-                _store.Mark(reminder, ReminderStatus.Missed);
+                case ReminderDeliveryDecision.None:
+                    break;
+                case ReminderDeliveryDecision.Missed:
+                    _store.Mark(reminder, ReminderStatus.Missed);
+                    Changed?.Invoke();
+                    break;
+                case ReminderDeliveryDecision.Deliver:
+                    // Persist before callback. If app crashes before the alert appears,
+                    // a recent unacknowledged alert is restored on the next app launch.
+                    reminder.Status = ReminderStatus.Delivered;
+                    reminder.DeliveredAt = now;
+                    _store.Save();
+                    ReminderDue?.Invoke(reminder);
+                    Changed?.Invoke();
+                    break;
             }
-            else
-            {
-                // Persist BEFORE raising event: a second tick cannot re-deliver this occurrence.
-                reminder.Status = ReminderStatus.Delivered;
-                reminder.DeliveredAt = now;
-                _store.Save();
-                ReminderDue?.Invoke(reminder);
-            }
-            Changed?.Invoke();
         }
     }
 }

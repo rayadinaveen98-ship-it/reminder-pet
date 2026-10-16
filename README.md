@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current deliverable:** Project blueprint + first C# WPF Windows source foundation. This is an **uncompiled engineering alpha scaffold**, not a verified app or ready-made installer. Android is next in the roadmap; no Android APK has been produced yet.
+**Current deliverable:** Windows Alpha v0.2 source + automated Windows build workflow and reminder-core smoke checks. This is an **uncompiled engineering alpha scaffold**, not a verified app or ready-made installer. Android is next in the roadmap; no Android APK has been produced yet.
 
 ## Contents
 - `docs/PRODUCT_BLUEPRINT.md`: product goals, UX principles, scope.
@@ -36,3 +36,12 @@ No license granted yet. Product source is created for this user project; select 
 
 ## No-SDK visual preview (Windows only)
 Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an optional voice preview. This standalone PowerShell/WPF script is a **visual/overlay capability probe**, not the actual reminder application: it does not save or schedule real reminders. Snooze in this preview is deliberately 10 **seconds**. Inspect the source first if you wish; it does not require admin rights and does not download anything.
+
+## v0.2 build and testing
+- The Windows build workflow runs on pushes to `main` and can also be triggered manually in **Actions → Build Windows Alpha**.
+- When the run succeeds, open its **Artifacts** section and download `PetPing-Windows-v0.2-unsigned`.
+- The EXE is a self-contained unsigned **alpha**, not an installer or a verified consumer release; Windows may display a SmartScreen warning.
+- Reminders recover on restart when they were delivered but not acknowledged within 15 minutes. Older ones remain visible in the reminder history.
+- Optional **Start with Windows** registers this executable for the current user with `--background` (without automatically showing the dashboard).
+- Voice setting is persisted locally. Existing reminder JSON is backed up when overwritten.
+- A passing GitHub build does not substitute for real lock, sleep, notification and voice testing on Windows devices.

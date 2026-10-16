@@ -11,19 +11,19 @@
 - [ ] Windows compilation, execution and visual QA (requires Windows/.NET SDK)
 
 ## Milestone W1 — Windows alpha
-- [ ] Build on Windows 10/11, resolve compile/runtime failures
-- [ ] Test exact-time behavior against clock with repeated one-minute reminders
+- [ ] Build on Windows 10/11 and confirm the CI compiler result; resolve any compiler/runtime failures
+- [ ] Test exact-time behavior against clock with repeated one-minute reminders (core rules have automated smoke checks)
 - [x] Auto-hide popup after 45 seconds without silently completing it
 - [ ] Better tray icon and app launcher behavior for second process
 - [ ] Installer / portable release and signed build decision
 - [ ] Keyboard support, contrast, screen reader and reduced-motion checks
-- [ ] Persistent voice and notification settings
+- [x] Persistent voice setting (notification settings remain pending)
 - [ ] Critical tests: reboot, crash, logout/login, lock/unlock, sleep/wake
 
 ## Milestone W2 — genuinely dependable Windows beta
 - [ ] Daily, weekly and custom repeat rules with DST-safe recurrence
 - [ ] Edit reminder and multiple urgency levels
-- [ ] Windows startup opt-in and reliability fallback notifications
+- [x] Windows startup opt-in (toast fallback remains pending)
 - [ ] Quiet hours, fullscreen/focus assist sensitivity, configurable popup location
 - [ ] More polished final 2D pet asset and animation states (idle, arrive, speak, leave)
 - [ ] Scalable reminder queue, event ledger and database migration to SQLite

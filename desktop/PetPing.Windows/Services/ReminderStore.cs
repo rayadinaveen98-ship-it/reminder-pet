@@ -15,9 +15,10 @@ public sealed class ReminderStore
     private readonly string _dataPath;
     public List<Reminder> Reminders { get; private set; } = [];
 
-    public ReminderStore()
+    public ReminderStore(string? dataDirectory = null)
     {
-        var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PetPing");
+        var folder = dataDirectory ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PetPing");
         Directory.CreateDirectory(folder);
         _dataPath = Path.Combine(folder, "reminders.json");
         Load();
@@ -26,22 +27,37 @@ public sealed class ReminderStore
     public void Load()
     {
         if (!File.Exists(_dataPath)) { Reminders = []; return; }
-        // Do not overwrite corrupt user data with a blank list.
-        Reminders = JsonSerializer.Deserialize<List<Reminder>>(File.ReadAllText(_dataPath), JsonOptions)
-            ?? throw new InvalidDataException("Reminder database is empty or invalid.");
+        // Invalid JSON must never cause the user data to be silently reset.
+        var restored = JsonSerializer.Deserialize<List<Reminder>>(File.ReadAllText(_dataPath), JsonOptions)
+            ?? throw new InvalidDataException("Your reminder file is invalid; it has not been erased.");
+        if (restored.Any(r => r.Id == Guid.Empty || string.IsNullOrWhiteSpace(r.Title)))
+            throw new InvalidDataException("Your reminder file has invalid entries; it has not been erased.");
+        if (restored.Select(r => r.Id).Distinct().Count() != restored.Count)
+            throw new InvalidDataException("Your reminder file contains duplicate IDs; it has not been erased.");
+        Reminders = restored;
     }
 
     public void Save()
     {
         var temp = _dataPath + ".tmp";
-        File.WriteAllText(temp, JsonSerializer.Serialize(Reminders, JsonOptions));
-        File.Move(temp, _dataPath, overwrite: true);
+        var backup = _dataPath + ".bak";
+        // Flush before replacing. On Windows, File.Replace keeps a last-known backup.
+        using (var stream = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
+        {
+            JsonSerializer.Serialize(stream, Reminders, JsonOptions);
+            stream.Flush(flushToDisk: true);
+        }
+        if (File.Exists(_dataPath))
+            File.Replace(temp, _dataPath, backup);
+        else
+            File.Move(temp, _dataPath);
     }
 
     public Reminder Add(string title, DateTimeOffset dueAt)
     {
         if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("A reminder needs a name.");
-        if (dueAt <= DateTimeOffset.Now) throw new ArgumentException("Choose a future time.");
+        if (title.Length > 120) throw new ArgumentException("Keep the name within 120 characters.");
+        if (dueAt <= DateTimeOffset.UtcNow) throw new ArgumentException("Choose a future time.");
         var reminder = new Reminder { Title = title.Trim(), DueAt = dueAt, OriginalDueAt = dueAt };
         Reminders.Add(reminder);
         Save();
