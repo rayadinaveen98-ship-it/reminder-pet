@@ -1,0 +1,118 @@
+<UserControl x:Class="PetPing.Windows.PetCharacter"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="150" Height="218" IsHitTestVisible="False"
+             Focusable="False" Background="Transparent">
+  <Canvas x:Name="Actor" Width="150" Height="218" ClipToBounds="False">
+    <Canvas.RenderTransform>
+      <TransformGroup>
+        <ScaleTransform x:Name="PetFacing" ScaleX="1" ScaleY="0.89" CenterX="75" CenterY="120"/>
+        <ScaleTransform x:Name="PetSizing" ScaleX="1" ScaleY="1" CenterX="75" CenterY="125"/>
+        <TranslateTransform x:Name="PetFloat"/>
+      </TransformGroup>
+    </Canvas.RenderTransform>
+    <!-- Species-specific tails behind the torso. -->
+    <Path x:Name="CatTail" Data="M 115,160 C 164,154 160,101 135,111"
+          Stroke="#E5A06D" StrokeThickness="15" StrokeStartLineCap="Round"
+          StrokeEndLineCap="Round" Fill="Transparent">
+      <Path.RenderTransform><RotateTransform x:Name="TailWag" CenterX="115" CenterY="159"/></Path.RenderTransform>
+    </Path>
+    <Path x:Name="DogTail" Data="M 114,155 Q 159,128 139,111"
+          Stroke="#C79565" StrokeThickness="17" StrokeStartLineCap="Round"
+          Fill="Transparent" Visibility="Collapsed">
+      <Path.RenderTransform><RotateTransform x:Name="DogTailWag" CenterX="117" CenterY="152"/></Path.RenderTransform>
+    </Path>
+    <Ellipse x:Name="BunnyTail" Canvas.Left="117" Canvas.Top="136" Width="30" Height="32"
+             Fill="White" Stroke="#B8B0C6" StrokeThickness="2" Visibility="Collapsed"/>
+
+    <!-- Rear feet cycle while traversing the screen. -->
+    <Ellipse x:Name="PawLeft" Canvas.Left="33" Canvas.Top="183" Width="40" Height="23"
+             Fill="#DF9965" Stroke="#AC7453" StrokeThickness="1.5">
+      <Ellipse.RenderTransform><TranslateTransform x:Name="LeftFootShift"/></Ellipse.RenderTransform>
+    </Ellipse>
+    <Ellipse x:Name="PawRight" Canvas.Left="79" Canvas.Top="183" Width="40" Height="23"
+             Fill="#DF9965" Stroke="#AC7453" StrokeThickness="1.5">
+      <Ellipse.RenderTransform><TranslateTransform x:Name="RightFootShift"/></Ellipse.RenderTransform>
+    </Ellipse>
+
+    <!-- Shared friendly body. -->
+    <Ellipse x:Name="Torso" Canvas.Left="27" Canvas.Top="106" Width="100" Height="92"
+             Fill="#E5A06D" Stroke="#AF7552" StrokeThickness="2"/>
+    <Ellipse x:Name="Chest" Canvas.Left="53" Canvas.Top="128" Width="51" Height="59"
+             Fill="#FBE2C8" Opacity="0.93"/>
+
+    <!-- Three *different* silhouettes, not recolored cat stickers. -->
+    <Canvas x:Name="CatEars">
+      <Polygon x:Name="CatEarLeft" Points="31,70 33,15 68,47"
+               Fill="#E5A06D" Stroke="#AF7552" StrokeThickness="2"/>
+      <Polygon x:Name="CatEarRight" Points="91,47 127,15 130,70"
+               Fill="#E5A06D" Stroke="#AF7552" StrokeThickness="2"/>
+      <Polygon Points="40,58 42,32 58,49" Fill="#EAA4AA"/>
+      <Polygon Points="103,49 119,33 120,58" Fill="#EAA4AA"/>
+    </Canvas>
+    <Canvas x:Name="DogEars" Visibility="Collapsed">
+      <Ellipse x:Name="DogEarLeft" Canvas.Left="13" Canvas.Top="48"
+               Width="44" Height="87" Fill="#B58258" Stroke="#996644" StrokeThickness="2">
+        <Ellipse.RenderTransform><RotateTransform Angle="-14" CenterX="22" CenterY="18"/></Ellipse.RenderTransform>
+      </Ellipse>
+      <Ellipse x:Name="DogEarRight" Canvas.Left="102" Canvas.Top="48"
+               Width="44" Height="87" Fill="#B58258" Stroke="#996644" StrokeThickness="2">
+        <Ellipse.RenderTransform><RotateTransform Angle="14" CenterX="22" CenterY="18"/></Ellipse.RenderTransform>
+      </Ellipse>
+    </Canvas>
+    <Canvas x:Name="BunnyEars" Visibility="Collapsed">
+      <Ellipse x:Name="BunnyEarLeft" Canvas.Left="30" Canvas.Top="-7"
+               Width="39" Height="101" Fill="#F7E6DE" Stroke="#C2AAB5" StrokeThickness="2">
+        <Ellipse.RenderTransform><RotateTransform Angle="-12" CenterX="20" CenterY="77"/></Ellipse.RenderTransform>
+      </Ellipse>
+      <Ellipse x:Name="BunnyEarRight" Canvas.Left="83" Canvas.Top="-7"
+               Width="39" Height="101" Fill="#F7E6DE" Stroke="#C2AAB5" StrokeThickness="2">
+        <Ellipse.RenderTransform><RotateTransform Angle="12" CenterX="20" CenterY="77"/></Ellipse.RenderTransform>
+      </Ellipse>
+      <Ellipse Canvas.Left="44" Canvas.Top="7" Width="14" Height="65" Fill="#EBAEBC"/>
+      <Ellipse Canvas.Left="95" Canvas.Top="7" Width="14" Height="65" Fill="#EBAEBC"/>
+    </Canvas>
+
+    <Ellipse x:Name="Face" Canvas.Left="19" Canvas.Top="49" Width="124" Height="111"
+             Fill="#F0B17E" Stroke="#AE7353" StrokeThickness="2"/>
+    <Ellipse x:Name="DogMuzzle" Canvas.Left="50" Canvas.Top="113" Width="64"
+             Height="45" Fill="#F9DFB7" Visibility="Collapsed"/>
+    <Ellipse x:Name="BunnyMuzzle" Canvas.Left="48" Canvas.Top="117" Width="66"
+             Height="31" Fill="#FFF7EF" Visibility="Collapsed"/>
+    <Ellipse Canvas.Left="27" Canvas.Top="111" Width="24" Height="12" Fill="#EFA49E" Opacity="0.65"/>
+    <Ellipse Canvas.Left="110" Canvas.Top="111" Width="24" Height="12" Fill="#EFA49E" Opacity="0.65"/>
+
+    <Ellipse Canvas.Left="45" Canvas.Top="90" Width="11" Height="16" Fill="#40372E">
+      <Ellipse.RenderTransform><ScaleTransform x:Name="LeftBlink" CenterY="8"/></Ellipse.RenderTransform>
+    </Ellipse>
+    <Ellipse Canvas.Left="107" Canvas.Top="90" Width="11" Height="16" Fill="#40372E">
+      <Ellipse.RenderTransform><ScaleTransform x:Name="RightBlink" CenterY="8"/></Ellipse.RenderTransform>
+    </Ellipse>
+    <Ellipse Canvas.Left="48" Canvas.Top="92" Width="3" Height="4" Fill="White"/>
+    <Ellipse Canvas.Left="110" Canvas.Top="92" Width="3" Height="4" Fill="White"/>
+    <Ellipse x:Name="Nose" Canvas.Left="75" Canvas.Top="117" Width="14" Height="9"
+             Fill="#BE766C"/>
+    <Path x:Name="MouthSmile" Data="M 82,127 Q 72,137 63,126 M 82,127 Q 92,137 101,126"
+          Stroke="#966456" StrokeThickness="2" StrokeStartLineCap="Round"
+          Fill="Transparent"/>
+    <Ellipse x:Name="MouthSpeak" Canvas.Left="76" Canvas.Top="131" Width="13"
+             Height="12" Fill="#A45D51" Visibility="Collapsed"/>
+    <Path x:Name="CatWhiskers"
+          Data="M 48,116 L 24,111 M 48,125 L 24,132 M 114,116 L 139,111 M 114,125 L 139,132"
+          Stroke="#AB785E" StrokeThickness="1.6" Fill="Transparent"/>
+    <Ellipse x:Name="FrontPawLeft" Canvas.Left="42" Canvas.Top="158" Width="26" Height="36"
+             Fill="#EBA975" Stroke="#AD7652" StrokeThickness="1.4"/>
+    <Ellipse x:Name="FrontPawRight" Canvas.Left="97" Canvas.Top="158" Width="26" Height="36"
+             Fill="#EBA975" Stroke="#AD7652" StrokeThickness="1.4"/>
+
+    <!-- Simple, user-selectable original accessories. -->
+    <Canvas x:Name="BowAccessory" Visibility="Collapsed">
+      <Polygon Points="68,55 50,47 51,68 68,62" Fill="#C980BE"/>
+      <Polygon Points="75,55 94,47 92,69 75,62" Fill="#C980BE"/>
+      <Ellipse Canvas.Left="65" Canvas.Top="53" Width="15" Height="13" Fill="#A35C99"/>
+    </Canvas>
+    <Path x:Name="ScarfAccessory" Visibility="Collapsed"
+          Data="M 35,153 Q 78,169 124,153 L 119,166 Q 77,180 39,166 Z"
+          Fill="#8373CF" Stroke="#6956B9" StrokeThickness="1.5"/>
+  </Canvas>
+</UserControl>

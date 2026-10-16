@@ -178,3 +178,16 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Portable ZIP artifact `PetPing-Windows-v0.12-unsigned` (12042344606), installer ZIP artifact `PetPing-Installer-v0.12-unsigned` (12043370603). Both downloaded and ZIP CRC verified; installer setup extracted `PetPing-Setup-v0.12-unsigned.exe`, SHA-256 `53a381461f24996d7f93dc979a31b435cc65742892cca1a93250f66492222dd6`.
 - Updated Home/Reminders/My Pets/Pet Studio/Settings UI now compiles; dog and bunny still future, current cat remains. Real laptop UI/Windows accessibility and DPI testing not claimed passed by CI.
 - Next: user hands-on v0.12 validation, remediate UI/runtime bugs, then v0.13 real multi-pet characters + customization and v0.14 expressive reactions.
+
+## 2026-10-16 — v0.13 multi-pet customization engineering checkpoint
+- Created `feature/windows-v0.13-multipet-customization` preserving merged v0.12 Windows baseline.
+- Added `PetProfileSettings` local JSON with species, palette, accessory, size, personality, Done/Snooze action types and 30/60/120-second voice repeat; atomic writes and safe fallback. Does not change legacy appearance settings or reminders.
+- Added original `PetCharacter.xaml` component supporting distinct Cat/Dog/Bunny visual silhouettes plus live palette, accessory, size, blinking, speaking and basic reactions. Shared by UI previews and actual moving PetWindow.
+- Connected My Pets buttons to persisted species selection and Pet Studio controls to saved preference updates. Injected saved pet into real App/voice cadence, not just a mockup. Update applies to next reminder and preview.
+- Added persistence/failure/corruption regression smoke checks and v0.13 artifact/version names.
+- CI and laptop tests pending. v0.14 remains advanced particle effects and deeper animal reactions.
+
+## 2026-10-16 — v0.13 per-pet personalization refinement
+- Clarified the persistence model: Milo, Buddy and Luna each retain **their own** palette, accessory, size, personality and actions when user switches away and back; last selected species also persists.
+- Modified the profile JSON to hold a validated species roster rather than one shared active profile. Added switch-and-restart regression tests and safely resized preview artwork through WPF Viewbox so no ears/feet are cropped in cards.
+- First v0.13 CI run #38896987114 passed, but these additional per-pet edits require a new green run before merge and distribution.

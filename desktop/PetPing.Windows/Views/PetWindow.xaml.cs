@@ -18,6 +18,7 @@ public partial class PetWindow : Window
     private readonly Reminder _reminder;
     private readonly PetPlacement _placement;
     private readonly PetMotion _motion;
+    private readonly PetProfile _profile;
     private readonly DispatcherTimer _blink = new() { Interval = TimeSpan.FromSeconds(4.3) };
     private bool _closing;
     private bool _reacting;
@@ -36,12 +37,15 @@ public partial class PetWindow : Window
 
     public PetWindow(Reminder reminder,
         PetPlacement placement = PetPlacement.Auto,
-        PetMotion motion = PetMotion.Full)
+        PetMotion motion = PetMotion.Full,
+        PetProfile? profile = null)
     {
         InitializeComponent();
         _reminder = reminder;
         _placement = placement;
         _motion = motion;
+        _profile = profile ?? new PetProfile();
+        Character.Apply(_profile);
         ReminderTitle.Text = reminder.Title;
         ReminderTitle.ToolTip = reminder.Title;
         System.Windows.Automation.AutomationProperties.SetName(
@@ -57,7 +61,7 @@ public partial class PetWindow : Window
         {
             _closing = true;
             _blink.Stop();
-            StopWalkAnimation();
+            Character.Stop();
             InteractionStopped?.Invoke();
         };
     }
@@ -95,7 +99,7 @@ public partial class PetWindow : Window
         Top = Math.Clamp(Top, area.Top, Math.Max(area.Top, area.Bottom - Height));
 
         // Mirror the face/body so the pet points toward the destination.
-        PetFacing.ScaleX = fromLeft ? 1 : -1;
+        Character.FaceToward(fromLeft);
     }
 
     [DllImport("user32.dll")]
@@ -112,7 +116,8 @@ public partial class PetWindow : Window
 
         var duration = _motion == PetMotion.Gentle
             ? TimeSpan.FromSeconds(1.15)
-            : TimeSpan.FromSeconds(2.8);
+            : TimeSpan.FromSeconds(_profile.Personality == PetPersonality.Calm ? 3.3
+                : _profile.Personality == PetPersonality.Curious ? 2.5 : 2.8);
         var walk = new DoubleAnimation(Left, _destinationLeft, duration)
         {
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
@@ -122,30 +127,11 @@ public partial class PetWindow : Window
             if (_closing) return;
             BeginAnimation(LeftProperty, null);
             Left = _destinationLeft;
-            StopWalkAnimation();
+            Character.Walk(false);
             Arrive();
         };
         BeginAnimation(LeftProperty, walk);
-        if (_motion == PetMotion.Full)
-        {
-            LeftFootShift.BeginAnimation(TranslateTransform.YProperty,
-                new DoubleAnimation(0, -10, TimeSpan.FromMilliseconds(210))
-                { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
-            RightFootShift.BeginAnimation(TranslateTransform.YProperty,
-                new DoubleAnimation(-10, 0, TimeSpan.FromMilliseconds(210))
-                { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
-            TailWag.BeginAnimation(RotateTransform.AngleProperty,
-                new DoubleAnimation(-8, 12, TimeSpan.FromMilliseconds(430))
-                { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
-        }
-    }
-
-    private void StopWalkAnimation()
-    {
-        LeftFootShift.BeginAnimation(TranslateTransform.YProperty, null);
-        RightFootShift.BeginAnimation(TranslateTransform.YProperty, null);
-        LeftFootShift.Y = 0;
-        RightFootShift.Y = 0;
+        Character.Walk(_motion == PetMotion.Full);
     }
 
     private void Arrive()
@@ -160,14 +146,7 @@ public partial class PetWindow : Window
             ReminderTitle.BeginAnimation(OpacityProperty, fade);
             ActionChips.BeginAnimation(OpacityProperty, fade);
             _blink.Start();
-            if (_motion == PetMotion.Full)
-                PetFloat.BeginAnimation(TranslateTransform.YProperty,
-                    new DoubleAnimation(0, -6, TimeSpan.FromSeconds(1.25))
-                    {
-                        AutoReverse = true,
-                        RepeatBehavior = RepeatBehavior.Forever,
-                        EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
-                    });
+            Character.Float(_motion == PetMotion.Full);
         }
         Arrived?.Invoke();
     }
@@ -175,24 +154,13 @@ public partial class PetWindow : Window
     private void Blink()
     {
         if (_closing || _motion == PetMotion.Off) return;
-        var blink = new DoubleAnimation(1, .1, TimeSpan.FromMilliseconds(95))
-            { AutoReverse = true };
-        LeftBlink.BeginAnimation(ScaleTransform.ScaleYProperty, blink);
-        RightBlink.BeginAnimation(ScaleTransform.ScaleYProperty, blink);
+        Character.Blink();
     }
 
     public void SetSpeaking(bool speaking)
     {
         if (!_arrived || _closing || _reacting) return;
-        MouthSmile.Visibility = speaking ? Visibility.Collapsed : Visibility.Visible;
-        MouthSpeak.Visibility = speaking ? Visibility.Visible : Visibility.Collapsed;
-        MouthSpeak.BeginAnimation(OpacityProperty, null);
-        if (speaking && _motion == PetMotion.Full)
-            MouthSpeak.BeginAnimation(OpacityProperty,
-                new DoubleAnimation(1, .5, TimeSpan.FromMilliseconds(190))
-                {
-                    AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever
-                });
+        Character.SetSpeaking(speaking, _motion == PetMotion.Full);
     }
 
     private void OnMute(object sender, RoutedEventArgs e)
@@ -212,7 +180,7 @@ public partial class PetWindow : Window
         AnimateAway();
     }
 
-    private void ReactAndLeave(string response)
+    private void ReactAndLeave(string response, bool completed)
     {
         _reacting = true;
         _blink.Stop();
@@ -220,15 +188,7 @@ public partial class PetWindow : Window
         ReminderTitle.Text = response;
         ReminderTitle.ToolTip = response;
         ActionChips.Visibility = Visibility.Collapsed;
-        SetSpeaking(false);
-        MouthSpeak.BeginAnimation(OpacityProperty, null);
-        MouthSpeak.Visibility = Visibility.Collapsed;
-        MouthSmile.Visibility = Visibility.Visible;
-
-        if (_motion == PetMotion.Full)
-            PetFloat.BeginAnimation(TranslateTransform.YProperty,
-                new DoubleAnimation(0, -24, TimeSpan.FromMilliseconds(260))
-                { AutoReverse = true });
+        Character.React(completed, _motion == PetMotion.Full);
 
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(730) };
         timer.Tick += (_, _) => { timer.Stop(); AnimateAway(); };
@@ -239,14 +199,14 @@ public partial class PetWindow : Window
     {
         if (!AwaitingResponse) return;
         if (Completed?.Invoke(_reminder) != false)
-            ReactAndLeave("Nice work! ✓");
+            ReactAndLeave("Nice work! ✓", true);
     }
 
     private void OnSnooze(object sender, RoutedEventArgs e)
     {
         if (!AwaitingResponse) return;
         if (Snoozed?.Invoke(_reminder) != false)
-            ReactAndLeave("Okay, I'll remind you later.");
+            ReactAndLeave("Okay, I'll remind you later.", false);
     }
 
     private void AnimateAway()
@@ -254,6 +214,7 @@ public partial class PetWindow : Window
         if (_closing) return;
         _closing = true;
         _blink.Stop();
+        Character.Stop();
         InteractionStopped?.Invoke();
         BeginAnimation(LeftProperty, null);
         if (_motion == PetMotion.Off)

@@ -160,3 +160,13 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [ ] v0.14 walk/action effects, pet-specific reactions, celebration and snooze animations
 - [ ] v0.15 integration QA, accessibility, DPI, Windows upgrade data retention and perf
 - [ ] Windows v1.0 release candidate after user approval. Android remains next platform.
+
+## v0.13 — genuine customizable pets
+- [x] Versioned per-species local pet roster; individually saved looks and actions, atomic saves, validation, safe fallback, separate from reminders
+- [x] Three original vector Cat/Dog/Bunny rigs shared by UI and real Windows overlay
+- [x] Pet selection, four colors, accessories, size, personality and Done/Snooze actions
+- [x] Configurable narrated repeat interval 30/60/120s wired to real speech engine
+- [x] Core regression tests for profile persistence, corruption, invalid settings and failed writes
+- [ ] Windows CI pass / PR merged / actual unsigned installer artifact
+- [ ] User verifies species visuals/selection, Studio, live reminder, restart and audio timing
+- [ ] v0.14 sophisticated species-specific character animation and particles

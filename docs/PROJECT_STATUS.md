@@ -24,16 +24,15 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**PetPing 2.0 v0.12 — approved UI redesign implementation.**
+**PetPing 2.0 — v0.13 genuinely selectable and customizable Cat / Dog / Bunny.**
 
-- User reported v0.11 acceptable for now and explicitly prioritized the approved full UI redesign BEFORE advanced animations. Revised milestones: v0.12 navigation/UI, v0.13 additional pets/customization, v0.14 actions/effects, v0.15 integration/QA, then Windows v1.0.
-- PR #11 **merged to main**, squash commit `8d5b0ba00d41aea2d76e94ea4de86361a3c0076a`. Final Windows CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38893597316 **passed 91 core tests**, x64 WPF build, Inno Setup compilation, and install/reinstall/uninstall with LocalAppData data preservation. v0.12 is the latest unsigned test build; laptop UI acceptance is pending.
-- Implemented actual WPF navigation with **Home, Reminders, My Pets, Pet Studio and Settings**, matching the approved ivory/lavender/apricot design direction.
-- Home shows **real** Today/Upcoming/Needs Attention totals, next 3 pending reminders and an active Milo card; no fabricated counts or example reminders.
-- Reminders retains functional new/edit/daily/weekly, filter tabs, Done/Snooze/Delete and keyboard shortcuts. Settings retains on-device voice, test speech, auto-start and Open Data Folder.
-- Pet Studio has Milo preview and existing real motion/arrival settings. Cat is still the only pet available; Dog and Bunny cards are **explicitly labelled Coming in v0.13**. No pretend selectors or imported pet system yet.
-- Added reusable owned vector illustration and global visual tokens to WPF. Existing Windows v0.11 walking/voice actor unchanged. Local storage/recurrence and user preferences unchanged.
-- Home summary regression tests passed (91 total). Both downloaded archives were verified without ZIP errors: portable `PetPing-Windows-v0.12-unsigned` artifact ID 12042344606, installer `PetPing-Installer-v0.12-unsigned` artifact ID 12043370603. Setup EXE extracted and SHA-256 recorded in release notes. Actual UI scaling and mouse/keyboard acceptance still need device QA.
+- User reported v0.12 looked fine and approved proceeding with v0.13. Baseline v0.12 is merged/CI verified (91 checks); physical extensive Windows QA remains limited.
+- Branch `feature/windows-v0.13-multipet-customization` contains source; CI and actual Windows device QA pending at this checkpoint.
+- Added `PetProfileSettings`: independent versioned `%LOCALAPPDATA%\PetPing\pet-profile.json` roster with separate per-species customization and an atomic save, validation and safe fallback on corruption, preserving existing reminders and `pet-appearance.json`.
+- **Three distinct, original vector rigs:** Milo Cat with pointed ears/whiskers/tail; Buddy Dog with drooping ears/muzzle/tail; Luna Bunny with tall ears/cotton tail. The same character component renders in Home, My Pets, Pet Studio and the actual walking reminder overlay.
+- My Pets now selects the real active companion and persists across restart; Pet Studio controls coat palette (4), accessory (None/Bow/Scarf), size (3), personality (Playful/Calm/Curious), Done action (Hop/Wave), Snooze action (Yawn/Stretch) and spoken reannouncement interval (30/60/120 seconds), in addition to existing arrival side/motion controls. Settings apply to the next reminder.
+- Pet actor uses selected species/appearance and basic supported behavior variations. Full species-specific expressive particle/celebration animation upgrades are **v0.14**, not claimed as complete in v0.13.
+- Existing scheduler, recurring reminders, local privacy and reminder JSON remain unchanged. Smoke tests validate defaults, three species, all profile fields, invalid values, failed writes, corrupted profile preservation and reminder isolation.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -79,5 +78,4 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Have the user install the v0.12 unsigned Windows setup or portable archive after quitting older PetPing from tray and backing up `%LOCALAPPDATA%\PetPing`. Verify Home summary numbers, all five sidebar screens, create/edit/daily/weekly reminders, settings speech and Windows startup, Pet Studio motion and arrival preview, Ctrl+N/F5/Esc, resizing/high DPI and tray behavior. Report problems and fix them before v0.13. Current preview includes only Milo Cat; Dog/Bunny are clearly marked coming v0.13. Advanced pet action effects planned v0.14, integration QA v0.15. v1.0 still deferred until full user approval.
-
+Open and validate v0.13 PR with Windows CI: XAML/static, .NET core checks, Windows WPF compile, unsigned portable and Inno installer, install/reinstall/uninstall preserving reminder data. Fix failures before merging. Record PR/run/artifact/commit IDs here and in ENGINEERING_LOG. Then have the user verify selecting Cat/Dog/Bunny, watching actual on-desktop walking pet switch, changing studio palette/accessory/size/actions/voice interval, restarting to verify persistence, voice repeat, Done/Snooze, old reminders unaffected. If preview/painting issues occur, fix before v0.14 advanced expressive animation.

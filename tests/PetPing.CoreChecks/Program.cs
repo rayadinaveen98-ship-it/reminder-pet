@@ -441,6 +441,98 @@ try
           emptyHome.AttentionCount == 0 && emptyHome.NextReminders.Count == 0,
         "new dashboard shows honest empty totals without fake sample data");
 
+
+    // v0.13: all three selectable species and their customized actions must
+    // persist independently from existing reminder and appearance files.
+    var petsFolder = Path.Combine(temp, "multi-pets");
+    var initialPet = new PetProfileSettings(petsFolder);
+    Check(initialPet.Current.Species == PetSpecies.Cat &&
+          initialPet.Current.RepeatSpeechSeconds == 60,
+        "multi-pet settings default safely to Milo with one-minute repeat");
+
+    var dogProfile = initialPet.Current with
+    {
+        Species = PetSpecies.Dog, Palette = PetPalette.Cocoa,
+        Accessory = PetAccessory.Scarf, Size = PetSize.Large,
+        Personality = PetPersonality.Calm, DoneAction = PetDoneAction.Wave,
+        SnoozeAction = PetSnoozeAction.Stretch, RepeatSpeechSeconds = 120
+    };
+    initialPet.Update(dogProfile);
+    var dogOnRestart = new PetProfileSettings(petsFolder);
+    Check(dogOnRestart.Current == dogProfile &&
+          PetProfileCatalog.Name(dogProfile.Species) == "Buddy the Dog",
+        "selected dog and all eight customization fields survive restart");
+
+    var bunnyProfile = dogProfile with
+    {
+        Species = PetSpecies.Bunny, Palette = PetPalette.Snow,
+        Accessory = PetAccessory.Bow, Size = PetSize.Small,
+        Personality = PetPersonality.Curious, DoneAction = PetDoneAction.Hop,
+        SnoozeAction = PetSnoozeAction.Yawn, RepeatSpeechSeconds = 30
+    };
+    initialPet.Update(bunnyProfile);
+    Check(new PetProfileSettings(petsFolder).Current == bunnyProfile,
+        "bunny, bow, snow palette and shorter narration interval persist");
+    Check(PetProfileCatalog.Name(PetSpecies.Cat) == "Milo the Cat" &&
+          PetProfileCatalog.Name(PetSpecies.Bunny) == "Luna the Bunny",
+        "cat and bunny names resolve from built-in species catalog");
+    Check(PetProfileCatalog.Name(PetSpecies.Dog) !=
+          PetProfileCatalog.Name(PetSpecies.Bunny),
+        "selected dog and bunny are distinct real character identities");
+
+    // Profiles are independent: changing Buddy must not overwrite Milo or Luna.
+    initialPet.Select(PetSpecies.Cat);
+    Check(initialPet.Current.Species == PetSpecies.Cat &&
+          initialPet.Current.Palette == PetPalette.Apricot,
+        "switching back to Milo restores his own original coat choices");
+    initialPet.Select(PetSpecies.Dog);
+    Check(initialPet.Current == dogProfile,
+        "switching back to Buddy restores his individually saved scarf/actions");
+    initialPet.Select(PetSpecies.Bunny);
+    Check(initialPet.Current == bunnyProfile &&
+          new PetProfileSettings(petsFolder).Get(PetSpecies.Dog) == dogProfile,
+        "switching Luna back preserves Buddy's separate profile across restart");
+    bool unknownPetRejected = false;
+    try { initialPet.Select((PetSpecies)999); }
+    catch (ArgumentException) { unknownPetRejected = true; }
+    Check(unknownPetRejected && initialPet.SelectedSpecies == PetSpecies.Bunny,
+        "unknown species cannot replace the chosen pet");
+
+    var petFile = Path.Combine(petsFolder, "pet-profile.json");
+    var originalProfile = File.ReadAllText(petFile);
+    bool invalidSpeciesRejected = false;
+    try { initialPet.Update(bunnyProfile with { Species = (PetSpecies)999 }); }
+    catch (ArgumentException) { invalidSpeciesRejected = true; }
+    Check(invalidSpeciesRejected && initialPet.Current == bunnyProfile &&
+          File.ReadAllText(petFile) == originalProfile,
+        "unsupported species cannot corrupt saved selection");
+
+    bool invalidNarrationRejected = false;
+    try { initialPet.Update(bunnyProfile with { RepeatSpeechSeconds = 0 }); }
+    catch (ArgumentException) { invalidNarrationRejected = true; }
+    Check(invalidNarrationRejected && initialPet.Current == bunnyProfile,
+        "unsafe rapid repeat interval is refused");
+
+    var blockedProfileTemp = petFile + ".tmp";
+    Directory.CreateDirectory(blockedProfileTemp);
+    bool failedPetSave = false;
+    try { initialPet.Update(dogProfile); }
+    catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+    { failedPetSave = true; }
+    Check(failedPetSave && initialPet.Current == bunnyProfile &&
+          File.ReadAllText(petFile) == originalProfile,
+        "disk write failure preserves the last saved pet and choices");
+    if (Directory.Exists(blockedProfileTemp)) Directory.Delete(blockedProfileTemp);
+
+    File.WriteAllText(petFile, "malformed profile file");
+    var fallbackPet = new PetProfileSettings(petsFolder);
+    Check(fallbackPet.Current.Species == PetSpecies.Cat &&
+          File.ReadAllText(petFile) == "malformed profile file",
+        "malformed profile defaults to cat and original corrupt file is kept");
+
+    Check(new ReminderStore(repeatFolder).Reminders.Count == reminderCountBefore,
+        "pet switching and profile corruption never modifies existing reminders");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;

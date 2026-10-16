@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current working release:** Windows **v0.9** user-tested alpha. **Available as unsigned Windows test build:** v0.12 redesigned WPF Home/Reminders/My Pets/Pet Studio/Settings. Final GitHub Windows CI passed 91 core checks, compiled portable x64 and optional installer, and verified installer preserves user data. Actual on-device UI acceptance still pending. GitHub Actions passed 86 core checks and compiled both installer and portable build; real laptop visual/voice QA is pending. This is unsigned and not a production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current working release:** Windows **v0.9** user-tested alpha. **Last merged tested preview:** Windows v0.12 redesigned dashboard. **v0.13 in development:** genuine Cat/Dog/Bunny selection with saved customization. Final GitHub Windows CI passed 91 core checks, compiled portable x64 and optional installer, and verified installer preserves user data. Actual on-device UI acceptance still pending. GitHub Actions passed 86 core checks and compiled both installer and portable build; real laptop visual/voice QA is pending. This is unsigned and not a production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -156,3 +156,10 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - My Pets shows Milo as the active original cat, with Dog and Bunny explicitly marked coming in v0.13. Pet Studio provides existing real motion/arrival options and pet preview; new species/action customization will be implemented in subsequent versions.
 - The walking v0.11 pet experience and reminder JSON data remain unchanged. No paid services or external Canva dependency is added to the compiled app.
 - CI artifacts: `PetPing-Windows-v0.12-unsigned` (ID 12042344606) and `PetPing-Installer-v0.12-unsigned` (ID 12043370603), verified intact. Installer `PetPing-Setup-v0.12-unsigned.exe` SHA-256: `53a381461f24996d7f93dc979a31b435cc65742892cca1a93250f66492222dd6`.
+
+## v0.13 multi-pet system (source in development)
+- Three species: **Milo Cat**, **Buddy Dog**, **Luna Bunny**, distinct original vector anatomy and actual walking reminder behavior. My Pets selection genuinely changes the overlay.
+- Pet Studio customization: 4 coats, 3 accessories, 3 sizes, 3 personalities, two Done and two Snooze action variations, 30/60/120-second voice repeat; existing placement/motion controls remain.
+- Each pet retains its **own** saved appearance/actions when switching species; selections persist locally in a versioned `pet-profile.json`; old `reminders.json` and `pet-appearance.json` remain unchanged.
+- Profile corruption falls back to defaults without wiping reminders or the corrupt file; invalid values and failed writes cannot change last saved settings.
+- v0.14 adds richer actions/visual effects; v0.13 provides the functional foundation, not full effects. Windows CI and physical UI QA pending at this checkpoint.

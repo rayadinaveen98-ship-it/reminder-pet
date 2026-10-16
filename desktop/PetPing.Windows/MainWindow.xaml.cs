@@ -14,6 +14,8 @@ public partial class MainWindow : Window
     private readonly VoiceService _voice;
     private readonly SpeechSettings _speechSettings;
     private readonly PetAppearanceSettings _appearance;
+    private readonly PetProfileSettings _petProfiles;
+    private bool _loadingProfile;
     private bool _loadingAppearance;
     private readonly Action _testPet;
     private readonly Action<Reminder> _reminderChanged;
@@ -24,13 +26,15 @@ public partial class MainWindow : Window
     private enum DashboardPage { Home, Reminders, Pets, Studio, Settings }
 
     public MainWindow(ReminderStore store, VoiceService voice, SpeechSettings speechSettings,
-        PetAppearanceSettings appearance, Action testPet, Action<Reminder> reminderChanged)
+        PetAppearanceSettings appearance, PetProfileSettings petProfiles,
+        Action testPet, Action<Reminder> reminderChanged)
     {
         InitializeComponent();
         _store = store;
         _voice = voice;
         _speechSettings = speechSettings;
         _appearance = appearance;
+        _petProfiles = petProfiles;
         _testPet = testPet;
         ReminderDate.SelectedDate = DateTime.Today;
         ReminderTime.Text = DateTime.Now.AddMinutes(5).ToString("HH:mm");
@@ -40,6 +44,8 @@ public partial class MainWindow : Window
         PlacementPicker.SelectedIndex = (int)_appearance.Placement;
         MotionPicker.SelectedIndex = (int)_appearance.Motion;
         _loadingAppearance = false;
+        PopulateProfilePickers();
+        RefreshPetUI();
         InboxPicker.SelectedIndex = 0;
         RefreshList();
         NavigateTo(DashboardPage.Home);
@@ -119,6 +125,109 @@ public partial class MainWindow : Window
         ErrorToast.Visibility = Visibility.Collapsed;
         if (page is DashboardPage.Home or DashboardPage.Reminders)
             RefreshList();
+    }
+
+    private void PopulateProfilePickers()
+    {
+        _loadingProfile = true;
+        var current = _petProfiles.Current;
+        PetPalettePicker.SelectedIndex = (int)current.Palette;
+        PetAccessoryPicker.SelectedIndex = (int)current.Accessory;
+        PetSizePicker.SelectedIndex = (int)current.Size;
+        PetPersonalityPicker.SelectedIndex = (int)current.Personality;
+        PetDonePicker.SelectedIndex = (int)current.DoneAction;
+        PetSnoozePicker.SelectedIndex = (int)current.SnoozeAction;
+        PetRepeatPicker.SelectedIndex = current.RepeatSpeechSeconds switch
+        {
+            30 => 0, 120 => 2, _ => 1
+        };
+        _loadingProfile = false;
+    }
+
+    private void RefreshPetUI()
+    {
+        var p = _petProfiles.Current;
+        var label = PetProfileCatalog.Name(p.Species);
+        StudioTitle.Text = "Make " + label.Split(' ')[0] + " your own";
+        ActivePetDescription.Text = label + " is your active companion. " +
+            "The next reminder will use your saved appearance and actions.";
+        HomeHelloButton.Content = "Say hello to " + label.Split(' ')[0];
+        StudioCharacter.Apply(p);
+        HomeCharacter.Apply(p);
+        PetsCatCharacter.Apply(_petProfiles.Get(PetSpecies.Cat));
+        PetsDogCharacter.Apply(_petProfiles.Get(PetSpecies.Dog));
+        PetsBunnyCharacter.Apply(_petProfiles.Get(PetSpecies.Bunny));
+        CatChoiceStatus.Text = p.Species == PetSpecies.Cat ? "Active" : "Available";
+        DogChoiceStatus.Text = p.Species == PetSpecies.Dog ? "Active" : "Available";
+        BunnyChoiceStatus.Text = p.Species == PetSpecies.Bunny ? "Active" : "Available";
+        CatSelectButton.Content = p.Species == PetSpecies.Cat ? "✓ Selected" : "Choose Milo";
+        DogSelectButton.Content = p.Species == PetSpecies.Dog ? "✓ Selected" : "Choose Buddy";
+        BunnySelectButton.Content = p.Species == PetSpecies.Bunny ? "✓ Selected" : "Choose Luna";
+        CatSelectButton.IsEnabled = p.Species != PetSpecies.Cat;
+        DogSelectButton.IsEnabled = p.Species != PetSpecies.Dog;
+        BunnySelectButton.IsEnabled = p.Species != PetSpecies.Bunny;
+    }
+
+    private void SelectPet(PetSpecies species)
+    {
+        if (_petProfiles.Current.Species == species) return;
+        try
+        {
+            _petProfiles.Select(species);
+            PopulateProfilePickers();
+            RefreshPetUI();
+            ErrorToast.Visibility = Visibility.Collapsed;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException
+            or ArgumentException)
+        {
+            ShowError("Could not save your companion: " + error.Message);
+        }
+    }
+
+    private void OnSelectCat(object sender, RoutedEventArgs e) => SelectPet(PetSpecies.Cat);
+    private void OnSelectDog(object sender, RoutedEventArgs e) => SelectPet(PetSpecies.Dog);
+    private void OnSelectBunny(object sender, RoutedEventArgs e) => SelectPet(PetSpecies.Bunny);
+
+    private void OnPetProfileChanged(object sender,
+        System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_loadingProfile || _petProfiles is null || PetPalettePicker is null ||
+            PetAccessoryPicker is null || PetSizePicker is null ||
+            PetPersonalityPicker is null || PetDonePicker is null ||
+            PetSnoozePicker is null || PetRepeatPicker is null ||
+            PetPalettePicker.SelectedIndex < 0 || PetAccessoryPicker.SelectedIndex < 0 ||
+            PetSizePicker.SelectedIndex < 0 || PetPersonalityPicker.SelectedIndex < 0 ||
+            PetDonePicker.SelectedIndex < 0 || PetSnoozePicker.SelectedIndex < 0 ||
+            PetRepeatPicker.SelectedIndex < 0)
+            return;
+
+        var next = _petProfiles.Current with
+        {
+            Palette = (PetPalette)PetPalettePicker.SelectedIndex,
+            Accessory = (PetAccessory)PetAccessoryPicker.SelectedIndex,
+            Size = (PetSize)PetSizePicker.SelectedIndex,
+            Personality = (PetPersonality)PetPersonalityPicker.SelectedIndex,
+            DoneAction = (PetDoneAction)PetDonePicker.SelectedIndex,
+            SnoozeAction = (PetSnoozeAction)PetSnoozePicker.SelectedIndex,
+            RepeatSpeechSeconds = PetRepeatPicker.SelectedIndex switch
+            {
+                0 => 30, 2 => 120, _ => 60
+            }
+        };
+
+        try
+        {
+            _petProfiles.Update(next);
+            RefreshPetUI();
+            ErrorToast.Visibility = Visibility.Collapsed;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException
+            or ArgumentException)
+        {
+            PopulateProfilePickers();
+            ShowError("Could not save pet customization: " + error.Message);
+        }
     }
 
     private void OnNavigateHome(object sender, RoutedEventArgs e) => NavigateTo(DashboardPage.Home);
