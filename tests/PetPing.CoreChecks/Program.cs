@@ -1096,6 +1096,12 @@ try
             == diskBeforeInvalidEdit,
         "invalid edited name keeps both in-memory occurrence and saved JSON untouched");
 
+    Check(PetPingDataRoot.DefaultDirectory.EndsWith(
+        Path.DirectorySeparatorChar + "PetPing-Experimental", StringComparison.Ordinal),
+        "experimental preview is compiled with its own local data directory");
+    Check(ReminderStore.DefaultDataDirectory == PetPingDataRoot.DefaultDirectory,
+        "experimental reminder store never defaults to v0.17 production data");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
