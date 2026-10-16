@@ -1,4 +1,6 @@
-# PetPing — Product Blueprint v0.1
+# PetPing — Product Blueprint v0.1 (historical)
+
+> Superseded as the active product requirements source by [v0.16 Product Blueprint](V016_PRODUCT_BLUEPRINT.md) and [v0.16 Delivery Plan](V016_DELIVERY_PLAN.md). This file is retained for early history and does not describe the current v0.15 code or new planned advanced features.
 **Stage:** product definition + first Windows source foundation (not a production release)  
 **Order:** Windows desktop → Android → evaluate macOS/iOS  
 **Public name:** TBD; PetPing is a working codename.
