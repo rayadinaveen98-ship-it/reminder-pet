@@ -179,3 +179,9 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Merged PR #13: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/13 ; green CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38900092320 (122 tests, WPF, installer preservation).
 - Portable unsigned ZIP: `PetPing-Windows-v0.14-unsigned` artifact ID 12045033789. Installer ZIP: `PetPing-Installer-v0.14-unsigned` ID 12044899354; contains `PetPing-Setup-v0.14-unsigned.exe`, SHA-256 `47414e3f92db6c52f2f5c6887f996de98f5d77f8a7b671340571c1f3b235ec77`.
 - Back up `%LOCALAPPDATA%\PetPing`, quit previous tray copy, then install. Test Pet Studio effects previews before trying a live reminder. Real device visuals and accessibility are pending; installer remains unsigned.
+
+## v0.15 integration quality (in development)
+- Focused quality milestone, not a new pet pack. Immediate voice-off also stops the repeat timer; successful saved Done/Snooze no longer looks failed because dashboard refresh had an error; failed saves leave visible retry guidance.
+- Reminder action chips have visible keyboard focus outlines; version metadata and unsigned setup label v0.15.
+- GitHub Windows CI is extended to rebuild actual pinned v0.14, perform real v0.14→v0.15 installer upgrade and compare synthetic reminder/pet-profile SHA hashes across upgrade and uninstall. No real user files involved. Same-version install/reinstall smoke retained.
+- On-device audio, pet overlay, mixed DPI and screen-reader QA pending. v1.0 release candidate needs a separate sign-off and code-signing plan.
