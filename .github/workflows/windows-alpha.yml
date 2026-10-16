@@ -24,11 +24,52 @@ jobs:
       - name: Core reminder tests
         run: dotnet run --project tests/PetPing.CoreChecks/PetPing.CoreChecks.csproj -c Release
       - name: Build portable Windows EXE
-        run: dotnet publish desktop/PetPing.Windows/PetPing.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/PetPing-Windows-v0.7
+        run: dotnet publish desktop/PetPing.Windows/PetPing.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/PetPing-Windows-v0.8
       - name: Upload unsigned alpha
         uses: actions/upload-artifact@v4
         with:
-          name: PetPing-Windows-v0.7-unsigned
-          path: artifacts/PetPing-Windows-v0.7/
+          name: PetPing-Windows-v0.8-unsigned
+          path: artifacts/PetPing-Windows-v0.8/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Install Inno Setup compiler (free)
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress --limit-output
+      - name: Build per-user Windows installer
+        shell: pwsh
+        run: |
+          $compiler = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $compiler)) { throw "Inno Setup compiler not found: $compiler" }
+          & $compiler "/Q" "installer\PetPing.iss"
+          if ($LASTEXITCODE -ne 0) { throw "Inno installer compilation failed" }
+          if (!(Test-Path "artifacts\PetPing-Installer-v0.8\PetPing-Setup-v0.8-unsigned.exe")) {
+            throw "Expected installer artifact was not created"
+          }
+      - name: Validate installed files and preserve reminder data
+        shell: pwsh
+        run: |
+          $installer = (Resolve-Path "artifacts\PetPing-Installer-v0.8\PetPing-Setup-v0.8-unsigned.exe").Path
+          $installDir = Join-Path $env:LOCALAPPDATA "Programs\PetPing-CI"
+          $dataDir = Join-Path $env:LOCALAPPDATA "PetPing"
+          New-Item -ItemType Directory -Force $dataDir | Out-Null
+          $sentinel = Join-Path $dataDir "ci-preserve-test.txt"
+          Set-Content -LiteralPath $sentinel -Value "retain reminder data"
+          & $installer "/VERYSILENT" "/SUPPRESSMSGBOXES" "/NORESTART" "/DIR=$installDir"
+          if ($LASTEXITCODE -ne 0) { throw "Silent installer returned $LASTEXITCODE" }
+          if (!(Test-Path (Join-Path $installDir "PetPing.Windows.exe"))) {
+            throw "Installer failed to lay down executable"
+          }
+          $uninstaller = Join-Path $installDir "unins000.exe"
+          if (!(Test-Path $uninstaller)) { throw "Uninstaller missing" }
+          & $uninstaller "/VERYSILENT" "/SUPPRESSMSGBOXES" "/NORESTART"
+          if ($LASTEXITCODE -ne 0) { throw "Silent uninstaller returned $LASTEXITCODE" }
+          if (!(Test-Path $sentinel)) { throw "Installer removed user reminder data" }
+          Remove-Item $sentinel -Force
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: PetPing-Installer-v0.8-unsigned
+          path: artifacts/PetPing-Installer-v0.8/PetPing-Setup-v0.8-unsigned.exe
           if-no-files-found: error
           retention-days: 7
