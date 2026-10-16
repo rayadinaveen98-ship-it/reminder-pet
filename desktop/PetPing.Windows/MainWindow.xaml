@@ -374,6 +374,10 @@
                 <WrapPanel HorizontalAlignment="Center">
                   <Button Content="Preview on desktop" Click="OnTestPet"
                           Background="{StaticResource AccentBrush}" Foreground="White"/>
+                  <Button Content="Try Done effect" Click="OnPreviewDone"
+                          AutomationProperties.Name="Preview saved Done animation without changing a reminder"/>
+                  <Button Content="Try Snooze effect" Click="OnPreviewSnooze"
+                          AutomationProperties.Name="Preview saved Snooze animation without changing a reminder"/>
                   <Button Content="Choose another pet" Click="OnNavigatePets"/>
                 </WrapPanel>
               </StackPanel>
@@ -438,6 +442,15 @@
                     <ComboBox x:Name="PetSnoozePicker" Height="38" SelectionChanged="OnPetProfileChanged">
                       <ComboBoxItem Content="Sleepy yawn"/><ComboBoxItem Content="Gentle stretch"/>
                     </ComboBox>
+                    <TextBlock Text="Visual effects" Style="{StaticResource SecondaryBody}"
+                               Margin="0,13,0,6"/>
+                    <ComboBox x:Name="PetEffectsPicker" Height="38"
+                              SelectionChanged="OnPetProfileChanged"
+                              AutomationProperties.Name="Celebration effect intensity">
+                      <ComboBoxItem Content="Off — no sparkles"/>
+                      <ComboBoxItem Content="Gentle — tiny sparks"/>
+                      <ComboBoxItem Content="Playful — celebration burst"/>
+                    </ComboBox>
                   </StackPanel>
                   <StackPanel Grid.Column="1" Margin="12,0,0,0">
                     <TextBlock Text="Repeat spoken reminder" Style="{StaticResource SecondaryBody}"
@@ -481,7 +494,7 @@
                     </ComboBox>
                   </StackPanel>
                 </Grid>
-                <TextBlock Text="Motion Off removes walking and animated reactions."
+                <TextBlock Text="Motion Off removes walking and animated reactions, including all effects."
                            Style="{StaticResource SecondaryBody}" Margin="0,11,0,0"/>
               </StackPanel>
             </Border>

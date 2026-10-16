@@ -168,3 +168,9 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Merged PR #12. Windows Actions run 38897525278 passed 105 core checks and unsigned install/reinstall/uninstall data preservation.
 - Portable Windows ZIP artifact: 12044223333. Installer ZIP artifact: 12045065431. Both archives verified intact and the installer executable extracted.
 - v0.13 profile settings are independent from reminder data. User device acceptance is still pending.
+
+## PetPing v0.14 expressive animations (Windows CI pending)
+- Cat careful steps/tail, dog jaunty trot/wagging and moving ears, bunny small hops/ear twitches. Shared rig remains used on Home/My Pets/Studio and real walking reminder.
+- Done choice (hop or wave) and Snooze choice (yawn or stretch) are now distinct visual reactions with short-lived species-colored sparkles/stars, **after the reminder is saved**.
+- Per-pet Effects Off, Gentle, Playful stored in existing local profile without reminder-data changes. Global Motion Off suppresses movement/effects, Gentle motion reduces effects, and effect bursts are capped at 10 particles.
+- Pet Studio includes Try Done/Try Snooze buttons that preview effects without changing task state. v0.14 Windows CI/installer and user laptop validation pending.

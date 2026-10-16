@@ -170,3 +170,15 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Windows CI green 105 checks, PR #12 merged, both unsigned artifacts verified
 - [ ] User verifies species visuals/selection, Studio, live reminder, restart and audio timing on laptop
 - [ ] v0.14 sophisticated species-specific character animation and particles
+
+## v0.14 — expressive actions and safe effects
+- [x] Deterministic species-specific gait and idle timing rules
+- [x] Cat tail/steps, puppy trot/wag/ears, bunny hop/ears animations
+- [x] Done Hop/Wave, Snooze Yawn/Stretch wired after saved reminder action
+- [x] Finite species-themed star/sparkle effects with <=10 particles
+- [x] Per-species Off/Gentle/Playful effects and global Motion Off/Gentle override
+- [x] Pet Studio non-destructive reaction previews and safe reset/cleanup
+- [x] Pure regression checks for motion/legacy settings, no reminder data change
+- [ ] v0.14 Windows WPF/test/installer CI green and merge
+- [ ] v0.14 on-device cat/dog/bunny rendering, effects, accessible controls and power QA
+- [ ] v0.15 integration/battery/multi-DPI and Windows release QA

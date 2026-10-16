@@ -198,3 +198,12 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Portable ZIP artifact `PetPing-Windows-v0.13-unsigned`, ID 12044223333; installer ZIP artifact `PetPing-Installer-v0.13-unsigned`, ID 12045065431. Downloaded and CRC verified both. Extracted `PetPing-Setup-v0.13-unsigned.exe` (51,926,601 bytes), SHA-256 `fbb7e06bac08ec1f5d600a529a127cba289759b213d26c953b56f5e40c71944f`.
 - Now supports separate per-species profiles: selected pet and saved appearance/actions survive switching, restarting; actual moving WPF window receives the selected rig. Same default reminder and legacy appearance storage unaffected.
 - Known limitation: CI does not visually inspect vector rigs, scaling or TTS timing on user's physical Windows machine. Test v0.13 before v0.14 advanced expressive pet effects.
+
+## 2026-10-16 — v0.14 expressive animation branch checkpoint
+- User approved proceeding from the v0.13 multi-pet implementation to v0.14 character movement and reactions.
+- Created `feature/windows-v0.14-expressive-animations`; source now includes deterministic `PetAnimationRules` to budget gaits, reaction duration and at most 10 ephemeral particles per effect.
+- Cat steps/tail, dog quick trot/tail wag/droopy ears, bunny hop/ear twitches have distinct animation timings. Done can hop or paw-wave with species-specific colored sparkles. Snooze yawns or stretches (including ear movements).
+- Added v0.14 per-species Effects Off / Gentle / Playful setting with backwards-compatible read of v0.13 `pet-profile.json`; Motion Off suppresses all effects, Gentle uses short movement without particles.
+- Added Pet Studio non-destructive Try Done / Try Snooze effect previews and guarded cleanup so a stale particle completion cannot affect a subsequent preview.
+- Walk/speak/snooze/complete persistence remains in existing scheduler/actor; animation success plays **after** the database saves Done or Snooze. Popups and timers are cleaned on close or power/session events.
+- Regression smoke checks for different gaits, effects budgets, invalid settings, round-trip and legacy compatibility. Windows CI and hands-on laptop QA pending at this checkpoint.

@@ -150,3 +150,10 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 ## v0.13 automated evidence vs physical QA
 - Windows run 38897525278 passed 105 core smoke checks, compiled the WPF project and Inno Setup package, installed and reinstalled silently, uninstalled, then verified LocalAppData sentinel was preserved.
 - Cat/Dog/Bunny rendering, text/font/ear scaling, and on-device Windows speech have not been visually or audibly verified by CI; user must still test.
+
+## v0.14 expressive pet animations
+- In My Pets choose Milo, Buddy, Luna one by one. In Pet Studio use **Try Done effect** and **Try Snooze effect**; the actual reminders/history counts must not change. Check bunny ears/jump, dog tail/ears, cat paw-wave/tail.
+- For every companion, change Effects Off/Gentle/Playful; check no particles in Off, small burst in Gentle, bounded celebration in Playful. Check each species remembers its own preference after switching and restarting.
+- Set global Motion Off: no animated effects even if pet Effects=Playful. Gentle motion keeps a short reaction without particles; Playful motion allows effect style.
+- Real reminder Done/Snooze still saves before showing success; if save fails, controls remain actionable with an error. Hide/Mute stop TTS and attention/voice semantics remain correct.
+- Test fullscreen video, many reminders in a row, login lock/unlock and laptop sleep/wake: no buildup of sparkles/timers, no unexpected overlay on secure screen. Check CPU/memory over ~10 cycles and WPF mixed DPI. Automated tests do not replace actual device observation.

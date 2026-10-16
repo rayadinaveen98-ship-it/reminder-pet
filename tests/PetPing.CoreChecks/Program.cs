@@ -533,6 +533,92 @@ try
     Check(new ReminderStore(repeatFolder).Reminders.Count == reminderCountBefore,
         "pet switching and profile corruption never modifies existing reminders");
 
+    // v0.14: each species has its own gait and finite reaction budget. These
+    // pure tests protect motion-off/reduced-motion preferences and bound visual
+    // effects without starting WPF (which runs in separate Windows CI).
+    var catGait = PetAnimationRules.Gait(PetSpecies.Cat, PetPersonality.Playful);
+    var dogGait = PetAnimationRules.Gait(PetSpecies.Dog, PetPersonality.Playful);
+    var bunnyGait = PetAnimationRules.Gait(PetSpecies.Bunny, PetPersonality.Playful);
+    Check(catGait.StepMilliseconds != dogGait.StepMilliseconds &&
+          dogGait.StepMilliseconds != bunnyGait.StepMilliseconds,
+        "cat, dog and bunny have different actual stepping rhythms");
+    Check(dogGait.TailAngle > catGait.TailAngle &&
+          bunnyGait.BobHeight > dogGait.BobHeight &&
+          bunnyGait.EarWiggleMilliseconds > 0,
+        "dog wags wider, bunny hops higher and moves ears");
+    var calmCat = PetAnimationRules.Gait(PetSpecies.Cat, PetPersonality.Calm);
+    var curiousCat = PetAnimationRules.Gait(PetSpecies.Cat, PetPersonality.Curious);
+    Check(calmCat.StepMilliseconds > catGait.StepMilliseconds &&
+          calmCat.FootLift < catGait.FootLift,
+        "calm personality walks slower and with lighter steps");
+    Check(curiousCat.StepMilliseconds < catGait.StepMilliseconds,
+        "curious personality increases activity");
+    bool badSpeciesGaitRejected = false;
+    try { _ = PetAnimationRules.Gait((PetSpecies)999, PetPersonality.Playful); }
+    catch (ArgumentOutOfRangeException) { badSpeciesGaitRejected = true; }
+    Check(badSpeciesGaitRejected, "animation rejects unsupported species");
+
+    var playableCat = new PetProfile
+    {
+        Species = PetSpecies.Cat, Effects = PetEffects.Playful, DoneAction = PetDoneAction.Hop
+    };
+    var playableDog = playableCat with { Species = PetSpecies.Dog };
+    var playfulBunny = playableCat with { Species = PetSpecies.Bunny };
+    var catReaction = PetAnimationRules.Reaction(playableCat, true, PetMotion.Full);
+    var dogReaction = PetAnimationRules.Reaction(playableDog, true, PetMotion.Full);
+    var bunnyReaction = PetAnimationRules.Reaction(playfulBunny, true, PetMotion.Full);
+    Check(catReaction.ParticleCount == 10 &&
+          catReaction.ParticleCount <= PetAnimationRules.MaxParticles,
+        "Playful Done celebration uses strictly bounded particles");
+    Check(bunnyReaction.HopHeight > dogReaction.HopHeight &&
+          dogReaction.HopHeight > catReaction.HopHeight,
+        "bunny, puppy and cat receive distinct completed hop heights");
+    Check(catReaction.DurationMilliseconds <= PetAnimationRules.MaxReactionMs,
+        "reaction duration stays within published finite safety budget");
+    var gentleEffects = PetAnimationRules.Reaction(
+        playableCat with { Effects = PetEffects.Gentle }, true, PetMotion.Full);
+    Check(gentleEffects.ParticleCount == 4,
+        "per-pet gentle effects reduce particle count");
+    var mutedEffects = PetAnimationRules.Reaction(
+        playableCat with { Effects = PetEffects.Off }, true, PetMotion.Full);
+    Check(mutedEffects.ParticleCount == 0 &&
+          mutedEffects.HopHeight > 0,
+        "turning off sparkles does not disable the pet's chosen action");
+    var gentleMotion = PetAnimationRules.Reaction(playableCat, true, PetMotion.Gentle);
+    Check(gentleMotion.ParticleCount == 0 &&
+          gentleMotion.HopHeight > 0 &&
+          gentleMotion.DurationMilliseconds < catReaction.DurationMilliseconds,
+        "gentle motion keeps short movement but removes particles");
+    var motionOff = PetAnimationRules.Reaction(playableCat, true, PetMotion.Off);
+    Check(motionOff.ParticleCount == 0 && motionOff.HopHeight == 0 &&
+          !motionOff.AllowContinuousIdle,
+        "Motion Off eliminates every animated reaction and sparkle");
+    var snoozeReaction = PetAnimationRules.Reaction(playableCat, false, PetMotion.Full);
+    Check(snoozeReaction.ParticleCount == 5 && snoozeReaction.HopHeight == 0,
+        "Snooze has a quieter distinct effect budget than Done");
+    bool invalidEffectRejected = false;
+    try { PetProfileCatalog.Validate(playableCat with { Effects = (PetEffects)999 }); }
+    catch (ArgumentException) { invalidEffectRejected = true; }
+    Check(invalidEffectRejected, "unknown visual effect setting rejected");
+    var visualPetFolder = Path.Combine(temp, "effect-profile");
+    var visualStore = new PetProfileSettings(visualPetFolder);
+    var withEffect = visualStore.Current with { Effects = PetEffects.Off };
+    visualStore.Update(withEffect);
+    Check(new PetProfileSettings(visualPetFolder).Current.Effects == PetEffects.Off,
+        "per-pet effects preference persists after application restart");
+    var oldRoster = System.Text.Json.Nodes.JsonNode.Parse(
+        File.ReadAllText(Path.Combine(visualPetFolder, "pet-profile.json")))!.AsObject();
+    foreach (var entry in oldRoster["Profiles"]!.AsArray())
+        entry!.AsObject().Remove("Effects");
+    var legacyEffectsFolder = Path.Combine(temp, "legacy-effects");
+    Directory.CreateDirectory(legacyEffectsFolder);
+    File.WriteAllText(Path.Combine(legacyEffectsFolder, "pet-profile.json"),
+        oldRoster.ToJsonString());
+    Check(new PetProfileSettings(legacyEffectsFolder).Current.Effects == PetEffects.Playful,
+        "existing v0.13 pet profiles missing Effects property load safely with defaults");
+    Check(new ReminderStore(repeatFolder).Reminders.Count == reminderCountBefore,
+        "v0.14 effects configuration leaves reminder data unchanged");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;

@@ -25,15 +25,17 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**PetPing 2.0 — v0.13 genuinely selectable and customizable Cat / Dog / Bunny.**
+**PetPing 2.0 v0.14 — expressive original pet actions, safe celebration effects (source committed; Windows CI pending).**
 
-- User reported v0.12 looked fine and approved proceeding with v0.13. Baseline v0.12 is merged/CI verified (91 checks); physical extensive Windows QA remains limited.
-- PR #12 **merged to main** at `6410b4400651c8a6ac473dafa6331aa8f0f1217c`. Final green CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38897525278: **105 core tests** passed, Windows x64 WPF compiled and installer install/reinstall/uninstall smoke preserved data. Physical Windows device QA pending.
-- Added `PetProfileSettings`: independent versioned `%LOCALAPPDATA%\PetPing\pet-profile.json` roster with separate per-species customization and an atomic save, validation and safe fallback on corruption, preserving existing reminders and `pet-appearance.json`.
-- **Three distinct, original vector rigs:** Milo Cat with pointed ears/whiskers/tail; Buddy Dog with drooping ears/muzzle/tail; Luna Bunny with tall ears/cotton tail. The same character component renders in Home, My Pets, Pet Studio and the actual walking reminder overlay.
-- My Pets now selects the real active companion and persists across restart; Pet Studio controls coat palette (4), accessory (None/Bow/Scarf), size (3), personality (Playful/Calm/Curious), Done action (Hop/Wave), Snooze action (Yawn/Stretch) and spoken reannouncement interval (30/60/120 seconds), in addition to existing arrival side/motion controls. Settings apply to the next reminder.
-- Pet actor uses selected species/appearance and basic supported behavior variations. Full species-specific expressive particle/celebration animation upgrades are **v0.14**, not claimed as complete in v0.13.
-- Existing scheduler, recurring reminders, local privacy and reminder JSON remain unchanged. 105 passing core smoke tests include default/selected species, independent species profiles surviving restart, all customization fields, invalid options, simulated failed writes, malformed-profile preservation and reminder data isolation. Windows ZIP and installer ZIP downloaded, CRC checked; standalone installer verified.
+- The user accepted v0.13 and explicitly authorized the next milestone. v0.13 baseline remains merged, installer built and CI-verified (105 core checks), though no detailed UI acceptance transcript has been recorded.
+- Development branch: `feature/windows-v0.14-expressive-animations`. No production ZIP or installer for v0.14 is verified at this checkpoint.
+- Extended shared WPF `PetCharacter` rig with independent animated paws, dog ear tilt, bunny ear wiggle, cat/dog tail behavior, and bounded short-lived sparkle/star burst stage. Pet actor still uses a **small transparent Window**; effects do not place click-catching overlays across the desktop.
+- Real action reaction now honors pet-specific Done Hop/Wave and Snooze Yawn/Stretch choices. Bunny hops visibly higher than puppy, puppy's tail wags faster, cat uses smaller careful steps. Dog ears droop for yawn and bunny ears react.
+- Added configurable **Effects Off / Gentle / Playful** per companion, versioned in existing `pet-profile.json` without destructive migration. Legacy v0.13 JSON missing the new property loads with Playful default.
+- Global motion modes are honored: Motion Off = no walk, no particle bursts or animated reactions; Gentle = shorter/smaller movement without particles; Full allows per-pet effects intensity.
+- Pet Studio offers non-destructive **Try Done effect / Try Snooze effect** buttons, plus an Effects picker that saves per species. Only actual reminder events update the reminder database.
+- Pure motion rules `PetAnimationRules` define deterministic gait and finite particle/duration budget (<=10 per reaction); old animation timers are stopped on close/lock/suspend and transient effects cleaned.
+- Regression checks added for species differences, reduced motion, reaction quotas, profile persistence and v0.13 compatibility. CI compile and physical Windows QA pending at this checkpoint.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -79,4 +81,4 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Share verified v0.13 unsigned Setup or portable ZIP, after user backs up `%LOCALAPPDATA%\PetPing` and quits old PetPing from the tray. Ask user to test selecting Cat/Dog/Bunny, checking the real walking actor changes (ears, tail, muzzle), customization color/accessory/size and per-pet persistence on restart, 30/60/120-second TTS repeat, Done/Snooze/Hide/Mute, existing reminders, scaling and Windows tray flow. Record any actual UI issues and resolve before v0.14. Next development phase **v0.14** is richer per-species reactions and effects, then v0.15 integration QA. v1.0 still deferred.
+Open v0.14 PR, inspect Windows Actions static XAML and .NET tests, build win-x64 WPF and unsigned Inno installer, validate install/reinstall/uninstall preserving reminder data. Fix failures before merge. Record exact PR/CI/commit/artifacts after green builds. Physical Windows test: use Pet Studio preview on all 3 pets and inspect ears/paws/tails, Done/Snooze, playful/gentle/off effects and safe preview; then create real reminder and check transitions, TTS cancellation and no blocked desktop clicks. v0.15 remains integration/release-quality QA, v1.0 candidate later.

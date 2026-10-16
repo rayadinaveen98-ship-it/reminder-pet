@@ -8,6 +8,7 @@ public enum PetPalette { Apricot, Cocoa, Snow, Lavender }
 public enum PetAccessory { None, Bow, Scarf }
 public enum PetSize { Small, Medium, Large }
 public enum PetPersonality { Playful, Calm, Curious }
+public enum PetEffects { Off, Gentle, Playful }
 public enum PetDoneAction { Hop, Wave }
 public enum PetSnoozeAction { Yawn, Stretch }
 
@@ -23,6 +24,7 @@ public sealed record PetProfile
     public PetAccessory Accessory { get; init; } = PetAccessory.None;
     public PetSize Size { get; init; } = PetSize.Medium;
     public PetPersonality Personality { get; init; } = PetPersonality.Playful;
+    public PetEffects Effects { get; init; } = PetEffects.Playful;
     public PetDoneAction DoneAction { get; init; } = PetDoneAction.Hop;
     public PetSnoozeAction SnoozeAction { get; init; } = PetSnoozeAction.Yawn;
     public int RepeatSpeechSeconds { get; init; } = 60;
@@ -43,7 +45,8 @@ public static class PetProfileCatalog
         if (profile is null || profile.SchemaVersion != 1 ||
             !Enum.IsDefined(profile.Species) || !Enum.IsDefined(profile.Palette) ||
             !Enum.IsDefined(profile.Accessory) || !Enum.IsDefined(profile.Size) ||
-            !Enum.IsDefined(profile.Personality) || !Enum.IsDefined(profile.DoneAction) ||
+            !Enum.IsDefined(profile.Personality) || !Enum.IsDefined(profile.Effects) ||
+            !Enum.IsDefined(profile.DoneAction) ||
             !Enum.IsDefined(profile.SnoozeAction) ||
             profile.RepeatSpeechSeconds is not (30 or 60 or 120))
             throw new ArgumentException("Unsupported pet profile or speech interval.");
