@@ -298,8 +298,24 @@
                           AutomationProperties.Name="Edit selected reminder"/>
                   <Button Content="Done" Click="OnSelectedDone"
                           AutomationProperties.Name="Mark selected reminder complete"/>
-                  <Button Content="Snooze 10m" Click="OnSelectedSnooze"
-                          AutomationProperties.Name="Snooze selected reminder ten minutes"/>
+                  <ComboBox x:Name="SnoozeDurationPicker" Width="105" Height="42"
+                            Margin="0,0,8,0" SelectedIndex="1"
+                            SelectionChanged="OnSnoozeDurationChanged"
+                            AutomationProperties.Name="Snooze duration">
+                    <ComboBoxItem Content="5 min" Tag="5"/>
+                    <ComboBoxItem Content="10 min" Tag="10"/>
+                    <ComboBoxItem Content="15 min" Tag="15"/>
+                    <ComboBoxItem Content="30 min" Tag="30"/>
+                    <ComboBoxItem Content="1 hour" Tag="60"/>
+                    <ComboBoxItem Content="Custom" Tag="custom"/>
+                  </ComboBox>
+                  <TextBox x:Name="CustomSnoozeMinutes" Width="92" MaxLength="4"
+                           Text="20" Visibility="Collapsed" Margin="0,0,8,0"
+                           VerticalContentAlignment="Center"
+                           ToolTip="Custom snooze: 1 to 1440 minutes (up to 24 hours)"
+                           AutomationProperties.Name="Custom snooze duration in minutes"/>
+                  <Button Content="Snooze" Click="OnSelectedSnooze"
+                          AutomationProperties.Name="Snooze selected reminder using selected duration"/>
                   <Button Content="Delete" Click="OnDelete"
                           AutomationProperties.Name="Delete selected reminder"/>
                 </WrapPanel>
