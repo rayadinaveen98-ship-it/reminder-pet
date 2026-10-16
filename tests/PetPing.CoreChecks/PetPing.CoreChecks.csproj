@@ -9,5 +9,6 @@
     <Compile Include="../../desktop/PetPing.Windows/Models/Reminder.cs" Link="Reminder.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/ReminderRules.cs" Link="ReminderRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/ReminderStore.cs" Link="ReminderStore.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/DiagnosticsLog.cs" Link="DiagnosticsLog.cs" />
   </ItemGroup>
 </Project>

@@ -143,6 +143,22 @@ public partial class MainWindow : Window
 
     private void OnTestPet(object sender, RoutedEventArgs e) => _testPet();
 
+    private void OnTestVoice(object sender, RoutedEventArgs e)
+    {
+        if (!_voice.Enabled)
+        {
+            ShowError("Turn on Speak reminders before testing voice.");
+            return;
+        }
+        if (!_voice.IsAvailable || !_voice.SpeakReminder("This is a PetPing voice test."))
+        {
+            ShowError("Windows speech is unavailable. Visual reminders still work.");
+            return;
+        }
+        ValidationMessage.Visibility = Visibility.Collapsed;
+    }
+
+
     private void OnVoiceToggled(object sender, RoutedEventArgs e)
     {
         try

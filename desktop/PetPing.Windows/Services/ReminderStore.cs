@@ -27,6 +27,7 @@ public sealed class ReminderStore
     public void Load()
     {
         if (!File.Exists(_dataPath)) { Reminders = []; return; }
+        // Invalid JSON must not cause the app to silently overwrite saved reminders.
         var restored = JsonSerializer.Deserialize<List<Reminder>>(File.ReadAllText(_dataPath), JsonOptions)
             ?? throw new InvalidDataException("Your reminder file is invalid; it has not been erased.");
         if (restored.Any(r => r.Id == Guid.Empty || string.IsNullOrWhiteSpace(r.Title)))
@@ -58,15 +59,44 @@ public sealed class ReminderStore
         if (dueAt <= DateTimeOffset.UtcNow) throw new ArgumentException("Choose a future time.");
         var reminder = new Reminder { Title = title.Trim(), DueAt = dueAt, OriginalDueAt = dueAt };
         Reminders.Add(reminder);
-        Save();
+        try { Save(); }
+        catch { Reminders.Remove(reminder); throw; }
         return reminder;
+    }
+
+    public void Deliver(Reminder reminder, DateTimeOffset deliveredAt)
+    {
+        if (reminder.Status != ReminderStatus.Pending)
+            throw new InvalidOperationException("Only pending reminders can be delivered.");
+        var beforeStatus = reminder.Status;
+        var beforeDelivered = reminder.DeliveredAt;
+        var beforeFinished = reminder.FinishedAt;
+        reminder.Status = ReminderStatus.Delivered;
+        reminder.DeliveredAt = deliveredAt;
+        reminder.FinishedAt = null;
+        try { Save(); }
+        catch
+        {
+            reminder.Status = beforeStatus;
+            reminder.DeliveredAt = beforeDelivered;
+            reminder.FinishedAt = beforeFinished;
+            throw;
+        }
     }
 
     public void Mark(Reminder reminder, ReminderStatus status)
     {
+        var beforeStatus = reminder.Status;
+        var beforeFinished = reminder.FinishedAt;
         reminder.Status = status;
         reminder.FinishedAt = DateTimeOffset.UtcNow;
-        Save();
+        try { Save(); }
+        catch
+        {
+            reminder.Status = beforeStatus;
+            reminder.FinishedAt = beforeFinished;
+            throw;
+        }
     }
 
     public void Snooze(Reminder reminder, TimeSpan duration)
@@ -74,11 +104,25 @@ public sealed class ReminderStore
         if (!ReminderRules.CanSnooze(reminder))
             throw new InvalidOperationException("Only reminders that need attention can be snoozed.");
         if (duration <= TimeSpan.Zero) throw new ArgumentException("Snooze must be positive.");
+        var beforeDue = reminder.DueAt;
+        var beforeStatus = reminder.Status;
+        var beforeDelivered = reminder.DeliveredAt;
+        var beforeFinished = reminder.FinishedAt;
+        var beforeCount = reminder.SnoozeCount;
         reminder.DueAt = DateTimeOffset.UtcNow.Add(duration);
         reminder.Status = ReminderStatus.Pending;
         reminder.DeliveredAt = null;
         reminder.FinishedAt = null;
         reminder.SnoozeCount++;
-        Save();
+        try { Save(); }
+        catch
+        {
+            reminder.DueAt = beforeDue;
+            reminder.Status = beforeStatus;
+            reminder.DeliveredAt = beforeDelivered;
+            reminder.FinishedAt = beforeFinished;
+            reminder.SnoozeCount = beforeCount;
+            throw;
+        }
     }
 }

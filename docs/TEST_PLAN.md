@@ -59,3 +59,13 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Test 100/125/150% display scaling, dark desktop, two monitors, 720p and 4K screen.
 - Confirm voice continues announcing reminder names with Speak Reminders enabled and remains quiet when disabled.
 - Test reminder while Windows session is locked: no secure lock-screen overlay.
+
+## v0.5 reliability QA on a real Windows computer
+- Simulate storage unavailable while creating/snoozing/completing: reminder should remain in previous state; one generic error notice; no silent status change.
+- Open `%LOCALAPPDATA%\PetPing\diagnostics.log`: entries should include UTC time, fixed event codes and exception types, **never reminder names**.
+- Test Windows Speech test button with voice enabled, then disabled and on a machine without installed voice. Voice failure must not prevent visual reminders.
+- Lock while voice speaks: it should stop on lock; no secure lock screen pet or speech.
+- Sleep past a due time, wake <=15m late: catch up once; wake >15m late: Needs Attention/missed and generic tray info subject to OS settings.
+- Disable toast/balloon notifications: the dashboard Needs Attention must remain the source of truth.
+- Force pet presentation failure in developer QA: generic tray notification attempt without losing Delivered state. Do not claim this fallback always shows under Focus Assist.
+- Verify no high CPU or repeating log spam after filesystem failure; scheduler retry backoff 30 seconds.
