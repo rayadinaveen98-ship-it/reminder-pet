@@ -134,3 +134,11 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Release-candidate feature freeze: preserve reminder scheduling/recurrence and pet UI; focus on versioning, branding/icon polish, installer upgrade from the previous real version, privacy documentation, accessibility QA, repeatable Windows artifact builds and signing/distribution strategy.
 - The signing certificate and Windows SmartScreen reputation are unresolved; an unsigned personal alpha can work without treating it as ready for frictionless public distribution.
 - Added `docs/V1_RELEASE_CHECKLIST.md` with measurable acceptance gates. Next step is a new release-candidate development branch; **no RC executable exists at this checkpoint**.
+
+## 2026-10-16 — PetPing 2.0 design phase, user-approved
+- The user requested and approved replacing the fixed reminder popup with a walking pet from a random screen edge to the mid-screen zone, repeated spoken reminders until action, unboxed text, new celebration/interaction effects, additional customizable pets and complete dashboard UI redesign.
+- Kept tested Windows v0.9 as baseline and created separate design-only branch `design/pet-experience-2-phase-1`.
+- Authored UI/architecture product specification, walking and voice state storyboard, design tokens, and proposed local pet profile JSON with Cat, Dog and Bunny actions.
+- Canva produced **7 editable pages** at https://www.canva.com/d/26YBWLCIc7nE3nk . Canva imagery is a concept; some generated pet-care examples and voice-repeat timing labels require correction before it becomes implementation reference.
+- Figma connected account reports Starter/View seat; chose the available Canva editing workflow without a paid upgrade.
+- No new WPF feature code or compiled version generated yet. Design review is the next gate; v1.0 RC deferred until pet experience milestone is finished.
