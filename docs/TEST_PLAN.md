@@ -34,3 +34,11 @@ For each test capture machine Windows edition/build, UTC offset, voice installat
 
 ## Release gate
 No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen overlay" marketing claims. Publish only once P0 passes on actual Windows devices.
+
+## Additional v0.2 checks
+- Set **Start with Windows** and verify the registry entry starts PetPing silently after signing in.
+- Move the executable after enabling startup; verify the previous startup path is flagged for re-registration.
+- Toggle speech off, restart PetPing and verify it stays off.
+- Corrupt `settings.json`: reminders should still start with default voice settings; settings data must not be silently erased.
+- Force-stop with an unanswered alert and relaunch within 15 minutes; the pet alert should reappear.
+- Force-stop and relaunch after 15 minutes: app should show the alert in history, not replay it over apps.

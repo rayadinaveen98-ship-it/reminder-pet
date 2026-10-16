@@ -14,10 +14,19 @@ public sealed class SpeechSettings
         Directory.CreateDirectory(folder);
         _filePath = Path.Combine(folder, "settings.json");
         if (!File.Exists(_filePath)) return;
-        using var json = JsonDocument.Parse(File.ReadAllText(_filePath));
-        if (json.RootElement.TryGetProperty("speakReminders", out var enabled)
-            && (enabled.ValueKind == JsonValueKind.True || enabled.ValueKind == JsonValueKind.False))
-            Enabled = enabled.GetBoolean();
+        try
+        {
+            using var json = JsonDocument.Parse(File.ReadAllText(_filePath));
+            if (json.RootElement.TryGetProperty("speakReminders", out var enabled)
+                && (enabled.ValueKind == JsonValueKind.True || enabled.ValueKind == JsonValueKind.False))
+                Enabled = enabled.GetBoolean();
+        }
+        catch (JsonException)
+        {
+            // Settings must not prevent a user's reminders from starting.
+            // Keep the original file untouched until a setting is explicitly changed.
+            Enabled = true;
+        }
     }
 
     public void SetEnabled(bool enabled)

@@ -9,7 +9,7 @@
 **Accepted for proof of concept.** JSON at `%LOCALAPPDATA%\\PetPing\\reminders.json`, written to a temp file and replaced on save. No network calls. Evolve to SQLite/Room when migration, recurrence and event logs become necessary. Corrupt JSON is a startup error, not interpreted as an empty reminder list.
 
 ### ADR-003: Running tray agent; no magic background work
-**Accepted.** Closing the UI hides it. The process remains open via a visible system-tray icon. Explicit Quit terminates reminders. Future iteration may introduce Windows Task Scheduler for startup, wake and reactivation, but this v0 doesn't. No silent persistency claims after quitting or shutdown.
+**Accepted.** Closing the UI hides it. The process remains open via a visible system-tray icon. Explicit Quit terminates reminders. v0.2 adds an optional per-user Windows login registry entry with a background flag. A future iteration may add OS wake scheduling and reactivation, but this alpha doesn't. No silent persistency claims after quitting or shutdown.
 
 ### ADR-004: Reminder identity and delivery
 **Accepted for v0.** Each one-time reminder has UUID, original due time, current due time, status, delivered time, completed time and snooze count. On tick, due reminders are persisted as Delivered **before** UI callback, preventing repeated sends on the next tick. On wake/start, reminders <=15 minutes late show; older reminders are marked Missed. This is *at-most-once attempted delivery* in current agent; it is not exactly-once human-visible delivery if a crash occurs after persistence but before the popup.

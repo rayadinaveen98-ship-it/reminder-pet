@@ -28,7 +28,7 @@ No hosting or paid APIs. Uses free .NET SDK and locally installed Windows speech
 - One-time reminders only; no daily/weekly recurrence yet.
 - No compiled `.exe`, `.msix`, or `.apk` is included.
 - Windows source requires real-machine validation, accessibility QA, and reliability testing.
-- No autostart after login, persistent voice settings, fullscreen avoidance or notification fallback yet.
+- Optional autostart at login and persistent voice setting are in v0.2; fullscreen avoidance and notification fallback remain pending.
 - Codename and cartoon cat are engineering placeholders; final branding and mascot need creative design.
 
 ## License

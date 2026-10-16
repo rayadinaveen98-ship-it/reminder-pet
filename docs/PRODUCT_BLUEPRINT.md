@@ -38,7 +38,7 @@ A small companion that appears when a user-chosen reminder is due, says what mat
 - Android/iOS release; Android gets its own native reminder delivery stack.
 - 24/7 background pet, elaborate pet raising, XP/gamification, camera/microphone.
 - Calendar integrations, recurring reminders, natural-language parsing, cloud sync.
-- Windows startup-on-login, Task Scheduler wake-from-sleep, or guaranteed alarms after process termination.
+- Automatic wake-from-sleep via Task Scheduler or guaranteed alarms after process termination (start-at-login preference exists in v0.2).
 - Toast fallback, multi-monitor placement preference, quiet hours and focus/full-screen detection.
 - Official 2D pet animation assets, installer/signing/store publication.
 
