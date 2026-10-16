@@ -161,8 +161,13 @@ public partial class App : System.Windows.Application
                         _store!.Mark(r, ReminderStatus.Completed);
                         _dashboard?.RefreshList();
                         UpdateTrayStatus();
+                        return true;
                     }
-                    catch (Exception error) { OnPresentationFault("completion_save_failed", error); }
+                    catch (Exception error)
+                    {
+                        OnPresentationFault("completion_save_failed", error);
+                        return false;
+                    }
                 };
                 popup.Snoozed += r =>
                 {
@@ -171,8 +176,13 @@ public partial class App : System.Windows.Application
                         _store!.Snooze(r, TimeSpan.FromMinutes(10));
                         _dashboard?.RefreshList();
                         UpdateTrayStatus();
+                        return true;
                     }
-                    catch (Exception error) { OnPresentationFault("snooze_save_failed", error); }
+                    catch (Exception error)
+                    {
+                        OnPresentationFault("snooze_save_failed", error);
+                        return false;
+                    }
                 };
                 popup.Closed += (_, _) =>
                 {
