@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "exampleOnly": true,
+  "petId": "cat-orange",
+  "displayName": "Milo",
+  "species": "cat",
+  "paletteId": "orange-soft",
+  "accessoryIds": [],
+  "scale": "medium",
+  "voice": {
+    "provider": "windows-local",
+    "voiceId": null,
+    "rate": 0
+  },
+  "behavior": {
+    "entryDirection": "random-horizontal",
+    "arrivalAction": "walk",
+    "idleAction": "tail-wag",
+    "speakingAction": "mouth-head-tilt",
+    "doneAction": "jump-sparkles",
+    "snoozeAction": "yawn-sit",
+    "exitAction": "walk-out"
+  },
+  "experience": {
+    "motionMode": "full",
+    "effectsMode": "balanced",
+    "repeatSpeechSeconds": 60,
+    "speechEnabled": true
+  },
+  "supportedActions": [
+    "walk",
+    "blink",
+    "tail-wag",
+    "stretch",
+    "mouth-head-tilt",
+    "jump-sparkles",
+    "yawn-sit",
+    "walk-out"
+  ],
+  "notes": "This profile is proposed; v0.9 does not read it. Migration must preserve existing pet-appearance.json and reminders."
+}
