@@ -161,3 +161,18 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 ## v0.14 verified automated build, outstanding device evidence
 - Run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38900092320 passed **122** smoke tests, WPF compiler, installer build, same-version reinstall/uninstall data preservation; portable and setup archives CRC-verified.
 - User must still confirm actual eye/ear/paw visual movement, particle style, reduced-motion behavior and speech/desktop controls on a Windows device. CI is not a visual acceptance test.
+
+## v0.15 release integration checklist
+**Automated build gates:** core reminder/profile/motion checks; static XAML checks; WPF Windows self-contained x64; unsigned installer compile; reinstall and uninstall preserve LocalAppData sentinel; **real pinned v0.14 → v0.15 Inno upgrade** preserves a valid synthetic `reminders.json` and 3-species `pet-profile.json` byte-for-byte and does not delete them on uninstall.
+
+**Physical Windows QA needed:**
+1. With a real backup of `%LOCALAPPDATA%\PetPing`, quit tray v0.14, run v0.15 installer (same installation directory). All real reminders and Cat/Dog/Bunny profiles should remain and load.
+2. Create a 1-minute reminder, let the pet arrive and speak. Toggle **Speak reminders** Off *during speech*; speech stops immediately and does not restart after the previous repeat interval. Toggle On and test a new alert.
+3. On a disposable reminder, Done then Snooze separately; verify on-disk statuses, reaction effects, next due, dismissal and no duplicated recurrence.
+4. In Studio try effects, Motion Off and per-pet settings; switch species and reboot/restart; preferences remain.
+5. Keyboard-tab focus visibility on reminder chips where popup can receive focus; test Windows screen reader; check focus doesn't steal foreground on initial arrival.
+6. 100%, 125%, 150%, 200% scaling and secondary display with negative desktop coordinates. Verify controls not clipped and pet target remains reachable.
+7. Voice and reminder delivery during lock/unlock and sleep/wake. Do not presume a reminder can draw on secure lock screen. Two simultaneous reminders should serialize.
+8. Installer uninstall should not erase reminder/profile backups. New v0.15 installer remains unsigned, so SmartScreen warnings are possible.
+
+**Known limitation:** CI tests real upgrade file-preservation and application compilation, not full graphical automation, CPU/battery profile, Windows Authenticode signing or physical assistive-technology use.
