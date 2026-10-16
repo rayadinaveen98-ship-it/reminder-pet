@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../desktop/PetPing.Windows/Models/Reminder.cs" Link="Reminder.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Models/CustomRepeatOptions.cs" Link="CustomRepeatOptions.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/ReminderRules.cs" Link="ReminderRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/RecurrenceRules.cs" Link="RecurrenceRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/AdvancedRepeatRules.cs" Link="AdvancedRepeatRules.cs" />
