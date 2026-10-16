@@ -15,7 +15,7 @@ internal static class BrandIconFactory
     public static BitmapSource RenderBitmap(int size)
     {
         var mark = new BrandMark { Width = size, Height = size };
-        mark.Measure(new Size(size, size));
+        mark.Measure(new System.Windows.Size(size, size));
         mark.Arrange(new Rect(0, 0, size, size));
         mark.UpdateLayout();
 
