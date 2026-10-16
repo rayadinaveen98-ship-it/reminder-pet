@@ -17,6 +17,7 @@ public partial class App : System.Windows.Application
     private VoiceService? _voice;
     private SpeechSettings? _speechSettings;
     private PetAppearanceSettings? _appearance;
+    private PetProfileSettings? _petProfiles;
     private DiagnosticsLog? _diagnostics;
     private bool _faultNoticeShown;
     private Forms.NotifyIcon? _tray;
@@ -46,6 +47,7 @@ public partial class App : System.Windows.Application
             _store = OpenStoreWithOptionalRecovery();
             _speechSettings = new SpeechSettings();
             _appearance = new PetAppearanceSettings();
+            _petProfiles = new PetProfileSettings();
             _voice = new VoiceService { Enabled = _speechSettings.Enabled };
             _voice.SpeechFailed += error => _diagnostics?.Record("voice_failed", error);
             _voice.SessionSpeakingChanged += (session, speaking) =>
@@ -60,6 +62,8 @@ public partial class App : System.Windows.Application
                     if (_petWindow?.SpeechSessionId == session && CanRepeatSpeech(_petWindow))
                     {
                         _voiceRepeat.Stop();
+                        _voiceRepeat.Interval = TimeSpan.FromSeconds(
+                            _petProfiles?.Current.RepeatSpeechSeconds ?? PetWalkRules.DefaultRepeatSeconds);
                         _voiceRepeat.Start();
                     }
                 }));
@@ -69,7 +73,8 @@ public partial class App : System.Windows.Application
                 if (_petWindow is { } active && CanRepeatSpeech(active))
                     SpeakFor(active);
             };
-            _dashboard = new MainWindow(_store, _voice, _speechSettings, _appearance, ShowTestPet, OnReminderChangedFromDashboard);
+            _dashboard = new MainWindow(_store, _voice, _speechSettings, _appearance,
+                _petProfiles, ShowTestPet, OnReminderChangedFromDashboard);
             MainWindow = _dashboard;
             CreateTray();
             _scheduler = new ReminderScheduler(_store);
@@ -252,7 +257,7 @@ public partial class App : System.Windows.Application
             try
             {
                 popup = new PetWindow(reminder, _appearance?.Placement ?? PetPlacement.Auto,
-                    _appearance?.Motion ?? PetMotion.Full);
+                    _appearance?.Motion ?? PetMotion.Full, _petProfiles?.Current);
                 _petWindow = popup;
                 popup.Completed += r =>
                 {
@@ -341,7 +346,7 @@ public partial class App : System.Windows.Application
         if (_petWindow is not null) return;
         var demo = new Reminder { Title = "This is how I'll remind you!" };
         var popup = new PetWindow(demo, _appearance?.Placement ?? PetPlacement.Auto,
-            _appearance?.Motion ?? PetMotion.Full);
+            _appearance?.Motion ?? PetMotion.Full, _petProfiles?.Current);
         _petWindow = popup;
         popup.Arrived += () => _voice?.SpeakReminder(demo.Title, popup.SpeechSessionId);
         popup.InteractionStopped += StopNarration;
