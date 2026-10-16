@@ -23,15 +23,16 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**PetPing 2.0 — v0.11 walking companion and voice-repeat engine.**
+**PetPing 2.0 v0.12 — approved UI redesign implementation.**
 
-- User approved new design direction in Canva (https://www.canva.com/d/26YBWLCIc7nE3nk) and asked to proceed with implementation.
-- PR #10 **merged to main**, commit `caf61816534e6bb2fd2cc0eaa6c6bdbea2d8bcd5`. Automated Windows CI run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38890848806 **passed 86 core checks**, published the unsigned v0.11 portable Windows build and installer; the physical laptop test for walking, transparent controls and TTS is still pending.
-- Transparent pet-sized WPF window walks from either monitor edge to approximately the middle of the active monitor; existing manual left/right placement overrides random, Motion Off skips walking. Movement only uses a pet-sized window, not a fullscreen interactive overlay.
-- Old colored reminder speech bubble removed; reminder text floats with a shadow, separate **Done / Snooze 10m / Mute / Hide** controls. Hide retains Needs Attention.
-- Talking begins at **Arrived** rather than before travel. Local Windows TTS is tagged to the active pet's session and repeats 60 seconds after an utterance completes. Mute/Done/Snooze/Hide/lock/suspend cancel narration. No overlapping pet session voices.
-- ReminderScheduler/Store, recurring reminder schema, recovery and privacy unaffected. Old appearance settings still work; species selection and new dashboard UI are upcoming v0.13/0.14.
-- Regression checks passed (86) covering walking geometry, negative monitor origins, and voice repeat safeguards. Windows self-contained x64 and installer smoke (install/reinstall/uninstall preserving LocalAppData) passed. Portable ZIP artifact ID 12042450420, installer ZIP artifact ID 12041443215, both verified intact; standalone setup EXE extracted for user. Physical DPI, transparent hit testing, controls and TTS timings need user testing before beta.
+- User reported v0.11 acceptable for now and explicitly prioritized the approved full UI redesign BEFORE advanced animations. Revised milestones: v0.12 navigation/UI, v0.13 additional pets/customization, v0.14 actions/effects, v0.15 integration/QA, then Windows v1.0.
+- Development branch `feature/windows-v0.12-navigation-redesign`; CI not verified at this checkpoint. Last merged preview is v0.11, 86 core tests passed.
+- Implemented actual WPF navigation with **Home, Reminders, My Pets, Pet Studio and Settings**, matching the approved ivory/lavender/apricot design direction.
+- Home shows **real** Today/Upcoming/Needs Attention totals, next 3 pending reminders and an active Milo card; no fabricated counts or example reminders.
+- Reminders retains functional new/edit/daily/weekly, filter tabs, Done/Snooze/Delete and keyboard shortcuts. Settings retains on-device voice, test speech, auto-start and Open Data Folder.
+- Pet Studio has Milo preview and existing real motion/arrival settings. Cat is still the only pet available; Dog and Bunny cards are **explicitly labelled Coming in v0.13**. No pretend selectors or imported pet system yet.
+- Added reusable owned vector illustration and global visual tokens to WPF. Existing Windows v0.11 walking/voice actor unchanged. Local storage/recurrence and user preferences unchanged.
+- Core regression tests for dashboard summaries and empty state, WPF compile and Windows installer smoke pending.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -77,4 +78,5 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Have the user install/test **v0.11** after quitting v0.9 and backing up `%LOCALAPPDATA%\PetPing`. Verify on Windows: a 1-minute reminder walks from left/right toward center, no bubble behind text, Done/Snooze/Mute/Hide operate correctly, repeating TTS after ~60 seconds once voice finishes, Motion Off, lock/unlock and sleep/wake, optional secondary monitor. Check if the transparency blocks unrelated application clicks and report any issues. Record actual pass/fail; fix P0 issues before v0.12 reactions/effects. PR #10 and CI are green, but actual visual/voice behavior has not been observed by the assistant.
+Open PR for v0.12 and inspect Windows Actions. Fix markup/compiler/runtime issues, get a successful 0.12 Windows executable and unsigned installer (installer upgrade retains reminder data), then merge into main and update this file with exact CI, commit and artifacts. Ask user to verify **actual** native navigation and reminder create/edit/save, Pet Studio preview/settings, Home summary, 125–200% Windows scaling and close-to-tray behavior. Physical acceptance of v0.11 walking voice remains partial. v0.13 is multi-pet customization; v0.14 advanced action animations; v0.15 integrated QA.
+
