@@ -126,15 +126,24 @@
                Fill="#EC9387" Opacity="0.6"/>
       <Ellipse Canvas.Left="109" Canvas.Top="102" Width="21" Height="11"
                Fill="#EC9387" Opacity="0.6"/>
-      <Ellipse Canvas.Left="46" Canvas.Top="81" Width="9" Height="14" Fill="#473934"/>
-      <Ellipse Canvas.Left="108" Canvas.Top="81" Width="9" Height="14" Fill="#473934"/>
+      <Ellipse Canvas.Left="46" Canvas.Top="81" Width="9" Height="14" Fill="#473934">
+        <Ellipse.RenderTransform><ScaleTransform x:Name="LeftBlink" CenterY="7"/></Ellipse.RenderTransform>
+      </Ellipse>
+      <Ellipse Canvas.Left="108" Canvas.Top="81" Width="9" Height="14" Fill="#473934">
+        <Ellipse.RenderTransform><ScaleTransform x:Name="RightBlink" CenterY="7"/></Ellipse.RenderTransform>
+      </Ellipse>
       <Ellipse Canvas.Left="47" Canvas.Top="83" Width="3" Height="4" Fill="#FFFFFF"/>
       <Ellipse Canvas.Left="109" Canvas.Top="83" Width="3" Height="4" Fill="#FFFFFF"/>
       <Ellipse Canvas.Left="76" Canvas.Top="107" Width="12" Height="8"
                Fill="#D97D73"/>
-      <Path Data="M 82,115 Q 70,128 63,115 M 82,115 Q 91,128 100,115"
+      <Path x:Name="MouthSmile"
+            Data="M 82,115 Q 70,128 63,115 M 82,115 Q 91,128 100,115"
             Stroke="#985F50" StrokeThickness="2" StrokeStartLineCap="Round"
             Fill="Transparent"/>
+      <!-- Talking mouth is synchronized to Windows speech start/finish,
+           not guessed from the reminder text length. -->
+      <Ellipse x:Name="MouthSpeak" Canvas.Left="76" Canvas.Top="116" Width="12"
+               Height="11" Fill="#A45D51" Visibility="Collapsed"/>
       <!-- whiskers -->
       <Path Data="M 48,109 L 25,106 M 49,118 L 26,126 M 115,109 L 139,106 M 114,118 L 137,126"
             Stroke="#AB785E" StrokeThickness="1.5" Fill="Transparent"/>
