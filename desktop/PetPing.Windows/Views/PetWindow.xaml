@@ -69,8 +69,21 @@
               Content="✓ Done" Background="#FFC79F" Margin="0,0,8,0"
               Click="OnDone" AutomationProperties.Name="Complete this reminder"/>
       <Button x:Name="SnoozeButton" Style="{StaticResource BubbleAction}"
-              Content="Snooze 10m" Margin="0,0,8,0"
+              Content="Snooze 10m" Margin="0,0,3,0"
               Click="OnSnooze" AutomationProperties.Name="Snooze this reminder for ten minutes"/>
+      <Button x:Name="MoreSnoozeButton" Style="{StaticResource BubbleAction}"
+              Content="▾" Width="32" Margin="0,0,8,0"
+              Click="OnMoreSnooze"
+              AutomationProperties.Name="More snooze durations">
+        <Button.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="5 minutes" Tag="5" Click="OnSnoozePreset"/>
+            <MenuItem Header="15 minutes" Tag="15" Click="OnSnoozePreset"/>
+            <MenuItem Header="30 minutes" Tag="30" Click="OnSnoozePreset"/>
+            <MenuItem Header="1 hour" Tag="60" Click="OnSnoozePreset"/>
+          </ContextMenu>
+        </Button.ContextMenu>
+      </Button>
       <Button x:Name="MuteButton" Style="{StaticResource BubbleAction}"
               Content="Mute" Margin="0,0,8,0" Click="OnMute"
               AutomationProperties.Name="Mute this reminder's voice"/>

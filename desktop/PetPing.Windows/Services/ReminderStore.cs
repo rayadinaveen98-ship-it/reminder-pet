@@ -130,14 +130,14 @@ public sealed class ReminderStore
 
     private static void ValidateTitleAndTime(string title, DateTimeOffset dueAt)
     {
-        if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("A reminder needs a name.");
-        if (title.Trim().Length > 120) throw new ArgumentException("Keep the name within 120 characters.");
+        _ = ReminderEditorRules.ValidateTitle(title);
         if (dueAt <= DateTimeOffset.UtcNow) throw new ArgumentException("Choose a future time.");
     }
 
     private static string? ValidateRecurrence(RepeatPattern repeat, string? zoneId)
     {
-        if (!Enum.IsDefined(repeat)) throw new ArgumentException("Unsupported repeat setting.");
+        if (!Enum.IsDefined(repeat) || repeat == RepeatPattern.Custom)
+            throw new ArgumentException("Use AddCustom for custom schedules.");
         if (repeat == RepeatPattern.None) return null;
         zoneId ??= TimeZoneInfo.Local.Id;
         _ = TimeZoneInfo.FindSystemTimeZoneById(zoneId);
@@ -385,7 +385,7 @@ public sealed class ReminderStore
     {
         if (!ReminderRules.CanSnooze(reminder))
             throw new InvalidOperationException("Only reminders that need attention can be snoozed.");
-        if (duration <= TimeSpan.Zero) throw new ArgumentException("Snooze must be positive.");
+        SnoozePolicy.Validate(duration);
         Change(reminder, () =>
         {
             reminder.DueAt = DateTimeOffset.UtcNow.Add(duration);
