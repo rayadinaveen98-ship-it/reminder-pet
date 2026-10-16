@@ -309,11 +309,11 @@
 
           <!-- Three selectable and genuinely distinct WPF vector companions. -->
           <StackPanel x:Name="PetsPage" Visibility="Collapsed">
-            <TextBlock Text="Choose your little companion" Style="{StaticResource SectionHeading}"/>
-            <TextBlock Text="A cat, a puppy or a bunny — every choice changes the actual walking reminder."
+            <TextBlock Text="Choose your companion" Style="{StaticResource SectionHeading}"/>
+            <TextBlock Text="Pick a pet to appear whenever you need a reminder."
                        Style="{StaticResource SecondaryBody}" Margin="0,7,0,19"/>
-            <UniformGrid Columns="3" Margin="0,0,0,15">
-              <Border Style="{StaticResource SoftCard}" Margin="0,0,7,0">
+            <UniformGrid x:Name="PetsChoiceGrid" Columns="3" Margin="0,0,0,15">
+              <Border x:Name="PetCatCard" Style="{StaticResource SoftCard}" Margin="0,0,7,0">
                 <StackPanel>
                   <Viewbox Width="132" Height="180" Stretch="Uniform" HorizontalAlignment="Center">
                     <local:PetCharacter x:Name="PetsCatCharacter"/>
@@ -327,7 +327,7 @@
                           AutomationProperties.Name="Choose Milo the cat"/>
                 </StackPanel>
               </Border>
-              <Border Style="{StaticResource SoftCard}" Margin="7,0,7,0">
+              <Border x:Name="PetDogCard" Style="{StaticResource SoftCard}" Margin="7,0,7,0">
                 <StackPanel>
                   <Viewbox Width="132" Height="180" Stretch="Uniform" HorizontalAlignment="Center">
                     <local:PetCharacter x:Name="PetsDogCharacter"/>
@@ -341,7 +341,7 @@
                           AutomationProperties.Name="Choose Buddy the dog"/>
                 </StackPanel>
               </Border>
-              <Border Style="{StaticResource SoftCard}" Margin="7,0,0,0">
+              <Border x:Name="PetBunnyCard" Style="{StaticResource SoftCard}" Margin="7,0,0,0">
                 <StackPanel>
                   <Viewbox Width="132" Height="180" Stretch="Uniform" HorizontalAlignment="Center">
                     <local:PetCharacter x:Name="PetsBunnyCharacter"/>
@@ -359,10 +359,10 @@
             <Border Style="{StaticResource SoftCard}">
               <StackPanel>
                 <TextBlock x:Name="ActivePetDescription" Style="{StaticResource SecondaryBody}"
-                           Text="Your selection is saved on this computer."/>
+                           Text="Your choice is saved automatically on this computer."/>
                 <WrapPanel Margin="0,13,0,0">
                   <Button Content="Preview active pet" Click="OnTestPet" Background="#EDE7FB"/>
-                  <Button Content="Customize in Pet Studio" Click="OnNavigateStudio"/>
+                  <Button Content="Customize companion" Click="OnNavigateStudio"/>
                 </WrapPanel>
               </StackPanel>
             </Border>
@@ -373,9 +373,9 @@
             <Border Style="{StaticResource SoftCard}" Margin="0,0,0,17">
               <StackPanel>
                 <TextBlock x:Name="StudioTitle" Text="Make Milo your own" Style="{StaticResource SectionHeading}"/>
-                <TextBlock Text="Your changes save automatically and apply to the next reminder."
+                <TextBlock Text="Changes save automatically and apply to future reminders."
                            Style="{StaticResource SecondaryBody}" Margin="0,5,0,13"/>
-                <Border CornerRadius="19" Background="#F5EAF4" Padding="12" Margin="0,0,0,13">
+                <Border CornerRadius="19" Background="{StaticResource HeroBrush}" Padding="12" Margin="0,0,0,13">
                   <Viewbox Width="188" Height="214" Stretch="Uniform" HorizontalAlignment="Center">
                     <local:PetCharacter x:Name="StudioCharacter"/>
                   </Viewbox>
@@ -395,13 +395,14 @@
             <Border Style="{StaticResource SoftCard}" Margin="0,0,0,17">
               <StackPanel>
                 <TextBlock Text="Appearance" Style="{StaticResource SectionHeading}"/>
-                <Grid Margin="0,14,0,0">
+                <Grid x:Name="StudioAppearanceGrid" Margin="0,14,0,0">
+                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
-                  <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                    <TextBlock Text="Coat color" Style="{StaticResource SecondaryBody}" Margin="0,0,0,6"/>
+                  <StackPanel x:Name="StudioAppearanceLeft" Grid.Column="0" Margin="0,0,12,0">
+                    <TextBlock Text="Color" Style="{StaticResource SecondaryBody}" Margin="0,0,0,6"/>
                     <ComboBox x:Name="PetPalettePicker" Height="38" SelectionChanged="OnPetProfileChanged"
                               AutomationProperties.Name="Pet color">
                       <ComboBoxItem Content="Apricot"/><ComboBoxItem Content="Cocoa"/>
@@ -414,8 +415,8 @@
                       <ComboBoxItem Content="Scarf"/>
                     </ComboBox>
                   </StackPanel>
-                  <StackPanel Grid.Column="1" Margin="12,0,0,0">
-                    <TextBlock Text="Pet size" Style="{StaticResource SecondaryBody}" Margin="0,0,0,6"/>
+                  <StackPanel x:Name="StudioAppearanceRight" Grid.Column="1" Margin="12,0,0,0">
+                    <TextBlock Text="Size" Style="{StaticResource SecondaryBody}" Margin="0,0,0,6"/>
                     <ComboBox x:Name="PetSizePicker" Height="38" SelectionChanged="OnPetProfileChanged"
                               AutomationProperties.Name="Pet size">
                       <ComboBoxItem Content="Small"/><ComboBoxItem Content="Medium"/>
@@ -435,19 +436,20 @@
 
             <Border Style="{StaticResource SoftCard}" Margin="0,0,0,17">
               <StackPanel>
-                <TextBlock Text="Actions and voice" Style="{StaticResource SectionHeading}"/>
-                <TextBlock Text="Pick what your pet does when you finish or postpone a reminder."
+                <TextBlock Text="Reactions and voice" Style="{StaticResource SectionHeading}"/>
+                <TextBlock Text="Choose how your pet reacts when you respond."
                            Style="{StaticResource SecondaryBody}" Margin="0,5,0,13"/>
-                <Grid>
+                <Grid x:Name="StudioReactionsGrid">
+                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
-                  <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                    <TextBlock Text="When I say Done" Style="{StaticResource SecondaryBody}" Margin="0,0,0,6"/>
+                  <StackPanel x:Name="StudioReactionsLeft" Grid.Column="0" Margin="0,0,12,0">
+                    <TextBlock Text="When you tap Done" Style="{StaticResource SecondaryBody}" Margin="0,0,0,6"/>
                     <ComboBox x:Name="PetDonePicker" Height="38" SelectionChanged="OnPetProfileChanged">
                       <ComboBoxItem Content="Happy hop"/><ComboBoxItem Content="Little wave"/>
                     </ComboBox>
-                    <TextBlock Text="When I say Snooze" Style="{StaticResource SecondaryBody}" Margin="0,13,0,6"/>
+                    <TextBlock Text="When you tap Snooze" Style="{StaticResource SecondaryBody}" Margin="0,13,0,6"/>
                     <ComboBox x:Name="PetSnoozePicker" Height="38" SelectionChanged="OnPetProfileChanged">
                       <ComboBoxItem Content="Sleepy yawn"/><ComboBoxItem Content="Gentle stretch"/>
                     </ComboBox>
@@ -461,7 +463,7 @@
                       <ComboBoxItem Content="Playful — celebration burst"/>
                     </ComboBox>
                   </StackPanel>
-                  <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                  <StackPanel x:Name="StudioReactionsRight" Grid.Column="1" Margin="12,0,0,0">
                     <TextBlock Text="Repeat spoken reminder" Style="{StaticResource SecondaryBody}"
                                Margin="0,0,0,6"/>
                     <ComboBox x:Name="PetRepeatPicker" Height="38" SelectionChanged="OnPetProfileChanged"
@@ -469,7 +471,7 @@
                       <ComboBoxItem Content="30 seconds"/><ComboBoxItem Content="60 seconds"/>
                       <ComboBoxItem Content="120 seconds"/>
                     </ComboBox>
-                    <TextBlock Text="Voice repeats after each announcement finishes, until you respond or mute it."
+                    <TextBlock Text="Repeats while a reminder is waiting, until you respond or mute it."
                                Style="{StaticResource SecondaryBody}" Margin="0,10,0,0"/>
                   </StackPanel>
                 </Grid>
@@ -479,13 +481,14 @@
             <Border Style="{StaticResource SoftCard}">
               <StackPanel>
                 <TextBlock Text="Arrival and motion" Style="{StaticResource SectionHeading}"/>
-                <TextBlock Text="These preferences also apply to the next pet reminder."
+                <TextBlock Text="Choose where and how your pet appears."
                            Style="{StaticResource SecondaryBody}" Margin="0,5,0,14"/>
-                <Grid>
+                <Grid x:Name="StudioMovementGrid">
+                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
-                  <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                  <StackPanel x:Name="StudioMovementLeft" Grid.Column="0" Margin="0,0,12,0">
                     <TextBlock Text="Arrival side" Style="{StaticResource SecondaryBody}" Margin="0,0,0,7"/>
                     <ComboBox x:Name="PlacementPicker" Height="38" SelectionChanged="OnAppearanceChanged">
                       <ComboBoxItem Content="Random left or right"/>
@@ -495,7 +498,7 @@
                       <ComboBoxItem Content="Bottom left"/>
                     </ComboBox>
                   </StackPanel>
-                  <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                  <StackPanel x:Name="StudioMovementRight" Grid.Column="1" Margin="12,0,0,0">
                     <TextBlock Text="Motion" Style="{StaticResource SecondaryBody}" Margin="0,0,0,7"/>
                     <ComboBox x:Name="MotionPicker" Height="38" SelectionChanged="OnAppearanceChanged">
                       <ComboBoxItem Content="Playful"/><ComboBoxItem Content="Gentle"/>
@@ -503,7 +506,7 @@
                     </ComboBox>
                   </StackPanel>
                 </Grid>
-                <TextBlock Text="Motion Off removes walking and animated reactions, including all effects."
+                <TextBlock Text="Off keeps movement and visual effects disabled."
                            Style="{StaticResource SecondaryBody}" Margin="0,11,0,0"/>
               </StackPanel>
             </Border>
@@ -513,8 +516,8 @@
           <StackPanel x:Name="SettingsPage" Visibility="Collapsed">
             <Border Style="{StaticResource SoftCard}" Margin="0,0,0,17">
               <StackPanel>
-                <TextBlock Text="Reminders and sound" Style="{StaticResource SectionHeading}"/>
-                <TextBlock Text="Choose how PetPing keeps you informed."
+                <TextBlock Text="Voice announcements" Style="{StaticResource SectionHeading}"/>
+                <TextBlock Text="Let your companion speak the reminder title."
                            Style="{StaticResource SecondaryBody}" Margin="0,6,0,17"/>
                 <CheckBox x:Name="VoiceToggle" Content="Speak reminders out loud"
                           Click="OnVoiceToggled" FontSize="14" Margin="0,0,0,14"/>
@@ -526,7 +529,7 @@
             </Border>
             <Border Style="{StaticResource SoftCard}" Margin="0,0,0,17">
               <StackPanel>
-                <TextBlock Text="Windows and startup" Style="{StaticResource SectionHeading}"/>
+                <TextBlock Text="Run in the background" Style="{StaticResource SectionHeading}"/>
                 <CheckBox x:Name="StartupToggle" Content="Start PetPing with Windows"
                           Click="OnStartupToggled" FontSize="14" Margin="0,15,0,0"/>
                 <TextBlock Text="Closing the dashboard keeps reminders running quietly in the system tray."
@@ -535,14 +538,34 @@
             </Border>
             <Border Style="{StaticResource SoftCard}">
               <StackPanel>
-                <TextBlock Text="Your data stays yours" Style="{StaticResource SectionHeading}"/>
-                <TextBlock Text="Reminders, preferences and diagnostics are stored locally. You can open the folder to make a backup."
+                <TextBlock Text="Your data and privacy" Style="{StaticResource SectionHeading}"/>
+                <TextBlock Text="Everything is saved on this PC. No account or cloud connection is needed."
                            Style="{StaticResource SecondaryBody}" Margin="0,8,0,14"/>
                 <Button Content="Open data and diagnostics folder" HorizontalAlignment="Left"
                         Click="OnOpenDataFolder" Background="#F2EEE8"
                         AutomationProperties.Name="Open local reminder data and diagnostics folder"/>
-                <TextBlock Text="PetPing Windows preview • v0.12" FontSize="11"
+                <TextBlock Text="PetPing Windows v0.15 • v0.17 design preview" FontSize="11"
                            Foreground="{StaticResource MutedBrush}" Margin="0,14,0,0"/>
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource SoftCard}" Margin="0,17,0,0">
+              <StackPanel>
+                <TextBlock Text="Need help?" Style="{StaticResource SectionHeading}"/>
+                <TextBlock Text="A few things worth knowing about reminders."
+                           Style="{StaticResource SecondaryBody}" Margin="0,6,0,12"/>
+                <Button x:Name="SettingsHelpToggle" Content="Show quick help"
+                        HorizontalAlignment="Left" Click="OnToggleSettingsHelp"
+                        AutomationProperties.Name="Expand or collapse PetPing help"/>
+                <StackPanel x:Name="SettingsHelpPanel" Visibility="Collapsed" Margin="0,14,0,0">
+                  <TextBlock Text="• Closing the dashboard keeps PetPing running in the Windows tray."
+                             Style="{StaticResource SecondaryBody}" Margin="0,0,0,9"/>
+                  <TextBlock Text="• Quit from the tray menu stops reminders until PetPing starts again."
+                             Style="{StaticResource SecondaryBody}" Margin="0,0,0,9"/>
+                  <TextBlock Text="• While the PC is asleep or off, reminders cannot appear exactly on time."
+                             Style="{StaticResource SecondaryBody}" Margin="0,0,0,9"/>
+                  <TextBlock Text="• Your reminders and companion settings stay on this computer."
+                             Style="{StaticResource SecondaryBody}"/>
+                </StackPanel>
               </StackPanel>
             </Border>
           </StackPanel>

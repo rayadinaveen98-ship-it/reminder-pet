@@ -1,28 +1,21 @@
-# Windows v0.9 installer — packaging notes
+# PetPing Windows installer — current developer preview
 
-## Goal
-Provide an optional per-user desktop installer (Inno Setup 6, no license fee) alongside the portable ZIP. No Windows Store/MSIX registration or code-signing certificate is involved.
+The packaged Windows app is **version 0.15** while the v0.17 Companion Beacon redesign passes quality gates. Do not describe it as a fully released v0.17.
 
-## Build
-Windows GitHub Actions:
-1. Publish Windows x64 self-contained .NET WPF files into artifacts/PetPing-Windows-v0.9/.
-2. Use Chocolatey to install the free Inno Setup 6 compiler on the ephemeral Windows runner.
-3. Compile installer/PetPing.iss to artifacts/PetPing-Installer-v0.9/PetPing-Setup-v0.9-unsigned.exe.
-4. Run an automated **silent install -> check executable -> silent uninstall** sequence with a sentinel file inside LocalAppData/PetPing, verifying that user reminder data survives.
-5. Upload both portable ZIP and installer EXE as time-limited workflow artifacts.
+## Build (Windows)
+- Requirements: free .NET 10 SDK, Windows PowerShell (STA), Inno Setup 6 for the installer.
+- Run `desktop/BUILD_WINDOWS.cmd`, or `dotnet publish desktop/PetPing.Windows/PetPing.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false`.
+- The app project runs `tools/Build-BrandIcons.ps1` automatically before compilation. The script loads selected original `BrandMark.xaml` and generates 7 ICO sizes inside `desktop/PetPing.Windows/Assets/PetPing.ico`.
+- Build Inno Setup using `installer/PetPing.iss` after the app publishes to `artifacts/PetPing-Windows-v0.15/`. Setup icon and executable/shortcuts use the same approved logo.
+- GitHub Windows Actions builds and uploads an unsigned portable package and per-user installer. It validates icon frames, publishes WPF, and runs data-preserving upgrade/install/uninstall smokes.
 
-## Scope/safety
-- Installs into current user's %LOCALAPPDATA%\Programs\PetPing, with a Start Menu shortcut and optional desktop shortcut.
-- No admin privileges requested.
-- Installer asks Windows to close affected running apps to replace executables when possible. Best practice: explicitly Quit the tray app before running setup.
-- Upgrades preserve reminders/preferences/diagnostics because they reside outside the install directory.
-- When a prior Start with Windows entry for PetPing exists, installation rewrites it to the new installed EXE; uninstall removes that registry value only if it points to the exact installed EXE.
-- Uninstallation never deletes %LOCALAPPDATA%\PetPing. If the user wants to delete personal data, that must be a separate explicit step.
-- No background auto-updater, cloud networking or telemetry added.
-- **Unsigned**: Windows SmartScreen may display a warning. Signing/reputation and a trusted installer UX are separate beta distribution gates.
+## Data/privacy and upgrade
+- Installed for current user under `%LOCALAPPDATA%\Programs\PetPing`; requires no administrator privileges.
+- Reminder/profile JSON is under `%LOCALAPPDATA%\PetPing`, outside the app folder. Installer upgrades and uninstall **must not delete or overwrite** it.
+- App's existing Start with Windows setting remains opt-in; installer remaps existing entry only if it belongs to PetPing.
+- This is unsigned preview software. Windows SmartScreen may show a warning. No auto-updater, cloud sync, or telemetry is added.
 
-## Manual QA pending
-Test installation on a normal Windows account, upgrade from a portable build, Start with Windows persistence, Windows uninstall UI, high-DPI dashboard and actual lock/wake behavior. CI proves packaging and simple lifecycle only, not user-facing visual perfection.
-
-## v0.9 beta-quality smoke
-CI runs setup twice into the same per-user folder, verifies the installed executable and LocalAppData sentinel after the second install, then uninstalls and verifies the sentinel remains. This is a **repair/reinstall** smoke test, not a fully historical v0.8→v0.9 upgrade test. Physical upgrade acceptance is still required.
+## Still requires physical acceptance
+- Inspect 16px/24px taskbar, dark taskbar, Start menu, installer icon and Windows titlebar on actual hardware.
+- Verify 810x640 layouts, 100–200% DPI and text scaling, keyboard/high contrast, switch Cat/Dog/Bunny, voice, quit and sleep/wake behavior.
+- CI builds and synthetic data-preservation tests do **not** prove physical alert delivery or usability.

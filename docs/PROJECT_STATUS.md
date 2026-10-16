@@ -37,7 +37,8 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Native WPF changes: selected Companion Beacon vector, shared theme ResourceDictionary, branded sidebar, refined Home/Reminders, compact-width reflow for metrics/date/time/repeat fields, runtime-generated brand tray/window icons with OS fallback.
 - Fixed the previously unassigned MainWindow reminder-changed callback, which could fail when editing an upcoming reminder. Reminder scheduling/storage schema and saved pet profiles are not altered.
 - Windows CI verified the existing core regression suite, native compilation and upgrade preservation. Real hardware DPI/voice/sleep/lock and final packaged multi-resolution installer logo remain unapproved. This is **not** a fully released v0.17.
-- Stage C after brand readiness: My Pets, Pet Studio, Settings full visual consistency and user walkthrough. Advanced recurrence stays v0.18.
+- Stage B packaged-icon + Stage C native UI polish is in progress in PR #18: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/18 . Source generates 16–256px branded Windows ICO from Logo C, embeds it in executable and installer, and refines My Pets/Pet Studio/Settings layouts with actual saved profiles/settings. Physical Windows visual/user acceptance is still pending.
+- Stage C user walkthrough, installer QA and physical DPI/voice/sleep remain required before declaring v0.17 complete. Advanced recurrence stays v0.18.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.

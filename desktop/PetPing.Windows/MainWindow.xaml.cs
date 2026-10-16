@@ -59,6 +59,7 @@ public partial class MainWindow : Window
         InboxPicker.SelectedIndex = 0;
         RefreshList();
         NavigateTo(DashboardPage.Home);
+        Loaded += (_, _) => ApplyResponsiveLayout(ActualWidth);
         Closing += (_, e) => { if (!_reallyQuit) { e.Cancel = true; Hide(); } };
     }
 
@@ -104,34 +105,70 @@ public partial class MainWindow : Window
         HomeEmptyNext.Visibility = snapshot.NextReminders.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    // At compact window widths preserve full-size controls instead of squeezing
-    // date, time and recurrence into unreadable columns.
-    private void OnWindowResized(object sender, SizeChangedEventArgs e)
+    // Keep date/time inputs, pet choices and advanced Studio controls readable.
+    private void OnWindowResized(object sender, SizeChangedEventArgs e) =>
+        ApplyResponsiveLayout(e.NewSize.Width);
+
+    private void ApplyResponsiveLayout(double width)
     {
         if (ReminderFieldsGrid is null || HomeMetricsGrid is null ||
             ReminderDateGroup is null || ReminderTimeGroup is null ||
-            ReminderRepeatGroup is null || ReminderFieldsActions is null)
+            ReminderRepeatGroup is null || ReminderFieldsActions is null ||
+            PetsChoiceGrid is null || StudioAppearanceGrid is null ||
+            StudioReactionsGrid is null || StudioMovementGrid is null)
             return;
 
-        var compact = ActualWidth < 1010;
+        var compact = width < 1010;
         HomeMetricsGrid.Columns = compact ? 1 : 3;
+        PetsChoiceGrid.Columns = compact ? 1 : 3;
 
+        // Wrap three form fields rather than narrowing each into a tiny input.
         var columns = ReminderFieldsGrid.ColumnDefinitions;
         for (var i = 0; i < columns.Count; i++)
             columns[i].Width = new GridLength(compact && i > 0 ? 0 : 1,
                 GridUnitType.Star);
-
         Grid.SetRow(ReminderDateGroup, 0);
         Grid.SetRow(ReminderTimeGroup, compact ? 1 : 0);
         Grid.SetRow(ReminderRepeatGroup, compact ? 2 : 0);
         Grid.SetColumn(ReminderDateGroup, 0);
         Grid.SetColumn(ReminderTimeGroup, compact ? 0 : 1);
         Grid.SetColumn(ReminderRepeatGroup, compact ? 0 : 2);
-        ReminderDateGroup.Margin = compact ? new Thickness(0, 0, 0, 12) : new Thickness(0, 0, 12, 0);
-        ReminderTimeGroup.Margin = compact ? new Thickness(0, 0, 0, 12) : new Thickness(0, 0, 12, 0);
-
+        ReminderDateGroup.Margin = compact
+            ? new Thickness(0, 0, 0, 12) : new Thickness(0, 0, 12, 0);
+        ReminderTimeGroup.Margin = compact
+            ? new Thickness(0, 0, 0, 12) : new Thickness(0, 0, 12, 0);
         Grid.SetRow(ReminderFieldsActions, compact ? 3 : 1);
         Grid.SetColumnSpan(ReminderFieldsActions, compact ? 1 : 3);
+
+        ConfigureStudioGrid(StudioAppearanceGrid, StudioAppearanceLeft,
+            StudioAppearanceRight, compact);
+        ConfigureStudioGrid(StudioReactionsGrid, StudioReactionsLeft,
+            StudioReactionsRight, compact);
+        ConfigureStudioGrid(StudioMovementGrid, StudioMovementLeft,
+            StudioMovementRight, compact);
+
+        // At narrow widths each pet card uses the full readable row.
+        PetCatCard.Margin = compact ? new Thickness(0, 0, 0, 12)
+            : new Thickness(0, 0, 7, 0);
+        PetDogCard.Margin = compact ? new Thickness(0, 0, 0, 12)
+            : new Thickness(7, 0, 7, 0);
+        PetBunnyCard.Margin = compact ? new Thickness(0)
+            : new Thickness(7, 0, 0, 0);
+    }
+
+    private static void ConfigureStudioGrid(Grid grid, FrameworkElement left,
+        FrameworkElement right, bool compact)
+    {
+        grid.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
+        grid.ColumnDefinitions[1].Width = compact
+            ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+        Grid.SetRow(left, 0);
+        Grid.SetRow(right, compact ? 1 : 0);
+        Grid.SetColumn(left, 0);
+        Grid.SetColumn(right, compact ? 0 : 1);
+        left.Margin = compact ? new Thickness(0, 0, 0, 14)
+            : new Thickness(0, 0, 12, 0);
+        right.Margin = compact ? new Thickness(0) : new Thickness(12, 0, 0, 0);
     }
 
     private void NavigateTo(DashboardPage page)
@@ -148,7 +185,7 @@ public partial class MainWindow : Window
             DashboardPage.Home => ("Home", "Your companion and today's plans."),
             DashboardPage.Reminders => ("Reminders", "Make space for what matters."),
             DashboardPage.Pets => ("My Pets", "Meet your little desktop companions."),
-            DashboardPage.Studio => ("Pet Studio", "Make Milo feel more like your own."),
+            DashboardPage.Studio => ("Pet Studio", "Customize your companion."),
             _ => ("Settings", "PetPing, just the way you like it.")
         };
 
@@ -209,6 +246,29 @@ public partial class MainWindow : Window
         CatSelectButton.IsEnabled = p.Species != PetSpecies.Cat;
         DogSelectButton.IsEnabled = p.Species != PetSpecies.Dog;
         BunnySelectButton.IsEnabled = p.Species != PetSpecies.Bunny;
+        SetPetCardSelection(PetCatCard, p.Species == PetSpecies.Cat);
+        SetPetCardSelection(PetDogCard, p.Species == PetSpecies.Dog);
+        SetPetCardSelection(PetBunnyCard, p.Species == PetSpecies.Bunny);
+    }
+
+    private static void SetPetCardSelection(Border card, bool selected)
+    {
+        card.Background = new SolidColorBrush(selected
+            ? System.Windows.Media.Color.FromRgb(242, 238, 255)
+            : System.Windows.Media.Colors.White);
+        card.BorderBrush = new SolidColorBrush(selected
+            ? System.Windows.Media.Color.FromRgb(117, 98, 212)
+            : System.Windows.Media.Color.FromRgb(222, 220, 228));
+        card.BorderThickness = new Thickness(selected ? 2 : 1);
+    }
+
+    private void OnToggleSettingsHelp(object sender, RoutedEventArgs e)
+    {
+        var open = SettingsHelpPanel.Visibility != Visibility.Visible;
+        SettingsHelpPanel.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+        SettingsHelpToggle.Content = open ? "Hide quick help" : "Show quick help";
+        System.Windows.Automation.AutomationProperties.SetName(
+            SettingsHelpToggle, open ? "Hide PetPing help" : "Show PetPing help");
     }
 
     private void SelectPet(PetSpecies species)

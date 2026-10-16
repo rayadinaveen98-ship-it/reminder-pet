@@ -11,7 +11,13 @@
     <FileVersion>0.15.0.0</FileVersion>
     <InformationalVersion>0.15.0-preview</InformationalVersion>
     <RootNamespace>PetPing.Windows</RootNamespace>
+    <ApplicationIcon>Assets\PetPing.ico</ApplicationIcon>
   </PropertyGroup>
+  <!-- Always regenerate from the selected WPF vector for IDE and CI builds. -->
+  <Target Name="GenerateCompanionBeaconIco" BeforeTargets="PrepareForBuild"
+          Condition="'$(OS)' == 'Windows_NT'">
+    <Exec Command="powershell.exe -NoLogo -NoProfile -STA -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\tools\Build-BrandIcons.ps1&quot;" />
+  </Target>
   <ItemGroup>
     <PackageReference Include="System.Speech" Version="10.0.13" />
   </ItemGroup>

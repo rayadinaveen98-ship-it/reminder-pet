@@ -23,3 +23,10 @@ No physical device test is claimed completed.
 - Final pre-merge Windows Actions: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38919598234 — **success** (static XAML validation, core tests, Windows x64 publish, installer, real v0.14→v0.15 upgrade data preservation, installation smoke).
 - UI side effects not verified by CI: actual tray icon appearance, window titlebar, small-screen typography/DPI, reminders after sleep/lock, motion and narration. Do not mark these passed without physical evidence.
 - Packaged multiresolution ICO and branded installer EXE remain open; no v0.17 signed release or version bump.
+
+## 2026-10-16 — next-stage work in PR #18
+- Multi-resolution Companion Beacon icon generation now uses original WPF `BrandMark.xaml` on a local Windows STA thread. Frames: 16/24/32/48/64/128/256px; no remote art, paid APIs, bundled third-party font or binary artwork dependency.
+- `PetPing.Windows.csproj` regenerates the ICO before build and sets `ApplicationIcon`; Inno Setup uses it as `SetupIconFile`. The normal developer Windows build script implicitly runs that target as well.
+- UI refinements: honest readable labels, highlighted selected pet, responsive stacked pet cards and two-column Studio groups on compact windows, accessible Settings help that expands only when requested.
+- Installer and source version remain 0.15.0 in this integration slice; v0.17 release approval has NOT occurred.
+- PR #18: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/18 . Await latest Windows CI, physical small-icon inspection and actual Windows layout/speech/lock testing. Preserve all local reminder and profile data.
