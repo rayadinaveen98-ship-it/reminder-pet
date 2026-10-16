@@ -406,18 +406,12 @@ public partial class MainWindow : Window
     public void OpenDashboard() { Show(); WindowState = WindowState.Normal; Activate(); }
     public void AllowQuit() => _reallyQuit = true;
 
-    private static RepeatPattern PickerPattern(int index) => index switch
-    {
-        0 => RepeatPattern.None,
-        1 => RepeatPattern.Daily,
-        2 => RepeatPattern.Weekly,
-        3 => RepeatPattern.Custom,
-        _ => throw new ArgumentException("Choose a repeat option.")
-    };
+    private static RepeatPattern PickerPattern(int index) =>
+        index == 3 ? RepeatPattern.Custom : ReminderEditorRules.SelectRepeat(index);
 
     private void SetDefaultWhen()
     {
-        var local = DateTimeOffset.Now.AddMinutes(5).ToLocalTime();
+        var local = ReminderEditorRules.DefaultLocalDue(DateTimeOffset.Now, TimeZoneInfo.Local);
         ReminderDate.SelectedDate = local.Date;
         ReminderTime.Text = local.ToString("HH:mm", CultureInfo.InvariantCulture);
     }
@@ -431,21 +425,9 @@ public partial class MainWindow : Window
         return time;
     }
 
-    private DateTimeOffset ReadDueAt()
-    {
-        if (ReminderDate.SelectedDate is not DateTime date)
-            throw new ArgumentException("Please choose a date.");
-        var time = ReadClockTime();
-        var local = DateTime.SpecifyKind(date.Date.Add(time), DateTimeKind.Unspecified);
-        if (TimeZoneInfo.Local.IsInvalidTime(local))
-            throw new ArgumentException("That time does not exist because the clocks change. Choose another.");
-        if (TimeZoneInfo.Local.IsAmbiguousTime(local))
-            throw new ArgumentException("That time happens twice because the clocks change. Choose another.");
-        var due = new DateTimeOffset(local, TimeZoneInfo.Local.GetUtcOffset(local));
-        if (due <= DateTimeOffset.UtcNow)
-            throw new ArgumentException("Choose a future date and time.");
-        return due;
-    }
+    private DateTimeOffset ReadDueAt() =>
+        ReminderEditorRules.ReadLocalDue(ReminderDate.SelectedDate, ReminderTime.Text,
+            TimeZoneInfo.Local, DateTimeOffset.Now);
 
     private System.Windows.Controls.CheckBox[] WeekdayCheckBoxes() =>
         [RepeatMon, RepeatTue, RepeatWed, RepeatThu, RepeatFri, RepeatSat, RepeatSun];
@@ -577,6 +559,7 @@ public partial class MainWindow : Window
         QuickAddButton.IsEnabled = false;
         try
         {
+            var title = ReminderEditorRules.ValidateTitle(ReminderName.Text);
             var repeat = PickerPattern(RepeatPicker.SelectedIndex);
             if (_editing is { } existing &&
                 (existing.Repeat == RepeatPattern.Custom) != (repeat == RepeatPattern.Custom))
@@ -588,7 +571,7 @@ public partial class MainWindow : Window
                 var (clock, options) = ReadCustomSchedule();
                 if (_editing is { } customReminder)
                 {
-                    _store.EditCustom(customReminder, ReminderName.Text,
+                    _store.EditCustom(customReminder, title,
                         clock, TimeZoneInfo.Local.Id, options);
                     _reminderChanged(customReminder);
                 }
@@ -636,7 +619,7 @@ public partial class MainWindow : Window
         QuickAddButton.IsEnabled = false;
         try
         {
-            _store.Add(ReminderName.Text, DateTimeOffset.Now.AddMinutes(1),
+            _store.Add(ReminderEditorRules.ValidateTitle(ReminderName.Text), DateTimeOffset.Now.AddMinutes(1),
                 PickerPattern(RepeatPicker.SelectedIndex));
             ResetForm();
             RefreshList();
@@ -754,6 +737,34 @@ public partial class MainWindow : Window
         { ShowError("Could not mark reminder done: " + ex.Message); }
     }
 
+    private void OnSnoozeDurationChanged(object sender,
+        SelectionChangedEventArgs e)
+    {
+        if (SnoozeDurationPicker is null || CustomSnoozeMinutes is null) return;
+        var isCustom = (SnoozeDurationPicker.SelectedItem as ComboBoxItem)?.Tag as string
+            == "custom";
+        CustomSnoozeMinutes.Visibility = isCustom
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private TimeSpan ReadSnoozeDuration()
+    {
+        var selected = (SnoozeDurationPicker.SelectedItem as ComboBoxItem)?.Tag as string;
+        if (selected == "custom")
+        {
+            var value = CustomSnoozeMinutes.Text.Trim();
+            if (!int.TryParse(value, System.Globalization.NumberStyles.None,
+                CultureInfo.InvariantCulture, out var customMinutes))
+                throw new ArgumentException("Enter a whole number of minutes (1–1440).");
+            return SnoozePolicy.FromMinutes(customMinutes);
+        }
+        if (!int.TryParse(selected, System.Globalization.NumberStyles.None,
+            CultureInfo.InvariantCulture, out var minutes) ||
+            !SnoozePolicy.Presets.Contains(minutes))
+            throw new ArgumentException("Choose a valid snooze duration.");
+        return SnoozePolicy.FromMinutes(minutes);
+    }
+
     private void OnSelectedSnooze(object sender, RoutedEventArgs e)
     {
         var reminder = SelectedOrWarn();
@@ -765,12 +776,14 @@ public partial class MainWindow : Window
         }
         try
         {
-            _store.Snooze(reminder, TimeSpan.FromMinutes(10));
+            var duration = ReadSnoozeDuration();
+            _store.Snooze(reminder, duration);
             _reminderChanged(reminder);
             ErrorToast.Visibility = Visibility.Collapsed;
             RefreshList();
         }
-        catch (Exception ex) when (ex is IOException or InvalidOperationException)
+        catch (Exception ex) when (ex is IOException or InvalidOperationException
+            or ArgumentException)
         { ShowError("Couldn't save snooze: " + ex.Message); }
     }
 
