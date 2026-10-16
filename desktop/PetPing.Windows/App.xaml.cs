@@ -40,7 +40,7 @@ public partial class App : System.Windows.Application
         {
             _diagnostics = new DiagnosticsLog();
             _diagnostics.Record("app_started");
-            _store = new ReminderStore();
+            _store = OpenStoreWithOptionalRecovery();
             _speechSettings = new SpeechSettings();
             _appearance = new PetAppearanceSettings();
             _voice = new VoiceService { Enabled = _speechSettings.Enabled };
@@ -80,6 +80,48 @@ public partial class App : System.Windows.Application
             System.Windows.MessageBox.Show("PetPing couldn't start. Your reminders were not erased.\n\n" + ex.Message,
                 "Startup error", MessageBoxButton.OK, MessageBoxImage.Error);
             Quit();
+        }
+    }
+
+    private ReminderStore OpenStoreWithOptionalRecovery()
+    {
+        try { return new ReminderStore(); }
+        catch (Exception error) when (error is System.Text.Json.JsonException or InvalidDataException)
+        {
+            _diagnostics?.Record("reminder_file_invalid", error);
+            if (!ReminderStore.HasValidBackup())
+                throw new InvalidDataException(
+                    "The reminder file cannot be read and no usable backup was found. " +
+                    "The original file has NOT been erased. Open %LOCALAPPDATA%\\PetPing " +
+                    "to make a safe copy before attempting repairs.", error);
+
+            var result = System.Windows.MessageBox.Show(
+                "PetPing cannot read the saved reminder file.\\n\\n" +
+                "A valid backup from BEFORE your most recent save is available. " +
+                "Restoring it may remove newer reminder changes.\\n\\n" +
+                "The damaged original will be kept separately for recovery.\\n\\n" +
+                "Restore the older backup and continue?",
+                "Restore previous reminder backup?",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No);
+
+            if (result != MessageBoxResult.Yes)
+                throw new InvalidDataException(
+                    "Recovery cancelled. Your saved reminder file and backup were left unchanged.", error);
+
+            var retainedPath = ReminderStore.RestoreBackupAfterConfirmation();
+            _diagnostics?.Record("reminder_backup_restored");
+            var restored = new ReminderStore();
+            System.Windows.MessageBox.Show(
+                "The backup was restored. Some recent changes may be missing.\\n\\n" +
+                (string.IsNullOrEmpty(retainedPath)
+                    ? "The previous backup remains in your PetPing data folder."
+                    : "The unreadable file has been kept separately in your PetPing data folder."),
+                "Reminders restored",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return restored;
         }
     }
 
