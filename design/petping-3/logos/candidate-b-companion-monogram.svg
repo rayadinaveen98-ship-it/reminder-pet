@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="PetPing Companion Monogram logo candidate B">
+<title>PetPing logo candidate B Companion Monogram</title>
+<rect x="14" y="14" width="228" height="228" rx="65" fill="#FFE7D8"/>
+<path d="M79 207V67c0-9 7-16 16-16h43c38 0 68 27 68 65s-30 64-68 64h-24v27c0 10-7 17-17 17-11 0-18-7-18-17z" fill="#302457"/>
+<path d="M114 91h23c15 0 26 10 26 25s-11 25-26 25h-23z" fill="#FFE7D8"/>
+<circle cx="166" cy="56" r="12" fill="#7562D4"/>
+<circle cx="189" cy="60" r="5.5" fill="#7562D4"/>
+<circle cx="198" cy="76" r="4" fill="#7562D4"/>
+<path d="M163 42c1-11 11-18 22-17" fill="none" stroke="#7562D4" stroke-width="5" stroke-linecap="round"/>
+</svg>
