@@ -154,7 +154,8 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] v0.12 Home counts/next reminders driven by actual saved data, with deterministic core tests
 - [x] v0.12 retain existing reminder editor, filters, voice, start-at-login, pet appearance and tray flow
 - [x] v0.12 honestly mark Dog/Bunny and behavior customization as coming soon, without fake state controls
-- [ ] v0.12 Windows CI build, installer preservation check, merge and physical laptop UI acceptance
+- [x] v0.12 Windows CI green (91 checks), installer preservation and PR #11 merge
+- [ ] v0.12 physical Windows layout, navigation, high DPI, voice and reminder acceptance
 - [ ] v0.13 native Cat/Dog/Bunny characters, profile storage and genuine customization with previews
 - [ ] v0.14 walk/action effects, pet-specific reactions, celebration and snooze animations
 - [ ] v0.15 integration QA, accessibility, DPI, Windows upgrade data retention and perf
