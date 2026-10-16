@@ -160,6 +160,6 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 ## v0.13 multi-pet system (source in development)
 - Three species: **Milo Cat**, **Buddy Dog**, **Luna Bunny**, distinct original vector anatomy and actual walking reminder behavior. My Pets selection genuinely changes the overlay.
 - Pet Studio customization: 4 coats, 3 accessories, 3 sizes, 3 personalities, two Done and two Snooze action variations, 30/60/120-second voice repeat; existing placement/motion controls remain.
-- All options persist locally in an independent versioned `pet-profile.json`; old `reminders.json` and `pet-appearance.json` remain unchanged.
+- Each pet retains its **own** saved appearance/actions when switching species; selections persist locally in a versioned `pet-profile.json`; old `reminders.json` and `pet-appearance.json` remain unchanged.
 - Profile corruption falls back to defaults without wiping reminders or the corrupt file; invalid values and failed writes cannot change last saved settings.
 - v0.14 adds richer actions/visual effects; v0.13 provides the functional foundation, not full effects. Windows CI and physical UI QA pending at this checkpoint.
