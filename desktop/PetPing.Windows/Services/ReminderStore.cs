@@ -112,8 +112,7 @@ public sealed class ReminderStore
 
     private static void ValidateTitleAndTime(string title, DateTimeOffset dueAt)
     {
-        if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("A reminder needs a name.");
-        if (title.Trim().Length > 120) throw new ArgumentException("Keep the name within 120 characters.");
+        _ = ReminderEditorRules.ValidateTitle(title);
         if (dueAt <= DateTimeOffset.UtcNow) throw new ArgumentException("Choose a future time.");
     }
 
