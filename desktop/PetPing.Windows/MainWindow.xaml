@@ -210,22 +210,27 @@
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
                   <StackPanel x:Name="ReminderDateGroup" Grid.Column="0" Margin="0,0,12,0">
-                    <TextBlock Text="Date" Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
+                    <TextBlock x:Name="ReminderDateLabel" Text="Date"
+                               Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
                     <DatePicker x:Name="ReminderDate" Height="38"
+                                SelectedDateChanged="OnRepeatEditorChanged"
                                 AutomationProperties.Name="Reminder date"/>
                   </StackPanel>
                   <StackPanel x:Name="ReminderTimeGroup" Grid.Column="1" Margin="0,0,12,0">
                     <TextBlock Text="Time (24h)" Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
                     <TextBox x:Name="ReminderTime" Text="19:00"
+                             MaxLength="5" TextChanged="OnRepeatEditorChanged"
                              AutomationProperties.Name="Reminder time in 24-hour format"/>
                   </StackPanel>
                   <StackPanel x:Name="ReminderRepeatGroup" Grid.Column="2">
                     <TextBlock Text="Repeat" Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
                     <ComboBox x:Name="RepeatPicker" Height="38" FontSize="13" SelectedIndex="0"
+                              SelectionChanged="OnRepeatPickerChanged"
                               AutomationProperties.Name="Repeat frequency">
                       <ComboBoxItem Content="One time"/>
                       <ComboBoxItem Content="Every day"/>
                       <ComboBoxItem Content="Every week"/>
+                      <ComboBoxItem Content="Custom schedule"/>
                     </ComboBox>
                   </StackPanel>
                   <WrapPanel x:Name="ReminderFieldsActions" Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Right"
@@ -239,6 +244,57 @@
                             Click="OnAddReminder"/>
                   </WrapPanel>
                 </Grid>
+                <Border x:Name="CustomRepeatPanel" Visibility="Collapsed"
+                        Background="#FAF8FF" CornerRadius="12"
+                        BorderBrush="#DAD1F6" BorderThickness="1"
+                        Padding="14" Margin="0,13,0,0">
+                  <StackPanel>
+                    <TextBlock Text="Custom repeat" Style="{StaticResource SectionHeading}"
+                               FontSize="15" Margin="0,0,0,5"/>
+                    <TextBlock Text="Choose your schedule. The date above is when it starts."
+                               Style="{StaticResource SecondaryBody}" TextWrapping="Wrap"
+                               Margin="0,0,0,12"/>
+                    <ComboBox x:Name="CustomRepeatKindPicker" Height="38"
+                              SelectedIndex="0" SelectionChanged="OnCustomRepeatChanged"
+                              AutomationProperties.Name="Custom repeat type">
+                      <ComboBoxItem Content="On selected weekdays"/>
+                      <ComboBoxItem Content="Every few days"/>
+                    </ComboBox>
+                    <WrapPanel Margin="0,12,0,8" VerticalAlignment="Center">
+                      <TextBlock Text="Every" VerticalAlignment="Center"
+                                 Style="{StaticResource SecondaryBody}" Margin="0,0,9,0"/>
+                      <TextBox x:Name="CustomInterval" Text="1" MaxLength="3"
+                               Width="64" TextChanged="OnRepeatEditorChanged"
+                               AutomationProperties.Name="Custom repeat interval"/>
+                      <TextBlock x:Name="CustomIntervalUnit" Text="week(s)"
+                                 VerticalAlignment="Center" Margin="9,0,0,0"
+                                 Style="{StaticResource SecondaryBody}"/>
+                    </WrapPanel>
+                    <WrapPanel x:Name="CustomWeekdays" Margin="0,6,0,7">
+                      <CheckBox x:Name="RepeatMon" Content="Mon" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Monday"/>
+                      <CheckBox x:Name="RepeatTue" Content="Tue" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Tuesday"/>
+                      <CheckBox x:Name="RepeatWed" Content="Wed" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Wednesday"/>
+                      <CheckBox x:Name="RepeatThu" Content="Thu" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Thursday"/>
+                      <CheckBox x:Name="RepeatFri" Content="Fri" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Friday"/>
+                      <CheckBox x:Name="RepeatSat" Content="Sat" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Saturday"/>
+                      <CheckBox x:Name="RepeatSun" Content="Sun" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Sunday"/>
+                    </WrapPanel>
+                    <TextBlock Text="Custom repeats are saved on this PC. Earlier completed reminders stay unchanged."
+                               Style="{StaticResource SecondaryBody}" TextWrapping="Wrap"/>
+                  </StackPanel>
+                </Border>
+                <TextBlock x:Name="RepeatSchedulePreview"
+                           Text="Choose a date, time and repeat setting."
+                           Style="{StaticResource SecondaryBody}"
+                           TextWrapping="Wrap" Margin="0,12,0,0"
+                           AutomationProperties.Name="Next scheduled reminder"/>
               </StackPanel>
             </Border>
 
