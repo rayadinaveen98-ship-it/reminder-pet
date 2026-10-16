@@ -79,18 +79,13 @@ public partial class MainWindow : Window
         };
 
         // Dashboard summary is derived from the same local reminder store.
-        HomeTodayCount.Text = ReminderInboxRules.Count(
-            _store.Reminders, InboxFilter.Today, DateTime.Today).ToString();
-        HomeUpcomingCount.Text = upcoming.ToString();
-        HomeAttentionCount.Text = attention.ToString();
-        var next = _store.Reminders
-            .Where(r => r.Status == ReminderStatus.Pending)
-            .OrderBy(r => r.DueAt)
-            .Take(3)
-            .ToArray();
-        HomeNextList.ItemsSource = next;
-        HomeNextList.Visibility = next.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
-        HomeEmptyNext.Visibility = next.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+        var snapshot = DashboardSummaryRules.Build(_store.Reminders, DateTime.Today);
+        HomeTodayCount.Text = snapshot.TodayCount.ToString();
+        HomeUpcomingCount.Text = snapshot.UpcomingCount.ToString();
+        HomeAttentionCount.Text = snapshot.AttentionCount.ToString();
+        HomeNextList.ItemsSource = snapshot.NextReminders;
+        HomeNextList.Visibility = snapshot.NextReminders.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        HomeEmptyNext.Visibility = snapshot.NextReminders.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void NavigateTo(DashboardPage page)
