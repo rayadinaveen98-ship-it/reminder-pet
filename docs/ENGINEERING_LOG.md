@@ -29,3 +29,8 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - v0.5 package: `PetPing-Windows-v0.5-unsigned.zip` (artifact 12029754579); ZIP verified readable with executable inside. The ZIP is not an installed/signed Windows package.
 - Required next step: physical Windows QA for tray/voice/lock/sleep and report any failures. Do not mark manual testing as done by inference.
 - User's continuity requirement: this log + `docs/PROJECT_STATUS.md` and README are the durable reference for future chats. Update them whenever milestone code/test/status changes.
+
+## 2026-10-16 — v0.6 kickoff
+- User approved proceeding after v0.5 and said that the test is good; detailed locked-screen/sleep/voice device-by-device evidence is not yet recorded, so the production reliability gate remains open.
+- Scope: Windows-first edit **pending** reminders and repeat daily/weekly; retain individual occurrence history and prevent duplicate future occurrences. The first implementation has no custom weekly-day selection or multi-device sync.
+- Plan: add a recurrence engine with timezone-aware local wall time, atomic occurrence advancement during delivery/miss; UI edit/create controls; regression tests including restart, long downtime and DST. Run Windows CI, review and merge. Update PROJECT_STATUS and ROADMAP on completion.
