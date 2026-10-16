@@ -27,7 +27,6 @@ public sealed class ReminderStore
     public void Load()
     {
         if (!File.Exists(_dataPath)) { Reminders = []; return; }
-        // Invalid JSON must never cause the user data to be silently reset.
         var restored = JsonSerializer.Deserialize<List<Reminder>>(File.ReadAllText(_dataPath), JsonOptions)
             ?? throw new InvalidDataException("Your reminder file is invalid; it has not been erased.");
         if (restored.Any(r => r.Id == Guid.Empty || string.IsNullOrWhiteSpace(r.Title)))
@@ -41,7 +40,6 @@ public sealed class ReminderStore
     {
         var temp = _dataPath + ".tmp";
         var backup = _dataPath + ".bak";
-        // Flush before replacing. On Windows, File.Replace keeps a last-known backup.
         using (var stream = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
         {
             JsonSerializer.Serialize(stream, Reminders, JsonOptions);
@@ -73,6 +71,8 @@ public sealed class ReminderStore
 
     public void Snooze(Reminder reminder, TimeSpan duration)
     {
+        if (!ReminderRules.CanSnooze(reminder))
+            throw new InvalidOperationException("Only reminders that need attention can be snoozed.");
         if (duration <= TimeSpan.Zero) throw new ArgumentException("Snooze must be positive.");
         reminder.DueAt = DateTimeOffset.UtcNow.Add(duration);
         reminder.Status = ReminderStatus.Pending;

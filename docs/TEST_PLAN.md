@@ -42,3 +42,10 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Corrupt `settings.json`: reminders should still start with default voice settings; settings data must not be silently erased.
 - Force-stop with an unanswered alert and relaunch within 15 minutes; the pet alert should reappear.
 - Force-stop and relaunch after 15 minutes: app should show the alert in history, not replay it over apps.
+
+## v0.3 device-specific acceptance tests
+- **Popup timeout:** let the pet fade/close after 45 seconds; dashboard must still show Needs Attention; Snooze should schedule another attempt.
+- **Session lock:** lock the session while the pet is onscreen; it must not speak or draw on the secure lock screen, and should reappear after unlocking.
+- **Manual action consistency:** with a pet visible, mark that reminder Done (or Snooze) from the dashboard; the old pet should close.
+- **Missed batch:** create several reminders, leave device unavailable until 16+ minutes overdue, then relaunch; one tray summary may appear, all should remain in history as Missed.
+- **No false promise:** Windows may suppress tray balloons; do not rely on them as the only notification.

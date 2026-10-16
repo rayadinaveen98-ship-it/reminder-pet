@@ -11,15 +11,18 @@ public partial class MainWindow : Window
     private readonly VoiceService _voice;
     private readonly SpeechSettings _speechSettings;
     private readonly Action _testPet;
+    private readonly Action<Reminder> _reminderChanged;
     private bool _reallyQuit;
 
-    public MainWindow(ReminderStore store, VoiceService voice, SpeechSettings speechSettings, Action testPet)
+    public MainWindow(ReminderStore store, VoiceService voice, SpeechSettings speechSettings,
+        Action testPet, Action<Reminder> reminderChanged)
     {
         InitializeComponent();
         _store = store;
         _voice = voice;
         _speechSettings = speechSettings;
         _testPet = testPet;
+        _reminderChanged = reminderChanged;
         ReminderDate.SelectedDate = DateTime.Today;
         ReminderTime.Text = DateTime.Now.AddMinutes(5).ToString("HH:mm");
         VoiceToggle.IsChecked = _speechSettings.Enabled;
@@ -31,8 +34,17 @@ public partial class MainWindow : Window
     public void RefreshList()
     {
         ReminderList.ItemsSource = null;
-        ReminderList.ItemsSource = _store.Reminders.OrderBy(r => r.DueAt).ToList();
-        ReminderCount.Text = $"{_store.Reminders.Count(r => r.Status == ReminderStatus.Pending)} upcoming";
+        ReminderList.ItemsSource = _store.Reminders
+            .OrderBy(r => r.Status is ReminderStatus.Delivered or ReminderStatus.Missed ? 0 : 1)
+            .ThenBy(r => r.DueAt).ToList();
+        var upcoming = _store.Reminders.Count(r => r.Status == ReminderStatus.Pending);
+        var attention = _store.Reminders.Count(ReminderRules.NeedsAttention);
+        ReminderCount.Text = attention > 0
+            ? $"{attention} need attention   •   {upcoming} upcoming"
+            : $"{upcoming} upcoming";
+        AttentionHint.Text = attention > 0
+            ? "Unanswered and missed reminders stay here until you complete or snooze them."
+            : "Your pet will appear when a reminder is due.";
     }
 
     public void OpenDashboard() { Show(); WindowState = WindowState.Normal; Activate(); }
@@ -77,18 +89,55 @@ public partial class MainWindow : Window
         ValidationMessage.Visibility = Visibility.Visible;
     }
 
+    private Reminder? SelectedOrWarn()
+    {
+        if (ReminderList.SelectedItem is Reminder reminder) return reminder;
+        ShowError("Select a reminder first.");
+        return null;
+    }
+
     private void OnSelectedDone(object sender, RoutedEventArgs e)
     {
-        if (ReminderList.SelectedItem is not Reminder reminder) return;
+        var reminder = SelectedOrWarn();
+        if (reminder is null) return;
+        if (reminder.Status == ReminderStatus.Completed)
+        {
+            ShowError("This reminder is already done.");
+            return;
+        }
         _store.Mark(reminder, ReminderStatus.Completed);
+        _reminderChanged(reminder);
+        ValidationMessage.Visibility = Visibility.Collapsed;
         RefreshList();
+    }
+
+    private void OnSelectedSnooze(object sender, RoutedEventArgs e)
+    {
+        var reminder = SelectedOrWarn();
+        if (reminder is null) return;
+        if (!ReminderRules.CanSnooze(reminder))
+        {
+            ShowError("Select a missed or unanswered reminder to snooze.");
+            return;
+        }
+        try
+        {
+            _store.Snooze(reminder, TimeSpan.FromMinutes(10));
+            _reminderChanged(reminder);
+            ValidationMessage.Visibility = Visibility.Collapsed;
+            RefreshList();
+        }
+        catch (IOException ex) { ShowError("Couldn't save snooze: " + ex.Message); }
     }
 
     private void OnDelete(object sender, RoutedEventArgs e)
     {
-        if (ReminderList.SelectedItem is not Reminder reminder) return;
+        var reminder = SelectedOrWarn();
+        if (reminder is null) return;
         _store.Reminders.Remove(reminder);
         _store.Save();
+        _reminderChanged(reminder);
+        ValidationMessage.Visibility = Visibility.Collapsed;
         RefreshList();
     }
 

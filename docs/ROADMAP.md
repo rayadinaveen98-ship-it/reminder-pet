@@ -45,3 +45,11 @@
 
 ## Deliberate scope control
 No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mechanics, no always-on mascot and no iOS work until Windows/Android experience has strong evidence of reliability.
+
+## Milestone W1.1 — attention recovery (v0.3)
+- [x] User-visible count of missed and unanswered reminders
+- [x] Snooze missed/unanswered reminder from dashboard
+- [x] Tray balloon for newly missed reminder batches (subject to Windows settings)
+- [x] Requeue unanswered popup when desktop locks; present after unlock
+- [x] Keep popup consistent with user actions in dashboard
+- [ ] Real-device confirmation of focus, screen lock and notification behavior

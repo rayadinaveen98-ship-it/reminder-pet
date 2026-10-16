@@ -45,12 +45,13 @@
     </Border>
     <Border Grid.Row="2" Background="White" CornerRadius="18" Padding="19" BorderBrush="#ECE8E2" BorderThickness="1">
       <Grid>
-        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
         <Grid Grid.Row="0" Margin="0,0,0,11">
           <TextBlock Text="Your reminders" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource InkBrush}"/>
           <TextBlock x:Name="ReminderCount" HorizontalAlignment="Right" Foreground="{StaticResource MutedBrush}" FontSize="12"/>
         </Grid>
-        <ListBox Grid.Row="1" x:Name="ReminderList" BorderThickness="0" Background="Transparent"
+        <TextBlock Grid.Row="1" x:Name="AttentionHint" TextWrapping="Wrap" Margin="0,0,0,9" FontSize="11" Foreground="{StaticResource MutedBrush}"/>
+        <ListBox Grid.Row="2" x:Name="ReminderList" BorderThickness="0" Background="Transparent"
                  ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionMode="Single">
           <ListBox.ItemTemplate>
             <DataTemplate>
@@ -68,8 +69,9 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,0">
           <Button Content="Mark selected done" Background="#F1F0ED" Click="OnSelectedDone"/>
+          <Button Content="Snooze selected 10m" Background="#FFE5D3" Click="OnSelectedSnooze"/>
           <Button Content="Delete selected" Background="#F1F0ED" Click="OnDelete"/>
           <Button Content="Test pet now" Click="OnTestPet" Background="#FFE5D3"/>
         </StackPanel>
