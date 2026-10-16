@@ -104,3 +104,10 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Portable artifact `PetPing-Windows-v0.8-unsigned` (ID 12035474939; ZIP contains `PetPing.Windows.exe`). Installer artifact `PetPing-Installer-v0.8-unsigned` (ID 12036600668; ZIP contains `PetPing-Setup-v0.8-unsigned.exe`). Both ZIPs integrity checked in the active working environment.
 - The unsigned installer is **not** a signed or SmartScreen-approved consumer release. Real interactive installation, mixed DPI, lock/sleep and accessibility testing still open. Uninstall smoke verifies that user data stays in LocalAppData.
 - Next: user v0.8 device acceptance, P0 fixes, v0.9 Windows quality/beta gate, Android second platform after Windows release maturity.
+
+## 2026-10-16 — v0.9 kickoff (Windows beta quality)
+- User asked to proceed following v0.8. No detailed v0.8 manual installer, screen reader or sleep/wake evidence supplied; keep these as open acceptance gates.
+- Branch: `feature/windows-v0.9-recovery-quality`.
+- Release focus: protect reminders if the primary JSON becomes unreadable; offer **explicit opt-in restore from validated previous backup**, preserving the unreadable original for inspection. Add a clear **Open data folder** tool. Improve CI to test installer repair/reinstall without deleting personal data.
+- Design constraints: never silently restore or wipe files; backup may be older than latest reminder and restore can lose newest edits, so confirmation must be clear. No cloud sync or account. Keep existing reminder model/pet/recurrence intact.
+- Next: commit incremental source and tests, Windows CI, update handoff and merge only after green tests and install smoke. This does not automatically satisfy physical screen reader, lock/sleep and mixed DPI QA.
