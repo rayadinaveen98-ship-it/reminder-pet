@@ -473,6 +473,11 @@ public partial class MainWindow : Window
             ShowError("Only upcoming reminders that haven't already repeated can be edited.");
             return;
         }
+        if (reminder.Repeat == RepeatPattern.Custom)
+        {
+            ShowError("Custom repeat editing will be available in the advanced editor.");
+            return;
+        }
         _editing = reminder;
         ReminderName.Text = reminder.Title;
         var local = reminder.DueAt.ToLocalTime();

@@ -713,6 +713,134 @@ try
           overlapDue.Offset == TimeSpan.FromHours(-4),
         "custom recurrence chooses the earlier instant at the fall DST overlap");
 
+    // R2-B persistence safety: opt-in custom series records are additive,
+    // never inferred from legacy Daily / Weekly JSON.
+    var customRoot = Path.Combine(temp, "advanced-repeat-store");
+    var customStore = new ReminderStore(customRoot);
+    var customAnchor = DateTime.SpecifyKind(DateTime.UtcNow.Date.AddDays(2),
+        DateTimeKind.Unspecified);
+    var customDayBit = (byte)(1 << (((int)customAnchor.DayOfWeek + 6) % 7));
+    var customOptions = new CustomRepeatOptions
+    {
+        SchemaVersion = 1,
+        Kind = CustomRepeatKind.Weekdays,
+        AnchorLocalDate = customAnchor,
+        Interval = 1,
+        WeekdayMask = customDayBit
+    };
+    var customFirst = customStore.AddCustom("Every week on chosen days",
+        new TimeSpan(9, 0, 0), TimeZoneInfo.Utc.Id, customOptions);
+    Check(customFirst.Repeat == RepeatPattern.Custom &&
+          customFirst.CustomSchedule == customOptions &&
+          customFirst.SeriesId is not null &&
+          customFirst.RepeatLocalTime == new TimeSpan(9, 0, 0),
+        "custom recurring creation stores versioned anchor, local wall clock and stable series");
+    var initialCustomJSON = File.ReadAllText(Path.Combine(customRoot, "reminders.json"));
+    var customReloaded = new ReminderStore(customRoot);
+    Check(customReloaded.Reminders.Count == 1 &&
+          customReloaded.Reminders[0].CustomSchedule == customOptions &&
+          customReloaded.Reminders[0].DueAt == customFirst.DueAt,
+        "new custom metadata and exact due timestamp survive restart");
+
+    bool customLegacyEditBlocked = false;
+    try { customStore.Edit(customFirst, "Unexpected change",
+        DateTimeOffset.UtcNow.AddDays(3), RepeatPattern.None); }
+    catch (InvalidOperationException) { customLegacyEditBlocked = true; }
+    Check(customLegacyEditBlocked && customFirst.Repeat == RepeatPattern.Custom &&
+          File.ReadAllText(Path.Combine(customRoot, "reminders.json")) == initialCustomJSON,
+        "old reminder editor cannot silently convert a custom series to one-time");
+
+    var customSourceDue = customFirst.OriginalDueAt;
+    customStore.Deliver(customFirst, DateTimeOffset.UtcNow);
+    var customChild = customStore.Reminders.Single(r =>
+        r.SeriesId == customFirst.SeriesId && r.Status == ReminderStatus.Pending);
+    Check(customStore.Reminders.Count == 2 &&
+          customFirst.RepeatContinuationCreated &&
+          customChild.OriginalDueAt > customSourceDue &&
+          customChild.CustomSchedule == customOptions &&
+          customChild.RepeatLocalTime == customFirst.RepeatLocalTime,
+        "atomic custom delivery records one future child with identical recurrence definition");
+    customStore.Snooze(customFirst, TimeSpan.FromMinutes(10));
+    customStore.Deliver(customFirst, DateTimeOffset.UtcNow);
+    Check(customStore.Reminders.Count == 2 &&
+          customStore.Reminders.Count(r =>
+              r.SeriesId == customFirst.SeriesId && r.Status == ReminderStatus.Pending) == 1 &&
+          customChild.Id == customStore.Reminders.Single(r =>
+              r.SeriesId == customFirst.SeriesId && r.Status == ReminderStatus.Pending).Id,
+        "redelivered snoozed custom occurrence never duplicates the next series event");
+    var customReopen = new ReminderStore(customRoot);
+    Check(customReopen.Reminders.Count == 2 &&
+          customReopen.Reminders.Single(r => r.Id == customFirst.Id).RepeatContinuationCreated &&
+          customReopen.Reminders.Single(r => r.Id == customChild.Id).CustomSchedule == customOptions,
+        "restart retains idempotent custom continuation flags and versioned child metadata");
+
+    var intervalStore = new ReminderStore(Path.Combine(temp, "advanced-repeat-days"));
+    var intervalOptions = new CustomRepeatOptions
+    {
+        Kind = CustomRepeatKind.EveryNDays, AnchorLocalDate = customAnchor,
+        Interval = 3, WeekdayMask = 0
+    };
+    var intervalFirst = intervalStore.AddCustom("Every three days",
+        new TimeSpan(11, 0, 0), TimeZoneInfo.Utc.Id, intervalOptions);
+    intervalStore.Deliver(intervalFirst, DateTimeOffset.UtcNow);
+    var intervalNext = intervalStore.Reminders.Single(r =>
+        r.Id != intervalFirst.Id && r.Status == ReminderStatus.Pending);
+    Check(intervalNext.OriginalDueAt == intervalFirst.OriginalDueAt.AddDays(3) &&
+          intervalNext.CustomSchedule == intervalOptions,
+        "N-day persisted custom recurrence preserves its original day anchor");
+
+    var blockedCustomFolder = Path.Combine(temp, "advanced-repeat-rollback");
+    var blockedCustomStore = new ReminderStore(blockedCustomFolder);
+    var blockedCustom = blockedCustomStore.AddCustom("No false advance on disk error",
+        TimeSpan.FromHours(12), TimeZoneInfo.Utc.Id, customOptions);
+    var beforeBadDelivery = File.ReadAllText(
+        Path.Combine(blockedCustomFolder, "reminders.json"));
+    var blockedCustomTemp = Path.Combine(blockedCustomFolder, "reminders.json.tmp");
+    Directory.CreateDirectory(blockedCustomTemp);
+    bool customSaveFailed = false;
+    try { blockedCustomStore.Deliver(blockedCustom, DateTimeOffset.UtcNow); }
+    catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+    { customSaveFailed = true; }
+    Check(customSaveFailed && blockedCustomStore.Reminders.Count == 1 &&
+          blockedCustom.Status == ReminderStatus.Pending &&
+          !blockedCustom.RepeatContinuationCreated &&
+          File.ReadAllText(Path.Combine(blockedCustomFolder, "reminders.json")) ==
+              beforeBadDelivery,
+        "failed custom recurrence write restores in-memory state and original on-disk file");
+    Directory.Delete(blockedCustomTemp);
+    blockedCustomStore.Deliver(blockedCustom, DateTimeOffset.UtcNow);
+    Check(new ReminderStore(blockedCustomFolder).Reminders.Count == 2,
+        "retry after storage recovery writes exactly one custom continuation");
+
+    var corruptCustomFolder = Path.Combine(temp, "advanced-repeat-corrupt");
+    Directory.CreateDirectory(corruptCustomFolder);
+    var customNode = System.Text.Json.Nodes.JsonNode.Parse(initialCustomJSON)!.AsArray();
+    customNode[0]!["CustomSchedule"]!["SchemaVersion"] = 99;
+    var corruptCustomFile = Path.Combine(corruptCustomFolder, "reminders.json");
+    File.WriteAllText(corruptCustomFile, customNode.ToJsonString());
+    var corruptBytes = File.ReadAllText(corruptCustomFile);
+    bool corruptCustomRejected = false;
+    try { _ = new ReminderStore(corruptCustomFolder); }
+    catch (InvalidDataException) { corruptCustomRejected = true; }
+    Check(corruptCustomRejected && File.ReadAllText(corruptCustomFile) == corruptBytes,
+        "unsupported custom schema is rejected without overwriting user's unreadable data");
+
+    bool emptyDaysRejected = false, extraBitsRejected = false, badIntervalRejected = false;
+    try { (customOptions with { WeekdayMask = 0 }).Validate(); }
+    catch (InvalidDataException) { emptyDaysRejected = true; }
+    try { (customOptions with { WeekdayMask = 0x80 }).Validate(); }
+    catch (InvalidDataException) { extraBitsRejected = true; }
+    try { (intervalOptions with { Interval = 366 }).Validate(); }
+    catch (InvalidDataException) { badIntervalRejected = true; }
+    Check(emptyDaysRejected && extraBitsRejected && badIntervalRejected,
+        "custom schedule validation rejects missing/unknown weekdays and invalid intervals");
+
+    // A genuine legacy record remains readable when custom metadata does not
+    // exist. The new reader does not infer recurrence or change old fields.
+    Check(new ReminderStore(repeatFolder).Reminders.Count == reminderCountBefore &&
+          new ReminderStore(repeatFolder).Reminders.All(r => r.CustomSchedule is null),
+        "preexisting daily/weekly reminder data loads without new custom metadata");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;

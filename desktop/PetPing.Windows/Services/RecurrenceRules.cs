@@ -14,6 +14,30 @@ public static class RecurrenceRules
     {
         if (current.Repeat == RepeatPattern.None)
             throw new InvalidOperationException("A one-time reminder has no future occurrence.");
+
+        if (current.Repeat == RepeatPattern.Custom)
+        {
+            if (current.CustomSchedule is not { } options ||
+                string.IsNullOrWhiteSpace(current.RepeatTimeZoneId) ||
+                current.RepeatLocalTime is not { } wallTime)
+                throw new InvalidDataException("Custom recurrence metadata is incomplete.");
+            options.Validate();
+            var zone = TimeZoneInfo.FindSystemTimeZoneById(current.RepeatTimeZoneId);
+            // Don't regenerate this occurrence if it was delivered early
+            // during a synthetic retry. A successor must be strictly later
+            // than both the original scheduled occurrence and the clock.
+            var after = now > current.OriginalDueAt ? now : current.OriginalDueAt;
+            return options.Kind switch
+            {
+                CustomRepeatKind.Weekdays =>
+                    AdvancedRepeatRules.NextWeekdayOccurrence(options.AnchorLocalDate,
+                        wallTime, options.SelectedWeekdays(), options.Interval, zone, after),
+                CustomRepeatKind.EveryNDays =>
+                    AdvancedRepeatRules.NextDayIntervalOccurrence(options.AnchorLocalDate,
+                        wallTime, options.Interval, zone, after),
+                _ => throw new InvalidDataException("Unsupported custom recurrence kind.")
+            };
+        }
         if (current.Repeat is not (RepeatPattern.Daily or RepeatPattern.Weekly))
             throw new InvalidDataException("Unsupported recurrence pattern.");
         if (string.IsNullOrWhiteSpace(current.RepeatTimeZoneId))
