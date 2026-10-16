@@ -1,17 +1,17 @@
-; PetPing v0.17 Windows per-user installer (unsigned design preview)
+; PetPing v0.18 isolated Windows EXPERIMENTAL preview — not a v0.17 upgrade
 ; Compile after publishing the win-x64 self-contained application.
 ; Installer binaries are created by the Windows GitHub Actions runner.
-#define AppName "PetPing"
-#define AppVersion "0.17.0"
+#define AppName "PetPing Experimental"
+#define AppVersion "0.18.0"
 #define ExeName "PetPing.Windows.exe"
 
 [Setup]
-AppId={{8D6C3B50-3E9C-4E2C-92DF-5751A9B257C0}
+AppId={{A49FD7E9-61E8-4559-BE8D-593C345F2511}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher=Reminder Pet Project
-DefaultDirName={localappdata}\Programs\PetPing
-DefaultGroupName=PetPing
+DefaultDirName={localappdata}\Programs\PetPing-Experimental
+DefaultGroupName=PetPing Experimental
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 WizardStyle=modern
@@ -20,10 +20,10 @@ SetupIconFile=..\desktop\PetPing.Windows\Assets\PetPing.ico
 UninstallDisplayIcon={app}\PetPing.Windows.exe
 Compression=lzma
 SolidCompression=yes
-OutputDir=..\artifacts\PetPing-Installer-v0.17
-OutputBaseFilename=PetPing-Setup-v0.17-unsigned
-UninstallDisplayName=PetPing
-CloseApplications=yes
+OutputDir=..\artifacts\PetPing-Installer-v0.18-experimental
+OutputBaseFilename=PetPing-Setup-v0.18-experimental-unsigned
+UninstallDisplayName=PetPing Experimental
+CloseApplications=no
 CloseApplicationsFilter=PetPing.Windows.exe
 RestartApplications=no
 UsePreviousAppDir=yes
@@ -32,14 +32,14 @@ UsePreviousAppDir=yes
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
 
 [Files]
-Source: "..\artifacts\PetPing-Windows-v0.17\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\artifacts\PetPing-Windows-v0.18-experimental\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\PetPing"; Filename: "{app}\{#ExeName}"; WorkingDir: "{app}"
-Name: "{autodesktop}\PetPing"; Filename: "{app}\{#ExeName}"; Tasks: desktopicon; WorkingDir: "{app}"
+Name: "{autoprograms}\PetPing Experimental"; Filename: "{app}\{#ExeName}"; WorkingDir: "{app}"
+Name: "{autodesktop}\PetPing Experimental"; Filename: "{app}\{#ExeName}"; Tasks: desktopicon; WorkingDir: "{app}"
 
 [Run]
-Filename: "{app}\{#ExeName}"; Description: "Launch PetPing"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#ExeName}"; Description: "Launch PetPing Experimental"; Flags: nowait postinstall skipifsilent
 
 [Code]
 // The in-app Start with Windows option records the executable's absolute path.
@@ -51,18 +51,18 @@ begin
   if CurStep = ssPostInstall then
   begin
     if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run',
-      'PetPingReminder', ExistingCommand) then
+      'PetPingExperimentalReminder', ExistingCommand) then
     begin
       if Pos('PetPing.Windows.exe', ExistingCommand) > 0 then
         RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run',
-          'PetPingReminder',
+          'PetPingExperimentalReminder',
           '"' + ExpandConstant('{app}\PetPing.Windows.exe') + '" --background');
     end;
   end;
 end;
 
 // Only remove the start-on-login entry if it belongs to this exact installed EXE.
-// Never remove %LOCALAPPDATA%\PetPing: it holds reminders and pet preferences.
+// Never remove %LOCALAPPDATA%\PetPing-Experimental or the production PetPing profile.
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   CurrentCommand: String;
@@ -72,11 +72,11 @@ begin
   begin
     InstalledCommand := '"' + ExpandConstant('{app}\PetPing.Windows.exe') + '" --background';
     if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run',
-      'PetPingReminder', CurrentCommand) then
+      'PetPingExperimentalReminder', CurrentCommand) then
     begin
       if CompareText(CurrentCommand, InstalledCommand) = 0 then
         RegDeleteValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run',
-          'PetPingReminder');
+          'PetPingExperimentalReminder');
     end;
   end;
 end;
