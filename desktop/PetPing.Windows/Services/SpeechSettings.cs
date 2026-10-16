@@ -9,8 +9,7 @@ public sealed class SpeechSettings
 
     public SpeechSettings()
     {
-        var folder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PetPing");
+        var folder = PetPingDataRoot.DefaultDirectory;
         Directory.CreateDirectory(folder);
         _filePath = Path.Combine(folder, "settings.json");
         if (!File.Exists(_filePath)) return;

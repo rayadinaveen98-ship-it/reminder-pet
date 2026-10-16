@@ -576,18 +576,32 @@ public partial class MainWindow : Window
                     _reminderChanged(customReminder);
                 }
                 else
-                    _store.AddCustom(ReminderName.Text, clock, TimeZoneInfo.Local.Id, options);
+                {
+                    // Experimental data is isolated; first use still needs consent.
+                    if (!_store.Reminders.Any(r => r.Repeat == RepeatPattern.Custom))
+                    {
+                        var response = System.Windows.MessageBox.Show(
+                            "Experimental custom scheduling uses a separate PetPing-Experimental " +
+                            "data folder. A pre-custom backup will also be created. " +
+                            "Create this schedule?",
+                            "PetPing Experimental — custom schedule",
+                            MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                            MessageBoxResult.No);
+                        if (response != MessageBoxResult.Yes) return;
+                    }
+                    _store.AddCustom(title, clock, TimeZoneInfo.Local.Id, options);
+                }
             }
             else
             {
                 var due = ReadDueAt();
                 if (_editing is { } regularReminder)
                 {
-                    _store.Edit(regularReminder, ReminderName.Text, due, repeat);
+                    _store.Edit(regularReminder, title, due, repeat);
                     _reminderChanged(regularReminder);
                 }
                 else
-                    _store.Add(ReminderName.Text, due, repeat);
+                    _store.Add(title, due, repeat);
             }
             ResetForm();
             RefreshList();

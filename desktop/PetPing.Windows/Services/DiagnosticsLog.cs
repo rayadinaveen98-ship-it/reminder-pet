@@ -13,8 +13,7 @@ public sealed class DiagnosticsLog
 
     public DiagnosticsLog(string? folder = null)
     {
-        DirectoryPath = folder ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PetPing");
+        DirectoryPath = folder ?? PetPingDataRoot.DefaultDirectory;
         _path = Path.Combine(DirectoryPath, "diagnostics.log");
     }
 

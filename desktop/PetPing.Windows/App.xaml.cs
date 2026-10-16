@@ -33,10 +33,10 @@ public partial class App : System.Windows.Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        _singleInstance = new Mutex(true, @"Local\PetPing.Windows.Instance", out bool firstInstance);
+        _singleInstance = new Mutex(true, @"Local\PetPing.Experimental.Windows.Instance", out bool firstInstance);
         if (!firstInstance)
         {
-            System.Windows.MessageBox.Show("PetPing is already running. Open it from the system tray.", "PetPing");
+            System.Windows.MessageBox.Show("PetPing Experimental is already running. Open it from the system tray.", "PetPing");
             Shutdown();
             return;
         }
@@ -170,7 +170,7 @@ public partial class App : System.Windows.Application
         _tray = new Forms.NotifyIcon
         {
             Icon = _brandTrayIcon ?? SystemIcons.Application,
-            Text = "PetPing - reminders running",
+            Text = "PetPing Exp - reminders running",
             Visible = true,
             ContextMenuStrip = menu
         };
@@ -192,8 +192,8 @@ public partial class App : System.Windows.Application
         if (_tray is null || _store is null) return;
         var needsAttention = _store.Reminders.Count(ReminderRules.NeedsAttention);
         _tray.Text = needsAttention > 0
-            ? $"PetPing - {needsAttention} need attention"
-            : "PetPing - reminders running";
+            ? $"PetPing Exp - {needsAttention} need attention"
+            : "PetPing Exp - reminders running";
     }
 
     private void OnRemindersMissed(int count)
