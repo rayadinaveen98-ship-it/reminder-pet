@@ -195,6 +195,7 @@
                 <TextBlock Text="What would you like your companion to remind you about?"
                            Style="{StaticResource SecondaryBody}" Margin="0,5,0,14"/>
                 <TextBox x:Name="ReminderName" MaxLength="120" FontSize="14"
+                         TextChanged="OnReminderEditorTextChanged"
                          AutomationProperties.Name="Reminder name"
                          ToolTip="For example: Start editing my video"/>
                 <Grid x:Name="ReminderFieldsGrid" Margin="0,14,0,0">
@@ -212,16 +213,19 @@
                   <StackPanel x:Name="ReminderDateGroup" Grid.Column="0" Margin="0,0,12,0">
                     <TextBlock Text="Date" Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
                     <DatePicker x:Name="ReminderDate" Height="38"
+                                SelectedDateChanged="OnReminderEditorSelectionChanged"
                                 AutomationProperties.Name="Reminder date"/>
                   </StackPanel>
                   <StackPanel x:Name="ReminderTimeGroup" Grid.Column="1" Margin="0,0,12,0">
                     <TextBlock Text="Time (24h)" Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
                     <TextBox x:Name="ReminderTime" Text="19:00"
+                             MaxLength="5" TextChanged="OnReminderEditorTextChanged"
                              AutomationProperties.Name="Reminder time in 24-hour format"/>
                   </StackPanel>
                   <StackPanel x:Name="ReminderRepeatGroup" Grid.Column="2">
                     <TextBlock Text="Repeat" Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
                     <ComboBox x:Name="RepeatPicker" Height="38" FontSize="13" SelectedIndex="0"
+                              SelectionChanged="OnReminderEditorSelectionChanged"
                               AutomationProperties.Name="Repeat frequency">
                       <ComboBoxItem Content="One time"/>
                       <ComboBoxItem Content="Every day"/>
@@ -239,6 +243,9 @@
                             Click="OnAddReminder"/>
                   </WrapPanel>
                 </Grid>
+                <TextBlock x:Name="ReminderWhenPreview" Text="Choose a future date and time."
+                           Style="{StaticResource SecondaryBody}" Margin="0,10,0,0"
+                           AutomationProperties.Name="Reminder schedule preview"/>
               </StackPanel>
             </Border>
 
