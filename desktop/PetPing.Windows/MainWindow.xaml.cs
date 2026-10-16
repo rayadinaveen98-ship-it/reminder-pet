@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows;
+using System.Windows.Input;
 using PetPing.Windows.Models;
 using PetPing.Windows.Services;
 
@@ -34,24 +35,79 @@ public partial class MainWindow : Window
         PlacementPicker.SelectedIndex = (int)_appearance.Placement;
         MotionPicker.SelectedIndex = (int)_appearance.Motion;
         _loadingAppearance = false;
+        InboxPicker.SelectedIndex = 0;
         RefreshList();
         Closing += (_, e) => { if (!_reallyQuit) { e.Cancel = true; Hide(); } };
     }
 
     public void RefreshList()
     {
+        var previousId = (ReminderList.SelectedItem as Reminder)?.Id;
+        var filter = CurrentFilter();
+        var shown = ReminderInboxRules.Select(_store.Reminders, filter, DateTime.Today);
         ReminderList.ItemsSource = null;
-        ReminderList.ItemsSource = _store.Reminders
-            .OrderBy(r => r.Status is ReminderStatus.Delivered or ReminderStatus.Missed ? 0 : 1)
-            .ThenBy(r => r.DueAt).ToList();
+        ReminderList.ItemsSource = shown;
+        if (previousId is { } id)
+            ReminderList.SelectedItem = shown.FirstOrDefault(r => r.Id == id);
+
         var upcoming = _store.Reminders.Count(r => r.Status == ReminderStatus.Pending);
         var attention = _store.Reminders.Count(ReminderRules.NeedsAttention);
-        ReminderCount.Text = attention > 0
-            ? $"{attention} need attention   •   {upcoming} upcoming"
-            : $"{upcoming} upcoming";
-        AttentionHint.Text = attention > 0
-            ? "Unanswered and missed reminders stay here until you complete or snooze them."
-            : "Select an upcoming reminder to edit. Weekly repeats on the same day each week.";
+        ReminderCount.Text = $"{shown.Count} shown  •  {upcoming} upcoming" +
+            (attention > 0 ? $"  •  {attention} attention" : "");
+        EmptyInbox.Visibility = shown.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        EmptyInboxHint.Text = filter switch
+        {
+            InboxFilter.Today => "No reminders scheduled for today.",
+            InboxFilter.Upcoming => "Nothing upcoming. Add your next reminder above.",
+            InboxFilter.NeedsAttention => "Nothing needs attention. You're all caught up.",
+            InboxFilter.History => "Finished reminders will appear here.",
+            _ => "Create your first reminder using the form above."
+        };
+        AttentionHint.Text = filter switch
+        {
+            InboxFilter.Today => "Reminders scheduled for today.",
+            InboxFilter.Upcoming => "Your future reminders, including snoozed ones.",
+            InboxFilter.NeedsAttention => "Unanswered or missed reminders. Complete or snooze them.",
+            InboxFilter.History => "Completed reminders are kept here for reference.",
+            _ => "Select a reminder to edit, complete, snooze or delete."
+        };
+    }
+
+    private InboxFilter CurrentFilter() => InboxPicker?.SelectedIndex switch
+    {
+        1 => InboxFilter.Today,
+        2 => InboxFilter.Upcoming,
+        3 => InboxFilter.NeedsAttention,
+        4 => InboxFilter.History,
+        _ => InboxFilter.All
+    };
+
+    private void OnInboxChanged(object sender,
+        System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_store is not null && ReminderList is not null)
+            RefreshList();
+    }
+
+    private void OnDashboardKeyDown(object sender, KeyEventArgs e)
+    {
+        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && e.Key == Key.N)
+        {
+            if (_editing is not null) ResetForm();
+            ReminderName.Focus();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.F5)
+        {
+            RefreshList();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape && _editing is not null)
+        {
+            ResetForm();
+            ReminderName.Focus();
+            e.Handled = true;
+        }
     }
 
     public void OpenDashboard() { Show(); WindowState = WindowState.Normal; Activate(); }
@@ -215,6 +271,12 @@ public partial class MainWindow : Window
     {
         var reminder = SelectedOrWarn();
         if (reminder is null) return;
+        var question = reminder.Repeat != RepeatPattern.None && reminder.Status == ReminderStatus.Pending
+            ? "Delete this upcoming reminder? This also stops its future repeated occurrences."
+            : "Delete this reminder? This cannot be undone.";
+        if (System.Windows.MessageBox.Show(question, "Delete reminder",
+            MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
         try
         {
             _store.Delete(reminder);
