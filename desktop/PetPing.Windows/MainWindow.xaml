@@ -195,6 +195,7 @@
                 <TextBlock Text="What would you like your companion to remind you about?"
                            Style="{StaticResource SecondaryBody}" Margin="0,5,0,14"/>
                 <TextBox x:Name="ReminderName" MaxLength="120" FontSize="14"
+                         TextChanged="OnReminderEditorTextChanged"
                          AutomationProperties.Name="Reminder name"
                          ToolTip="For example: Start editing my video"/>
                 <Grid x:Name="ReminderFieldsGrid" Margin="0,14,0,0">
@@ -212,16 +213,19 @@
                   <StackPanel x:Name="ReminderDateGroup" Grid.Column="0" Margin="0,0,12,0">
                     <TextBlock Text="Date" Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
                     <DatePicker x:Name="ReminderDate" Height="38"
+                                SelectedDateChanged="OnReminderEditorSelectionChanged"
                                 AutomationProperties.Name="Reminder date"/>
                   </StackPanel>
                   <StackPanel x:Name="ReminderTimeGroup" Grid.Column="1" Margin="0,0,12,0">
                     <TextBlock Text="Time (24h)" Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
                     <TextBox x:Name="ReminderTime" Text="19:00"
+                             MaxLength="5" TextChanged="OnReminderEditorTextChanged"
                              AutomationProperties.Name="Reminder time in 24-hour format"/>
                   </StackPanel>
                   <StackPanel x:Name="ReminderRepeatGroup" Grid.Column="2">
                     <TextBlock Text="Repeat" Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
                     <ComboBox x:Name="RepeatPicker" Height="38" FontSize="13" SelectedIndex="0"
+                              SelectionChanged="OnReminderEditorSelectionChanged"
                               AutomationProperties.Name="Repeat frequency">
                       <ComboBoxItem Content="One time"/>
                       <ComboBoxItem Content="Every day"/>
@@ -239,6 +243,9 @@
                             Click="OnAddReminder"/>
                   </WrapPanel>
                 </Grid>
+                <TextBlock x:Name="ReminderWhenPreview" Text="Choose a future date and time."
+                           Style="{StaticResource SecondaryBody}" Margin="0,10,0,0"
+                           AutomationProperties.Name="Reminder schedule preview"/>
               </StackPanel>
             </Border>
 
@@ -298,8 +305,24 @@
                           AutomationProperties.Name="Edit selected reminder"/>
                   <Button Content="Done" Click="OnSelectedDone"
                           AutomationProperties.Name="Mark selected reminder complete"/>
-                  <Button Content="Snooze 10m" Click="OnSelectedSnooze"
-                          AutomationProperties.Name="Snooze selected reminder ten minutes"/>
+                  <ComboBox x:Name="SnoozeDurationPicker" Width="105" Height="42"
+                            Margin="0,0,8,0" SelectedIndex="1"
+                            SelectionChanged="OnSnoozeDurationChanged"
+                            AutomationProperties.Name="Snooze duration">
+                    <ComboBoxItem Content="5 min" Tag="5"/>
+                    <ComboBoxItem Content="10 min" Tag="10"/>
+                    <ComboBoxItem Content="15 min" Tag="15"/>
+                    <ComboBoxItem Content="30 min" Tag="30"/>
+                    <ComboBoxItem Content="1 hour" Tag="60"/>
+                    <ComboBoxItem Content="Custom" Tag="custom"/>
+                  </ComboBox>
+                  <TextBox x:Name="CustomSnoozeMinutes" Width="92" MaxLength="4"
+                           Text="20" Visibility="Collapsed" Margin="0,0,8,0"
+                           VerticalContentAlignment="Center"
+                           ToolTip="Custom snooze: 1 to 1440 minutes (up to 24 hours)"
+                           AutomationProperties.Name="Custom snooze duration in minutes"/>
+                  <Button Content="Snooze" Click="OnSelectedSnooze"
+                          AutomationProperties.Name="Snooze selected reminder using selected duration"/>
                   <Button Content="Delete" Click="OnDelete"
                           AutomationProperties.Name="Delete selected reminder"/>
                 </WrapPanel>

@@ -34,7 +34,7 @@ public partial class PetWindow : Window
     public event Action? Arrived;
     public event Action? InteractionStopped;
     public event Func<Reminder, bool>? Completed;
-    public event Func<Reminder, bool>? Snoozed;
+    public event Func<Reminder, TimeSpan, bool>? Snoozed;
 
     public PetWindow(Reminder reminder,
         PetPlacement placement = PetPlacement.Auto,
@@ -222,10 +222,33 @@ public partial class PetWindow : Window
         ReactAndLeave("Nice work! ✓", true);
     }
 
-    private void OnSnooze(object sender, RoutedEventArgs e)
+    private void OnMoreSnooze(object sender, RoutedEventArgs e)
     {
         if (!AwaitingResponse) return;
-        if (Snoozed?.Invoke(_reminder) == false)
+        var menu = MoreSnoozeButton.ContextMenu;
+        if (menu is null) return;
+        menu.PlacementTarget = MoreSnoozeButton;
+        menu.IsOpen = true;
+    }
+
+    private void OnSnoozePreset(object sender, RoutedEventArgs e)
+    {
+        if (!AwaitingResponse) return;
+        if (sender is not System.Windows.Controls.MenuItem menu ||
+            menu.Tag is not string value ||
+            !int.TryParse(value, out var minutes) ||
+            !SnoozePolicy.Presets.Contains(minutes))
+            return;
+        SnoozeAndLeave(SnoozePolicy.FromMinutes(minutes));
+    }
+
+    private void OnSnooze(object sender, RoutedEventArgs e) =>
+        SnoozeAndLeave(SnoozePolicy.FromMinutes(SnoozePolicy.DefaultMinutes));
+
+    private void SnoozeAndLeave(TimeSpan duration)
+    {
+        if (!AwaitingResponse) return;
+        if (Snoozed?.Invoke(_reminder, duration) != true)
         {
             ShowSaveFailure();
             return;
