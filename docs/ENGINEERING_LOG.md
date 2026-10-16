@@ -48,3 +48,10 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Static XAML, C# core regression and dotnet publish passed; **49 core tests** passed (vs. 32 in v0.5).
 - Unsigned artifact PetPing-Windows-v0.6-unsigned uploaded (artifact ID 12032022285). Physical desktop QA is not inferred from CI.
 - Next: merge PR #5 after handoff refresh, share test build, gather editing/repeat/voice/lock results.
+
+## 2026-10-16 — v0.6 merged + ZIP verified
+- Final PR CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868752195 — green, 49 core tests, Windows x64 compile/publish and artifact upload.
+- Merged PR #5 to `main`, squash commit `f75fef016eb650e25fc9d40248c73ec61d6208ca`.
+- Final artifact `PetPing-Windows-v0.6-unsigned` ID 12032645056. Downloaded ZIP locally and validated its archive integrity; includes `PetPing.Windows.exe` (unsigned test build).
+- No evidence yet of actual user interaction testing of the new v0.6 repeating/edit screens. Await results rather than claim production quality.
+- Next: v0.6 Windows edit/recurrence acceptance QA; triage failures before v0.7 character animations.
