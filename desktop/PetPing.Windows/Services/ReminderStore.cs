@@ -182,16 +182,9 @@ public sealed class ReminderStore
         if (localTime < TimeSpan.Zero || localTime >= TimeSpan.FromDays(1))
             throw new ArgumentOutOfRangeException(nameof(localTime));
         var now = DateTimeOffset.UtcNow;
-        var nextDue = options.Kind switch
-        {
-            CustomRepeatKind.Weekdays => AdvancedRepeatRules.NextWeekdayOccurrence(
-                options.AnchorLocalDate, localTime, options.SelectedWeekdays(),
-                options.Interval, tz, now),
-            CustomRepeatKind.EveryNDays => AdvancedRepeatRules.NextDayIntervalOccurrence(
-                options.AnchorLocalDate, localTime, options.Interval, tz, now),
-            _ => throw new InvalidDataException("Unsupported custom recurrence kind.")
-        };
+        var nextDue = NextCustomDue(options, localTime, tz, now);
         ValidateTitleAndTime(title, nextDue);
+        EnsurePreCustomBackup();
         var reminder = new Reminder
         {
             Title = title.Trim(),
@@ -231,6 +224,81 @@ public sealed class ReminderStore
             reminder.RepeatLocalTime = tz is null ? null
                 : TimeZoneInfo.ConvertTime(dueAt, TimeZoneInfo.FindSystemTimeZoneById(tz)).TimeOfDay;
         });
+    }
+
+    /// <summary>
+    /// Edits the next unsent custom occurrence only. The edited occurrence
+    /// becomes the source of later scheduling. Earlier history is immutable.
+    /// </summary>
+    public void EditCustom(Reminder reminder, string title, TimeSpan localTime,
+        string timeZoneId, CustomRepeatOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(reminder);
+        ArgumentNullException.ThrowIfNull(options);
+        if (reminder.Repeat != RepeatPattern.Custom || reminder.Status != ReminderStatus.Pending ||
+            reminder.RepeatContinuationCreated || !Reminders.Contains(reminder))
+            throw new InvalidOperationException("Only an upcoming unsent custom reminder can be edited.");
+        options.Validate();
+        if (string.IsNullOrWhiteSpace(timeZoneId))
+            throw new ArgumentException("Choose a time zone.", nameof(timeZoneId));
+        var tz = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        if (localTime < TimeSpan.Zero || localTime >= TimeSpan.FromDays(1))
+            throw new ArgumentOutOfRangeException(nameof(localTime));
+        var next = NextCustomDue(options, localTime, tz, DateTimeOffset.UtcNow);
+        ValidateTitleAndTime(title, next);
+        Change(reminder, () =>
+        {
+            reminder.Title = title.Trim();
+            reminder.DueAt = next;
+            reminder.OriginalDueAt = next;
+            reminder.RepeatTimeZoneId = timeZoneId;
+            reminder.RepeatLocalTime = localTime;
+            reminder.CustomSchedule = options;
+        });
+    }
+
+    /// <summary>One calculator shared by the custom editor and store.</summary>
+    private static DateTimeOffset NextCustomDue(CustomRepeatOptions options,
+        TimeSpan localTime, TimeZoneInfo zone, DateTimeOffset now) =>
+        options.Kind switch
+        {
+            CustomRepeatKind.Weekdays => AdvancedRepeatRules.NextWeekdayOccurrence(
+                options.AnchorLocalDate, localTime, options.SelectedWeekdays(),
+                options.Interval, zone, now),
+            CustomRepeatKind.EveryNDays => AdvancedRepeatRules.NextDayIntervalOccurrence(
+                options.AnchorLocalDate, localTime, options.Interval, zone, now),
+            _ => throw new InvalidDataException("Unsupported custom recurrence kind.")
+        };
+
+    /// <summary>
+    /// Preserve a pre-custom file users can explicitly restore if a future
+    /// v0.17 downgrade refuses to read Custom records. Never overwrite it.
+    /// </summary>
+    private void EnsurePreCustomBackup()
+    {
+        var backup = Path.Combine(Path.GetDirectoryName(_dataPath)!,
+            "reminders.pre-custom-v017.json");
+        if (File.Exists(backup))
+        {
+            var saved = ReadValidated(backup);
+            if (saved.Any(r => r.Repeat == RepeatPattern.Custom))
+                throw new InvalidDataException("The pre-custom backup is not a legacy snapshot.");
+            return;
+        }
+        if (Reminders.Any(r => r.Repeat == RepeatPattern.Custom))
+            throw new InvalidOperationException("Legacy backup missing. Export a safe backup before adding custom reminders.");
+        if (File.Exists(_dataPath))
+        {
+            _ = ReadValidated(_dataPath);
+            File.Copy(_dataPath, backup, overwrite: false);
+        }
+        else
+        {
+            using var stream = new FileStream(backup, FileMode.CreateNew,
+                FileAccess.Write, FileShare.None);
+            JsonSerializer.Serialize(stream, Array.Empty<Reminder>(), JsonOptions);
+            stream.Flush(flushToDisk: true);
+        }
     }
 
     public void Delete(Reminder reminder)
