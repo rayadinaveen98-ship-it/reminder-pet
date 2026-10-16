@@ -29,6 +29,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: PetPing-Windows-alpha-unsigned
-          path: artifacts/PetPing-Windows-v0.2/
+          path: artifacts/PetPing-Windows-alpha/
           if-no-files-found: error
           retention-days: 7
