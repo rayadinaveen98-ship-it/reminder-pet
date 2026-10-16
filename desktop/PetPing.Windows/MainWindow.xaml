@@ -30,7 +30,7 @@
                      Foreground="{StaticResource MutedBrush}" Margin="3,6,0,0"/>
         </StackPanel>
         <StackPanel Grid.Row="1">
-          <TextBlock Text="YOUR SPACE" FontSize="10" LetterSpacing="1"
+          <TextBlock Text="YOUR SPACE" FontSize="10"
                      Foreground="{StaticResource MutedBrush}" Margin="14,0,0,12"/>
           <Button x:Name="NavHome" Style="{StaticResource SideNavigationButton}"
                   Content="⌂   Home" Click="OnNavigateHome"
