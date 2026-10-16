@@ -11,6 +11,7 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - No paid APIs or mandatory hosted services for alpha.
 
 ## Verified build status
+- **v0.12 redesigned dashboard preview:** PR #11 merged 8d5b0ba00d41aea2d76e94ea4de86361a3c0076a. CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38893597316 green, 91 core checks and Windows installer smoke. Artifacts 12042344606 (portable) and 12043370603 (setup). UI physical testing open.
 - **v0.9 Windows alpha (merged and CI verified, laptop QA pending):** PR #8 merged into main as `946e90be775afda0b06946f4b5331761942b9f58`. GitHub Actions https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38881511852 passed **72 core checks**, compiled win-x64 WPF, built Inno Setup 6 installer, and passed silent install, same-version reinstall, uninstall and preservation of a test reminder-data file. Artifact IDs: portable 12038021245, installer 12037687579. Both ZIP archives verified intact and `PetPing-Setup-v0.9-unsigned.exe` extracted.
 - **v0.8 Windows alpha (merged, CI-verified; laptop installation QA pending):** PR #7 squash-merged to `main` at `fc33f2264141ae71f20f582e1b9ad4bfd9344592`. Windows CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38877847189 — **64 core checks**, WPF publish, free Inno Setup installer compilation and successful **silent install -> installed EXE check -> silent uninstall -> user-data sentinel retained**. Artifacts: portable `PetPing-Windows-v0.8-unsigned` (ID 12035474939), installer `PetPing-Installer-v0.8-unsigned` (ID 12036600668). Both GitHub ZIPs checked for integrity; installer archive contains `PetPing-Setup-v0.8-unsigned.exe`.
 - **v0.7 Windows alpha (merged, CI-verified, hands-on QA pending):** Windows run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38872547917 passed 56 core tests, compiled and uploaded `PetPing-Windows-v0.7-unsigned` (artifact 12034680037); ZIP extracted and checked for `PetPing.Windows.exe`.
@@ -26,13 +27,13 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 **PetPing 2.0 v0.12 — approved UI redesign implementation.**
 
 - User reported v0.11 acceptable for now and explicitly prioritized the approved full UI redesign BEFORE advanced animations. Revised milestones: v0.12 navigation/UI, v0.13 additional pets/customization, v0.14 actions/effects, v0.15 integration/QA, then Windows v1.0.
-- Development branch `feature/windows-v0.12-navigation-redesign`; CI not verified at this checkpoint. Last merged preview is v0.11, 86 core tests passed.
+- PR #11 **merged to main**, squash commit `8d5b0ba00d41aea2d76e94ea4de86361a3c0076a`. Final Windows CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38893597316 **passed 91 core tests**, x64 WPF build, Inno Setup compilation, and install/reinstall/uninstall with LocalAppData data preservation. v0.12 is the latest unsigned test build; laptop UI acceptance is pending.
 - Implemented actual WPF navigation with **Home, Reminders, My Pets, Pet Studio and Settings**, matching the approved ivory/lavender/apricot design direction.
 - Home shows **real** Today/Upcoming/Needs Attention totals, next 3 pending reminders and an active Milo card; no fabricated counts or example reminders.
 - Reminders retains functional new/edit/daily/weekly, filter tabs, Done/Snooze/Delete and keyboard shortcuts. Settings retains on-device voice, test speech, auto-start and Open Data Folder.
 - Pet Studio has Milo preview and existing real motion/arrival settings. Cat is still the only pet available; Dog and Bunny cards are **explicitly labelled Coming in v0.13**. No pretend selectors or imported pet system yet.
 - Added reusable owned vector illustration and global visual tokens to WPF. Existing Windows v0.11 walking/voice actor unchanged. Local storage/recurrence and user preferences unchanged.
-- Core regression tests for dashboard summaries and empty state, WPF compile and Windows installer smoke pending.
+- Home summary regression tests passed (91 total). Both downloaded archives were verified without ZIP errors: portable `PetPing-Windows-v0.12-unsigned` artifact ID 12042344606, installer `PetPing-Installer-v0.12-unsigned` artifact ID 12043370603. Setup EXE extracted and SHA-256 recorded in release notes. Actual UI scaling and mouse/keyboard acceptance still need device QA.
 
 ## Known constraints and risks
 - The tray **must** remain running. Quitting, force-stop, signing out or shutdown prevents continuous reminders. Optional Windows-startup registration begins it on future login.
@@ -78,5 +79,5 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Open PR for v0.12 and inspect Windows Actions. Fix markup/compiler/runtime issues, get a successful 0.12 Windows executable and unsigned installer (installer upgrade retains reminder data), then merge into main and update this file with exact CI, commit and artifacts. Ask user to verify **actual** native navigation and reminder create/edit/save, Pet Studio preview/settings, Home summary, 125–200% Windows scaling and close-to-tray behavior. Physical acceptance of v0.11 walking voice remains partial. v0.13 is multi-pet customization; v0.14 advanced action animations; v0.15 integrated QA.
+Have the user install the v0.12 unsigned Windows setup or portable archive after quitting older PetPing from tray and backing up `%LOCALAPPDATA%\PetPing`. Verify Home summary numbers, all five sidebar screens, create/edit/daily/weekly reminders, settings speech and Windows startup, Pet Studio motion and arrival preview, Ctrl+N/F5/Esc, resizing/high DPI and tray behavior. Report problems and fix them before v0.13. Current preview includes only Milo Cat; Dog/Bunny are clearly marked coming v0.13. Advanced pet action effects planned v0.14, integration QA v0.15. v1.0 still deferred until full user approval.
 
