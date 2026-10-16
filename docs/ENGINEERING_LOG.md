@@ -55,3 +55,9 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Final artifact `PetPing-Windows-v0.6-unsigned` ID 12032645056. Downloaded ZIP locally and validated its archive integrity; includes `PetPing.Windows.exe` (unsigned test build).
 - No evidence yet of actual user interaction testing of the new v0.6 repeating/edit screens. Await results rather than claim production quality.
 - Next: v0.6 Windows edit/recurrence acceptance QA; triage failures before v0.7 character animations.
+
+## 2026-10-16 — v0.7 kickoff
+- User reports Windows v0.6 is working fine. Detailed lock/sleep, multi-monitor and speech regression evidence remains unrecorded, so those formal release gates remain open.
+- Target: make the existing orange-cat companion more expressive without altering reminder schema or recurrence: blinking/speaking feedback, reduced-motion mode, user-selectable corner placement, and safe settings persistence.
+- Keep Windows first, Android second, local-first, zero-cost software/hosting. Commit code and resume documents, run green Windows CI, then merge and share the unsigned alpha.
+- Branch: `feature/windows-v0.7-pet-experience`; PR and CI pending.
