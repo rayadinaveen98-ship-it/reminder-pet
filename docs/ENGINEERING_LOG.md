@@ -88,3 +88,9 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Branch `feature/windows-v0.8-dashboard-installer`. Scope: reorganize reminder inbox into readable Today / Upcoming / Needs Attention / History / All filters, friendlier dashboard spacing and keyboard/accessibility helpers. Preserve v0.7 pet, preferences, recurring scheduling and local saved reminder data.
 - Distribution: add a per-user **unsigned** Inno Setup installer via Windows GitHub CI alongside the existing portable ZIP. The installer must never erase reminder data on uninstall. Avoid admin rights, paid certificate requirements, auto-updater promises or silent background actions.
 - Next: commit source and CI pipeline, run Windows build, fix errors, test installer extraction/build, update docs/QA and merge only when green.
+
+## 2026-10-16 — v0.8 implementation checkpoint
+- Branch: `feature/windows-v0.8-dashboard-installer`.
+- Implemented Today/Upcoming/NeedsAttention/History/All inbox filters, empty views, keyboard shortcuts, wrapped actions, accessible labels and confirmation before delete. Reminder scheduler and recurring data unchanged.
+- Added first per-user Inno Setup package script (`installer/PetPing.iss`), Windows CI build, plus silent install/uninstall test verifying saved reminder data survives. Includes conversion of prior opt-in login startup path to installed executable, and avoids admin rights.
+- Regression tests for filter membership/order and no mutation; v0.7 core tests remain. CI pending at this checkpoint. Do not claim installer works until verified on Windows runner.

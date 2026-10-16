@@ -93,3 +93,14 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 
 - Click Done and Snooze with successful disk writes: pet should briefly say a friendly confirmation before disappearing.
 - Simulate disk write failure while clicking Done/Snooze: pet must remain visible rather than falsely claiming saved completion; a generic error notification may be suppressed by OS.
+
+## v0.8 QA checklist
+- Filter All/Today/Upcoming/Needs Attention/History; verify no existing reminder disappears from data when switching views.
+- Select a reminder then refresh/filter; selection is retained if the item remains visible, otherwise cleared.
+- Check empty states with no reminders or no matching filter entries.
+- Ctrl+N focuses the new reminder field; F5 refreshes; Esc cancels an active edit.
+- Test Delete confirmation: No preserves reminder, Yes deletes it; for repeating reminders, removing the next future event stops its series. Older history is unchanged.
+- Test at 125–200% Windows scaling and keyboard-only focus/Tab order; check action row wrapping on small window widths.
+- Installer: run portable build quit from tray; install unsigned setup with per-user privilege, optionally create desktop shortcut; confirm Start Menu launch, installed app operation and uninstall entry.
+- Uninstall/reinstall: verify `%LOCALAPPDATA%\PetPing\reminders.json`, preferences and logs remain intact. Optional Start with Windows should point to installed EXE when previously enabled.
+- This installer is unsigned. Real Windows SmartScreen/security warning behavior varies and requires user verification; do not promise warnings never appear.
