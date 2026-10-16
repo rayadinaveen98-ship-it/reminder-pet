@@ -45,6 +45,7 @@ public partial class MainWindow : Window
         };
         _testPet = testPet;
         _stopNarration = stopNarration;
+        _reminderChanged = reminderChanged;
         ReminderDate.SelectedDate = DateTime.Today;
         ReminderTime.Text = DateTime.Now.AddMinutes(5).ToString("HH:mm");
         VoiceToggle.IsChecked = _speechSettings.Enabled;
