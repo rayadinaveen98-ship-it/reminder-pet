@@ -15,6 +15,8 @@ public partial class App : System.Windows.Application
     private ReminderScheduler? _scheduler;
     private VoiceService? _voice;
     private SpeechSettings? _speechSettings;
+    private DiagnosticsLog? _diagnostics;
+    private bool _faultNoticeShown;
     private Forms.NotifyIcon? _tray;
     private MainWindow? _dashboard;
     private PetWindow? _petWindow;
@@ -35,15 +37,19 @@ public partial class App : System.Windows.Application
 
         try
         {
+            _diagnostics = new DiagnosticsLog();
+            _diagnostics.Record("app_started");
             _store = new ReminderStore();
             _speechSettings = new SpeechSettings();
             _voice = new VoiceService { Enabled = _speechSettings.Enabled };
+            _voice.SpeechFailed += error => _diagnostics?.Record("voice_failed", error);
             _dashboard = new MainWindow(_store, _voice, _speechSettings, ShowTestPet, OnReminderChangedFromDashboard);
             MainWindow = _dashboard;
             CreateTray();
             _scheduler = new ReminderScheduler(_store);
             _scheduler.ReminderDue += QueueReminder;
             _scheduler.RemindersMissed += OnRemindersMissed;
+            _scheduler.SchedulerFault += OnSchedulerFault;
             _scheduler.Changed += () =>
             {
                 _dashboard.RefreshList();
@@ -66,6 +72,7 @@ public partial class App : System.Windows.Application
         }
         catch (Exception ex)
         {
+            _diagnostics?.Record("startup_failed", ex);
             System.Windows.MessageBox.Show("PetPing couldn't start. Your reminders were not erased.\n\n" + ex.Message,
                 "Startup error", MessageBoxButton.OK, MessageBoxImage.Error);
             Quit();
@@ -137,19 +144,80 @@ public partial class App : System.Windows.Application
         {
             var reminder = _petQueue.Dequeue();
             if (reminder.Status != ReminderStatus.Delivered) continue;
-            var popup = new PetWindow(reminder);
-            _petWindow = popup;
-            popup.Completed += r => { _store!.Mark(r, ReminderStatus.Completed); _dashboard?.RefreshList(); };
-            popup.Snoozed += r => { _store!.Snooze(r, TimeSpan.FromMinutes(10)); _dashboard?.RefreshList(); };
-            popup.Closed += (_, _) =>
+            PetWindow? popup = null;
+            try
             {
+                popup = new PetWindow(reminder);
+                _petWindow = popup;
+                popup.Completed += r =>
+                {
+                    try
+                    {
+                        _store!.Mark(r, ReminderStatus.Completed);
+                        _dashboard?.RefreshList();
+                        UpdateTrayStatus();
+                    }
+                    catch (Exception error) { OnPresentationFault("completion_save_failed", error); }
+                };
+                popup.Snoozed += r =>
+                {
+                    try
+                    {
+                        _store!.Snooze(r, TimeSpan.FromMinutes(10));
+                        _dashboard?.RefreshList();
+                        UpdateTrayStatus();
+                    }
+                    catch (Exception error) { OnPresentationFault("snooze_save_failed", error); }
+                };
+                popup.Closed += (_, _) =>
+                {
+                    if (ReferenceEquals(_petWindow, popup)) _petWindow = null;
+                    ShowNextPet();
+                };
+                popup.Show();
+                _diagnostics?.Record("pet_shown");
+                if (_voice is not null && _voice.Enabled && !_voice.SpeakReminder(reminder.Title))
+                    _diagnostics?.Record("voice_unavailable");
+                return;
+            }
+            catch (Exception error)
+            {
+                _diagnostics?.Record("pet_presentation_failed", error);
                 if (ReferenceEquals(_petWindow, popup)) _petWindow = null;
-                ShowNextPet();
-            };
-            popup.Show();
-            _voice?.SpeakReminder(reminder.Title);
-            return;
+                try { popup?.Close(); } catch { /* ignore failed cleanup */ }
+                NotifyGeneric("Reminder needs attention",
+                    "A reminder is due. Open PetPing to view it.");
+                // The reminder is still Delivered and remains in Needs Attention.
+                // Continue trying other queued reminders instead of terminating the scheduler.
+            }
         }
+    }
+
+    private void OnSchedulerFault(string code, Exception error)
+    {
+        _diagnostics?.Record(code, error);
+        if (!_faultNoticeShown)
+        {
+            _faultNoticeShown = true;
+            NotifyGeneric("Reminder service needs attention",
+                "An error occurred while saving or delivering a reminder. Please open PetPing.");
+        }
+    }
+
+    private void OnPresentationFault(string code, Exception error)
+    {
+        _diagnostics?.Record(code, error);
+        NotifyGeneric("Reminder not updated",
+            "Your action could not be saved. Please reopen PetPing and try again.");
+    }
+
+    private void NotifyGeneric(string title, string body)
+    {
+        try
+        {
+            _tray?.ShowBalloonTip(5500, title, body, Forms.ToolTipIcon.Warning);
+        }
+        catch (Exception error) { _diagnostics?.Record("tray_notice_failed", error); }
     }
 
     private void ShowTestPet()
@@ -169,8 +237,17 @@ public partial class App : System.Windows.Application
 
     private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
     {
+        if (e.Mode == PowerModes.Suspend)
+        {
+            _diagnostics?.Record("power_suspended");
+            _voice?.Stop();
+        }
         if (e.Mode == PowerModes.Resume)
-            Dispatcher.BeginInvoke(() => _scheduler?.CheckNow());
+            Dispatcher.BeginInvoke(() =>
+            {
+                _diagnostics?.Record("power_resumed");
+                _scheduler?.CheckNow();
+            });
     }
 
     private void OnSessionSwitch(object sender, SessionSwitchEventArgs e)
@@ -180,6 +257,8 @@ public partial class App : System.Windows.Application
             if (e.Reason == SessionSwitchReason.SessionLock)
             {
                 _locked = true;
+                _diagnostics?.Record("session_locked");
+                _voice?.Stop();
                 // On lock, hide any existing pet and requeue its unanswered reminder
                 // for the next unlock. Do not try to draw above Windows' secure screen.
                 if (_petWindow is not null)
@@ -196,6 +275,7 @@ public partial class App : System.Windows.Application
             if (e.Reason == SessionSwitchReason.SessionUnlock)
             {
                 _locked = false;
+                _diagnostics?.Record("session_unlocked");
                 _scheduler?.CheckNow();
                 ShowNextPet();
             }
@@ -218,6 +298,7 @@ public partial class App : System.Windows.Application
         _petWindow?.Close();
         if (_tray is not null) { _tray.Visible = false; _tray.Dispose(); }
         _voice?.Dispose();
+        _diagnostics?.Record("app_exited");
         if (_singleInstance is not null)
         {
             try { _singleInstance.ReleaseMutex(); } catch (ApplicationException) { }

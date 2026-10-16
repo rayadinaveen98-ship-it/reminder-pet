@@ -81,6 +81,8 @@
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
         <CheckBox x:Name="StartupToggle" Content="Start with Windows" Margin="0,0,22,0" Click="OnStartupToggled" VerticalAlignment="Center"/>
         <CheckBox x:Name="VoiceToggle" Content="Speak reminders" Click="OnVoiceToggled" VerticalAlignment="Center"/>
+        <Button Content="Test voice" Click="OnTestVoice" Background="#F1F0ED"
+                MinHeight="26" Padding="9,4" Margin="10,0,0,0"/>
       </StackPanel>
       <TextBlock Text="Closing keeps reminders running in the tray. Quit from the tray to stop them." Margin="0,8,0,0" FontSize="11" Foreground="{StaticResource MutedBrush}"/>
     </StackPanel>
