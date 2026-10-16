@@ -111,9 +111,9 @@ public partial class MainWindow : Window
         {
             var active = i == (int)page;
             controls[i].Background = new SolidColorBrush(
-                active ? Color.FromRgb(221, 211, 249) : Colors.Transparent);
+                active ? System.Windows.Media.Color.FromRgb(221, 211, 249) : System.Windows.Media.Colors.Transparent);
             controls[i].Foreground = new SolidColorBrush(
-                active ? Color.FromRgb(65, 48, 133) : Color.FromRgb(36, 39, 46));
+                active ? System.Windows.Media.Color.FromRgb(65, 48, 133) : System.Windows.Media.Color.FromRgb(36, 39, 46));
             controls[i].FontWeight = active ? FontWeights.Bold : FontWeights.SemiBold;
         }
         ErrorToast.Visibility = Visibility.Collapsed;
