@@ -146,10 +146,6 @@ try
           child.Id != first.Id, "delivery creates one separate future event");
     Check(child.DueAt > DateTimeOffset.UtcNow && child.DueAt.ToLocalTime().Hour ==
           first.OriginalDueAt.ToLocalTime().Hour, "daily event keeps same local hour");
-    repeated.Mark(first, ReminderStatus.Completed);
-    Check(repeated.Reminders.Count == 2 && new ReminderStore(repeatFolder).Reminders.Count == 2,
-        "completing prior event does not duplicate series after restart");
-
     repeated.Snooze(first, TimeSpan.FromMinutes(10));
     Check(first.RepeatContinuationCreated && first.SnoozeCount == 1,
         "snoozing a series event keeps continuation marker");
@@ -157,6 +153,9 @@ try
     Check(repeated.Reminders.Count == 2 &&
           repeated.Reminders.Count(r => r.SeriesId == seriesId && r.Id != first.Id) == 1,
         "re-delivering snoozed event does not create a duplicate tomorrow");
+    repeated.Mark(first, ReminderStatus.Completed);
+    Check(repeated.Reminders.Count == 2 && new ReminderStore(repeatFolder).Reminders.Count == 2,
+        "completing prior event does not duplicate series after restart");
 
     var week = repeated.Add("Weekly planning", DateTimeOffset.Now.AddDays(1),
         RepeatPattern.Weekly);
