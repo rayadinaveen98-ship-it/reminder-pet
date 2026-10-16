@@ -288,11 +288,11 @@ public partial class App : System.Windows.Application
                         return false;
                     }
                 };
-                popup.Snoozed += r =>
+                popup.Snoozed += (r, duration) =>
                 {
                     try
                     {
-                        _store!.Snooze(r, TimeSpan.FromMinutes(10));
+                        _store!.Snooze(r, duration);
                         RefreshAfterSavedAction();
                         return true;
                     }
