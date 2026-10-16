@@ -234,6 +234,16 @@ public partial class App : System.Windows.Application
         _voice?.Stop();
     }
 
+    private void RefreshAfterSavedAction()
+    {
+        // UI refresh is best-effort. A successfully persisted Done/Snooze must
+        // NEVER be reported as failed merely because a dashboard view threw.
+        try { _dashboard?.RefreshList(); }
+        catch (Exception error) { _diagnostics?.Record("dashboard_refresh_failed", error); }
+        try { UpdateTrayStatus(); }
+        catch (Exception error) { _diagnostics?.Record("tray_refresh_failed", error); }
+    }
+
     private void RequeueAndCloseActivePet()
     {
         if (_petWindow is not { } popup) return;
@@ -264,8 +274,7 @@ public partial class App : System.Windows.Application
                     try
                     {
                         _store!.Mark(r, ReminderStatus.Completed);
-                        _dashboard?.RefreshList();
-                        UpdateTrayStatus();
+                        RefreshAfterSavedAction();
                         return true;
                     }
                     catch (Exception error)
@@ -279,8 +288,7 @@ public partial class App : System.Windows.Application
                     try
                     {
                         _store!.Snooze(r, TimeSpan.FromMinutes(10));
-                        _dashboard?.RefreshList();
-                        UpdateTrayStatus();
+                        RefreshAfterSavedAction();
                         return true;
                     }
                     catch (Exception error)
