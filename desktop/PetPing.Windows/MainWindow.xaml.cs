@@ -555,6 +555,9 @@ public partial class MainWindow : Window
             var enabled = VoiceToggle.IsChecked == true;
             _speechSettings.SetEnabled(enabled);
             _voice.Enabled = enabled;
+            // A disabled voice must stop the current utterance immediately,
+            // not only prevent the next scheduled repetition.
+            if (!enabled) _voice.Stop();
             ErrorToast.Visibility = Visibility.Collapsed;
         }
         catch (IOException ex)
