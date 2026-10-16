@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current deliverable:** Windows Alpha v0.8 dashboard polish and Windows installer in development. v0.7 passed 56 core checks. Both the v0.8 portable ZIP and installer must pass CI before sharing; this is not a signed production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current deliverable:** Windows Alpha **v0.8**: dashboard polish plus an optional per-user Windows installer. GitHub Actions passed **64 core tests**, Windows x64 publish, installer compilation, and silent installation/uninstallation with preserved data. This is an unsigned alpha, not a signed production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -102,7 +102,7 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 ## Final v0.7 build evidence
 - PR #6 merged into main: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/6
 - CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38872547917 — 56/56 tests, WPF compile, unsigned ZIP uploaded.
-- Artifact: `PetPing-Windows-v0.8-unsigned` (ID 12034680037). ZIP integrity checked and executable verified.
+- Artifact: `PetPing-Windows-v0.7-unsigned` (ID 12034680037). ZIP integrity checked and executable verified.
 - For future chats read `docs/PROJECT_STATUS.md` and `docs/ENGINEERING_LOG.md` first, and update both after changes.
 
 ## v0.8 dashboard and installation
@@ -113,3 +113,11 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Installer uses `%LOCALAPPDATA%\Programs\PetPing`, includes Start Menu shortcut and an optional desktop icon. The previous Start-with-Windows preference is redirected to the installed executable when already enabled.
 - **Uninstall keeps `%LOCALAPPDATA%\PetPing`**: reminders, preferences and diagnostics are not removed. This also applies to future upgrades. This is an unsigned alpha so Windows SmartScreen may warn; a signed commercial installer is future work.
 - Before upgrading from a portable build, quit PetPing from its tray icon. Do not run two copies simultaneously. Test installer smoke checks do not constitute complete interactive device QA.
+
+## Final v0.8 build and installation evidence
+- PR #7 merged: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/7
+- Final CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38877847189 — 64 core checks passed, WPF compiled, installer built, silent install/uninstall and local data-preservation smoke passed.
+- Portable ZIP: `PetPing-Windows-v0.8-unsigned` (artifact 12035474939). Installer ZIP: `PetPing-Installer-v0.8-unsigned` (artifact 12036600668), containing `PetPing-Setup-v0.8-unsigned.exe`.
+- To upgrade from the portable alpha, **Quit PetPing from the tray first**. Run the installer with your regular Windows account, choose desktop shortcut if desired, and test that your saved reminders still appear. The Inno Setup uninstaller is under Windows installed applications.
+- Installing/uninstalling never intentionally removes `%LOCALAPPDATA%\PetPing`. You must separately delete that folder if you explicitly want to erase your reminder data.
+- Installer signing/SmartScreen reputation, screen-reader QA, Win10/11 sleep/lock and mixed-DPI acceptance remain unresolved. Never claim complete production reliability from CI alone.

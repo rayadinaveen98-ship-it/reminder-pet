@@ -104,3 +104,9 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Installer: run portable build quit from tray; install unsigned setup with per-user privilege, optionally create desktop shortcut; confirm Start Menu launch, installed app operation and uninstall entry.
 - Uninstall/reinstall: verify `%LOCALAPPDATA%\PetPing\reminders.json`, preferences and logs remain intact. Optional Start with Windows should point to installed EXE when previously enabled.
 - This installer is unsigned. Real Windows SmartScreen/security warning behavior varies and requires user verification; do not promise warnings never appear.
+
+## v0.8 automated evidence (separate from manual QA)
+- CI run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38877847189 passed 64 core checks including Today/Upcoming/Attention/History filter membership, order and immutability.
+- Windows WPF executable compiled and portable ZIP uploaded.
+- Inno Setup 6 installer compiled. Windows hosted runner installed it silently, checked `PetPing.Windows.exe`, uninstalled it silently, and checked that a sentinel in `%LOCALAPPDATA%\PetPing` survived.
+- **Not tested by CI:** interactive installer wizard, Start Menu use, real user SmartScreen decisions, Windows screen readers, actual lock/sleep, mixed DPI or correctness of existing data after a real user's upgrade.

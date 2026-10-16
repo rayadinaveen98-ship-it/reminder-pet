@@ -94,3 +94,13 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Implemented Today/Upcoming/NeedsAttention/History/All inbox filters, empty views, keyboard shortcuts, wrapped actions, accessible labels and confirmation before delete. Reminder scheduler and recurring data unchanged.
 - Added first per-user Inno Setup package script (`installer/PetPing.iss`), Windows CI build, plus silent install/uninstall test verifying saved reminder data survives. Includes conversion of prior opt-in login startup path to installed executable, and avoids admin rights.
 - Regression tests for filter membership/order and no mutation; v0.7 core tests remain. CI pending at this checkpoint. Do not claim installer works until verified on Windows runner.
+
+## 2026-10-16 — v0.8 first installer build, fixes and final merge
+- PR #7: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/7 ; squash commit on main `fc33f2264141ae71f20f582e1b9ad4bfd9344592`.
+- Initial Windows run #38877154997 failed a too-specific test assertion about whether Missed or Delivered sorts first; both are Needs Attention, and the assertion was corrected.
+- Run #38877419848 compiled core tests but WPF caught ambiguity between WinForms/WPF `KeyEventArgs`; fixed the fully qualified event type.
+- Run #38877607535 passed core tests, compiled app and installer; installer smoke incorrectly read an empty PowerShell `$LASTEXITCODE` from a GUI process. Fixed using `Start-Process -Wait -PassThru` for install/uninstall.
+- **Final green run:** https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38877847189 — 64 core tests passed; WPF win-x64 published; per-user installer built; silent setup/uninstall and persisted data sentinel test passed; both artifact uploads succeeded.
+- Portable artifact `PetPing-Windows-v0.8-unsigned` (ID 12035474939; ZIP contains `PetPing.Windows.exe`). Installer artifact `PetPing-Installer-v0.8-unsigned` (ID 12036600668; ZIP contains `PetPing-Setup-v0.8-unsigned.exe`). Both ZIPs integrity checked in the active working environment.
+- The unsigned installer is **not** a signed or SmartScreen-approved consumer release. Real interactive installation, mixed DPI, lock/sleep and accessibility testing still open. Uninstall smoke verifies that user data stays in LocalAppData.
+- Next: user v0.8 device acceptance, P0 fixes, v0.9 Windows quality/beta gate, Android second platform after Windows release maturity.

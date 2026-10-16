@@ -11,6 +11,7 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - No paid APIs or mandatory hosted services for alpha.
 
 ## Verified build status
+- **v0.8 Windows alpha (merged, CI-verified; laptop installation QA pending):** PR #7 squash-merged to `main` at `fc33f2264141ae71f20f582e1b9ad4bfd9344592`. Windows CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38877847189 — **64 core checks**, WPF publish, free Inno Setup installer compilation and successful **silent install -> installed EXE check -> silent uninstall -> user-data sentinel retained**. Artifacts: portable `PetPing-Windows-v0.8-unsigned` (ID 12035474939), installer `PetPing-Installer-v0.8-unsigned` (ID 12036600668). Both GitHub ZIPs checked for integrity; installer archive contains `PetPing-Setup-v0.8-unsigned.exe`.
 - **v0.7 Windows alpha (merged, CI-verified, hands-on QA pending):** Windows run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38872547917 passed 56 core tests, compiled and uploaded `PetPing-Windows-v0.7-unsigned` (artifact 12034680037); ZIP extracted and checked for `PetPing.Windows.exe`.
 - **v0.6 Windows alpha (CI-verified, manual QA pending):** Windows x64 compilation and **49** core regression checks passed. GitHub CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38868473793 ; artifact `PetPing-Windows-v0.6-unsigned` (final artifact ID 12032645056; CI run 38868752195).
 - **v0.5 Windows alpha:** compiled Windows x64 and passed **32** core regression checks. GitHub CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38864475272 ; artifact: `PetPing-Windows-v0.5-unsigned` (GitHub Actions retention applies).
@@ -23,7 +24,7 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 ## Active milestone
 **v0.7 — pet experience**. Branch `feature/windows-v0.7-pet-experience`. Source committed and PR #6 opened. Initial CI run #38872180216 passed with 56 checks, then a user-action save consistency fix was added and final CI is pending.
 
-Current status: **v0.8 IN DEVELOPMENT — CI and package verification pending**. Last merged source v0.7 (56 core checks); user reports the v0.7 experience is good. Explicit lock/sleep/mixed-DPI device acceptance is still unrecorded.
+Current status: **v0.8 MERGED + CI VERIFIED (64 core checks, portable ZIP and installer smoke tested)**. User reports v0.7 works. v0.8 interactive installation, Windows settings, lock/sleep/mixed-DPI and screen-reader QA remain open; this is an unsigned alpha, not a production release.
 
 Priority work:
 1. Handle presentation failures safely and visibly; do not lose state because a pet popup or speech cannot render.
@@ -42,7 +43,7 @@ Priority work:
 - Never store reminder text in diagnostics unnecessarily.
 
 ## Release path
-- Current last CI-verified alpha test build: **v0.7** unsigned Windows x64 ZIP (`PetPing-Windows-v0.7-unsigned`, artifact 12034680037, CI 38872547917). User reports v0.6 functioning. v0.7 screen/motion/voice reactions still need user testing.
+- Latest CI-verified alpha: **v0.8**, optional per-user unsigned setup EXE and Windows portable ZIP (CI 38877847189, artifacts 12036600668 and 12035474939). User said v0.7 is good; no v0.8 hands-on QA yet.
 - After v0.5: v0.6 daily/weekly repeat, edit reminders and better dashboard; v0.7 expressive characters; v0.8–1.0 Windows packaging/QA; then Android foundation.
 - Keep `docs/ROADMAP.md`, `docs/TEST_PLAN.md`, `README.md`, this file and `docs/ENGINEERING_LOG.md` synchronized at milestone boundaries.
 
@@ -75,4 +76,4 @@ Priority work:
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-Open PR for v0.8, run Windows CI and fix any XAML/compiler/Inno/setup failures. Do not merge without green build and installer smoke. Update this handoff with exact CI run, PR and commit IDs; share portable ZIP and unsigned setup EXE. Ask user to test installer upgrade and dashboard filters on Windows. Formal sleep/lock/multi-DPI QA is still outstanding. Future after v0.8: Windows beta release gate, then Android architecture.
+**User device QA for Windows v0.8:** Quit previous PetPing from tray. Install `PetPing-Setup-v0.8-unsigned.exe` (downloaded from artifact 12036600668) OR extract the v0.8 portable ZIP (artifact 12035474939). Verify dashboard filters, shortcut keys Ctrl+N/F5/Esc, delete confirmation, existing daily/weekly reminders, speech, pet popup and preservation of `%LOCALAPPDATA%\PetPing` after uninstall/reinstall. For the installer, test startup registration migration from portable EXE if previously enabled, Start Menu shortcut, optional desktop shortcut, and Windows uninstall. Record real pass/fail; fix P0 issues before claiming Windows beta. After this proceed v0.9 Windows quality/release gates, and Android only after Windows v1.0 acceptance.

@@ -103,6 +103,6 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Per-user Windows installer script preserving `%LOCALAPPDATA%\PetPing`
 - [x] CI installer build plus install/uninstall storage preservation smoke test
 - [x] Pure filter regression tests in core smoke project
-- [ ] Confirm Windows CI and actual unsigned installer artifact
+- [x] Windows CI green: 64 core checks, portable ZIP + installer and silent install/uninstall data-preservation test; PR #7 merged
 - [ ] Real-device font scaling, multi-monitor, speech, lock and sleep/wake acceptance
 - [ ] Official code signing and automated upgrades (not implemented in v0.8)
