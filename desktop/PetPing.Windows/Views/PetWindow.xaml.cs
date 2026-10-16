@@ -17,10 +17,13 @@ public partial class PetWindow : Window
     private readonly DispatcherTimer _autoHide = new() { Interval = TimeSpan.FromSeconds(45) };
     private readonly DispatcherTimer _blink = new() { Interval = TimeSpan.FromSeconds(4.5) };
     private bool _closing;
+    private bool _reacting;
 
     public Guid ReminderId => _reminder.Id;
-    public event Action<Reminder>? Completed;
-    public event Action<Reminder>? Snoozed;
+    // Acknowledgment callbacks return false on persistence failure, so the pet
+    // stays visible and the user can retry rather than believing the action saved.
+    public event Func<Reminder, bool>? Completed;
+    public event Func<Reminder, bool>? Snoozed;
 
     public PetWindow(Reminder reminder,
         PetPlacement placement = PetPlacement.Auto,
@@ -173,7 +176,7 @@ public partial class PetWindow : Window
     /// </summary>
     public void SetSpeaking(bool speaking)
     {
-        if (_closing || !IsLoaded) return;
+        if (_closing || _reacting || !IsLoaded) return;
         MouthSmile.Visibility = speaking ? Visibility.Collapsed : Visibility.Visible;
         MouthSpeak.Visibility = speaking ? Visibility.Visible : Visibility.Collapsed;
         MouthSpeak.BeginAnimation(OpacityProperty, null);
@@ -220,17 +223,36 @@ public partial class PetWindow : Window
 
     private void OnHide(object sender, RoutedEventArgs e) => AnimateAway();
 
+    private void ReactAndLeave(string response)
+    {
+        _reacting = true;
+        _autoHide.Stop();
+        _blink.Stop();
+        ReminderTitle.Text = response;
+        ReminderTitle.ToolTip = response;
+        MouthSpeak.BeginAnimation(OpacityProperty, null);
+        MouthSpeak.Visibility = Visibility.Collapsed;
+        MouthSmile.Visibility = Visibility.Visible;
+        var responseTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(650) };
+        responseTimer.Tick += (_, _) =>
+        {
+            responseTimer.Stop();
+            AnimateAway();
+        };
+        responseTimer.Start();
+    }
+
     private void OnDone(object sender, RoutedEventArgs e)
     {
-        if (_closing) return;
-        Completed?.Invoke(_reminder);
-        AnimateAway();
+        if (_closing || _reacting) return;
+        if (Completed?.Invoke(_reminder) != false)
+            ReactAndLeave("Nice work! ✓");
     }
 
     private void OnSnooze(object sender, RoutedEventArgs e)
     {
-        if (_closing) return;
-        Snoozed?.Invoke(_reminder);
-        AnimateAway();
+        if (_closing || _reacting) return;
+        if (Snoozed?.Invoke(_reminder) != false)
+            ReactAndLeave("Okay! I'll remind you again.");
     }
 }
