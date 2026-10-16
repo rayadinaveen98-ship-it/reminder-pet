@@ -167,6 +167,6 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Pet selection, four colors, accessories, size, personality and Done/Snooze actions
 - [x] Configurable narrated repeat interval 30/60/120s wired to real speech engine
 - [x] Core regression tests for profile persistence, corruption, invalid settings and failed writes
-- [ ] Windows CI pass / PR merged / actual unsigned installer artifact
-- [ ] User verifies species visuals/selection, Studio, live reminder, restart and audio timing
+- [x] Windows CI green 105 checks, PR #12 merged, both unsigned artifacts verified
+- [ ] User verifies species visuals/selection, Studio, live reminder, restart and audio timing on laptop
 - [ ] v0.14 sophisticated species-specific character animation and particles
