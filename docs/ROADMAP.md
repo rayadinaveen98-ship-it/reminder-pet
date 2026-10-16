@@ -92,6 +92,6 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Blinking eyes, Windows TTS event-driven speaking mouth, and brief successful Done/Snooze reactions
 - [x] Use foreground monitor positioning with WPF pixel/DIP conversion
 - [x] Test preference persistence, invalid/corrupt settings and rollback
-- [x] Initial Windows CI verified with 56 core checks; post-fix CI / merge pending
+- [x] Final Windows CI verified with 56 core checks; PR #6 merged into main
 - [ ] Physical QA: appearance controls, blink/speaking, mixed DPI, lock/wake
 - [ ] Alternate pet species/asset packs and full walking sprite animations (later work)
