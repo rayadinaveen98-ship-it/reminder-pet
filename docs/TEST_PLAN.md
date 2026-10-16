@@ -181,3 +181,11 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Run 38903316350 passed **122 core smoke checks**, static XAML and WPF executable build.
 - Actual pinned v0.14 installer was compiled and installed, then upgraded to v0.15; upgraded FileVersion checked, synthetic reminder and pet-profile SHA-256 preserved through upgrade and uninstall. The regular v0.15 same-version repair/uninstall sentinel also passed.
 - No user-supplied real reminder files were opened or migrated in CI. Actual on-device voice/animation/keyboard/DPI and power-cycle QA remain open.
+
+## v0.16 product blueprint verification (design documents only)
+- [ ] Product spec review: target audiences, constraints, P0/P1/P2, truthful Windows lock/sleep behavior, no phantom feature claims.
+- [ ] Reminder design review: recurrence DST/interval/month-end/series edit, compatible storage and deletion/rollback semantics.
+- [ ] Character experience review: three original distinct character rigs, accessibility, performance budget, full enter→walk→speech→choice→reaction→exit.
+- [ ] Brand UI and first-run walkthrough review: no forced voice/startup, replayable onboarding, no reset of upgrading v0.15 users.
+- [ ] Valid JSON design tokens and clear proposed/approved distinctions.
+- [ ] Later implementation PRs add actual automated Windows tests and real-device visual acceptance. This doc-only phase does **not** ship v0.16 installer.

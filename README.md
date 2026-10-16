@@ -1,8 +1,19 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current working release:** Windows **v0.9** user-tested alpha. **Latest Windows test build:** v0.13, genuine Cat/Dog/Bunny selection and separate saved customization for each species. GitHub Windows CI passed 105 core checks, compiled portable x64 and optional installer, and verified installer preserves user data. Actual on-device UI acceptance still pending. GitHub Actions passed 86 core checks and compiled both installer and portable build; real laptop visual/voice QA is pending. This is unsigned and not a production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Last CI-verified Windows test build:** **v0.15** (unsigned, merged), 122 core smoke checks and successful real v0.14→v0.15 synthetic-data upgrade. User reports core app working; physical mixed-DPI, lock/sleep, accessible interface and detailed audio testing remain open. **Active v0.16 milestone:** approved **product and visual experience blueprint** (docs/design tokens only, no v0.16 EXE). Next: v0.17 original brand/UI concepts, v0.18 advanced reminders, v0.19 pet art/motion, v0.20 onboarding, v0.21 QA, then Windows v1.0. Android comes later. No mandatory cloud accounts or paid APIs.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
+
+## Current v0.16 authoritative product documents
+
+- [Product Blueprint](docs/V016_PRODUCT_BLUEPRINT.md) — user jobs, navigation, product principles, scope and quality objectives
+- [Reminder System 2.0 specification](docs/V016_REMINDER_SPEC.md) — stronger scheduling, safe recurrence, priority and snooze
+- [Character & Performance Bible](docs/V016_CHARACTER_EXPERIENCE.md) — original art, complete on-desktop pet choreography and animation budgets
+- [Brand, UI & Onboarding](docs/V016_BRAND_ONBOARDING.md) — logo territories, design rules, welcome/setup and upgrade-safe guidance
+- [Versioned Delivery Plan](docs/V016_DELIVERY_PLAN.md) — v0.16–v0.21 deliverables, risks, release acceptance and decision register
+- [Draft design tokens](design/petping-3/tokens.v016.draft.json) — palette, typography, motion and responsive layout (NOT loaded in v0.15)
+
+These **documents are the new source of truth** for planned work. The older `docs/PRODUCT_BLUEPRINT.md` is a historical v0.1 baseline. Draft visuals and new reminder options are NOT yet in the application.
 
 ## Contents
 - `docs/PRODUCT_BLUEPRINT.md`: product goals, UX principles, scope.

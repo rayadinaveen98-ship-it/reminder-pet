@@ -1,3 +1,5 @@
+> **CURRENT LOCKED PLAN (2026-10-16):** See [v0.16–v0.21 Delivery Plan](V016_DELIVERY_PLAN.md), [Product Blueprint](V016_PRODUCT_BLUEPRINT.md), [Reminder Spec](V016_REMINDER_SPEC.md), [Character Bible](V016_CHARACTER_EXPERIENCE.md), and [Brand/Onboarding](V016_BRAND_ONBOARDING.md). Older W0/W1 milestones below are historical and may retain outdated checkboxes from prior roadmap iterations.
+
 # Roadmap and accountable milestones
 
 ## Milestone W0 — foundation (this delivery)
@@ -193,3 +195,20 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] v0.15 full CI green (122 checks), real v0.14→v0.15 upgrade test passed, both unsigned archives CRC-verified, PR #14 merged
 - [ ] v0.15 hands-on reminder/voice/reactions/accessibility/multi-monitor/power testing
 - [ ] Windows v1.0 RC checklist, code signing/distribution decision and user approval
+
+## Locked expansion — current delivery program v0.16 to v0.21
+- [x] User-approved direction: premium brand/UI, reminder engine 2.0, character rigs/complete performance, setup/onboarding/guidance, reliability; Windows first then Android
+- [x] v0.16 PRD, screen map, P0/P1/P2 backlog and quality targets
+- [x] v0.16 reminder recurrence, priority, snooze and migration specification
+- [x] v0.16 character art and full reminder-scene quality contract
+- [x] v0.16 logo exploration / onboarding brief and design-token draft
+- [x] v0.16 sequenced delivery plan with explicit exit gates and risks
+- [ ] v0.16 review and merge documentation; no new EXE expected
+- [ ] v0.17 original logo/icon concept families and high fidelity WPF UI visual designs; user art review
+- [ ] v0.17 native UI component system, accessibility and responsive layout, Windows CI and manual test
+- [ ] v0.18 stronger snooze/recurrence/priority/categories/quiet modes in gated slices; backwards-compatible migrations
+- [ ] v0.19 approved original character artwork/rigs and smooth complete reminder scene, performance QA
+- [ ] v0.20 branded welcome, skippable first-run setup and contextual guidance with upgrade safety
+- [ ] v0.21 integrated mixed-DPI, sleep, lock, screen reader, memory/CPU, installer upgrade QA
+- [ ] Windows v1.0 RC and stable with explicit signing/distribution decision and user acceptance
+- [ ] Android native A1 only after Windows release gate
