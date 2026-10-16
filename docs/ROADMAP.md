@@ -95,3 +95,14 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Final Windows CI verified with 56 core checks; PR #6 merged into main
 - [ ] Physical QA: appearance controls, blink/speaking, mixed DPI, lock/wake
 - [ ] Alternate pet species/asset packs and full walking sprite animations (later work)
+
+## Milestone W1.6 — Windows polish and packaging (v0.8)
+- [x] Reminder list filters: All, Today, Upcoming, Needs Attention, History
+- [x] Empty states, compact action layout, accessibility names and keyboard shortcuts
+- [x] Confirm destructive Delete and explain next repeated occurrence effect
+- [x] Per-user Windows installer script preserving `%LOCALAPPDATA%\PetPing`
+- [x] CI installer build plus install/uninstall storage preservation smoke test
+- [x] Pure filter regression tests in core smoke project
+- [ ] Confirm Windows CI and actual unsigned installer artifact
+- [ ] Real-device font scaling, multi-monitor, speech, lock and sleep/wake acceptance
+- [ ] Official code signing and automated upgrades (not implemented in v0.8)

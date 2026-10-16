@@ -295,6 +295,35 @@ try
     Check(new ReminderStore(repeatFolder).Reminders.Count == reminderCountBefore,
         "corrupted pet preferences never modify saved reminders");
 
+
+    // v0.8 visual inbox filtering must never change reminder state.
+    var viewNow = DateTimeOffset.Now;
+    var inboxItems = new List<Reminder>
+    {
+        new() { Title = "Today pending", DueAt = viewNow, Status = ReminderStatus.Pending },
+        new() { Title = "Tomorrow pending", DueAt = viewNow.AddDays(1), Status = ReminderStatus.Pending },
+        new() { Title = "Unanswered today", DueAt = viewNow, Status = ReminderStatus.Delivered },
+        new() { Title = "Missed yesterday", DueAt = viewNow.AddDays(-1), Status = ReminderStatus.Missed },
+        new() { Title = "Finished yesterday", DueAt = viewNow.AddDays(-1), Status = ReminderStatus.Completed }
+    };
+    Check(ReminderInboxRules.Count(inboxItems, InboxFilter.All, DateTime.Today) == 5,
+        "all reminders filter includes every persisted state");
+    Check(ReminderInboxRules.Count(inboxItems, InboxFilter.Today, DateTime.Today) == 2,
+        "today includes only today's active and unanswered reminders");
+    Check(ReminderInboxRules.Count(inboxItems, InboxFilter.Upcoming, DateTime.Today) == 2,
+        "upcoming includes pending today and future dates");
+    Check(ReminderInboxRules.Count(inboxItems, InboxFilter.NeedsAttention, DateTime.Today) == 2,
+        "needs attention includes delivered and missed regardless of day");
+    Check(ReminderInboxRules.Count(inboxItems, InboxFilter.History, DateTime.Today) == 1,
+        "history contains completed reminders");
+    Check(ReminderRules.NeedsAttention(
+          ReminderInboxRules.Select(inboxItems, InboxFilter.All, DateTime.Today)[0]),
+        "all view prioritizes missed or unanswered alerts ahead of pending");
+    Check(ReminderInboxRules.Select(inboxItems, InboxFilter.Upcoming, DateTime.Today)[0].Title ==
+          "Today pending", "upcoming reminders are ordered by due date");
+    Check(inboxItems.Count == 5 && inboxItems[0].Status == ReminderStatus.Pending,
+        "filtering never changes reminder storage state");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;

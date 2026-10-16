@@ -23,7 +23,7 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 ## Active milestone
 **v0.7 — pet experience**. Branch `feature/windows-v0.7-pet-experience`. Source committed and PR #6 opened. Initial CI run #38872180216 passed with 56 checks, then a user-action save consistency fix was added and final CI is pending.
 
-Current status: **v0.7 MERGED + CI VERIFIED (56/56 core checks, Windows x64 publish, ZIP integrity verified)**. Previous v0.6 was reported working by user; v0.7 has not yet been tested interactively. Formal lock/sleep/multi-monitor testing remains unverified.
+Current status: **v0.8 IN DEVELOPMENT — CI and package verification pending**. Last merged source v0.7 (56 core checks); user reports the v0.7 experience is good. Explicit lock/sleep/mixed-DPI device acceptance is still unrecorded.
 
 Priority work:
 1. Handle presentation failures safely and visibly; do not lose state because a pet popup or speech cannot render.
@@ -42,7 +42,7 @@ Priority work:
 - Never store reminder text in diagnostics unnecessarily.
 
 ## Release path
-- Current CI-verified alpha test build: **v0.7** unsigned Windows x64 ZIP (`PetPing-Windows-v0.7-unsigned`, artifact 12034680037, CI 38872547917). User reports v0.6 functioning. v0.7 screen/motion/voice reactions still need user testing.
+- Current last CI-verified alpha test build: **v0.7** unsigned Windows x64 ZIP (`PetPing-Windows-v0.7-unsigned`, artifact 12034680037, CI 38872547917). User reports v0.6 functioning. v0.7 screen/motion/voice reactions still need user testing.
 - After v0.5: v0.6 daily/weekly repeat, edit reminders and better dashboard; v0.7 expressive characters; v0.8–1.0 Windows packaging/QA; then Android foundation.
 - Keep `docs/ROADMAP.md`, `docs/TEST_PLAN.md`, `README.md`, this file and `docs/ENGINEERING_LOG.md` synchronized at milestone boundaries.
 
@@ -69,5 +69,10 @@ Priority work:
 - Uses foreground-monitor coordinate conversion to improve placement, but physical mixed-DPI QA is pending.
 - No alternate pet animals or compiled APK in this phase.
 
+## v0.8 implementation checkpoint
+- Inbox views: All, Today, Upcoming, Needs Attention, History; keyboard shortcuts, empty states, accessibility names and delete confirmation.
+- Per-user Inno Setup installer alongside portable ZIP with a CI silent installation/uninstallation test preserving `%LOCALAPPDATA%\PetPing` data.
+- Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
+
 ## Next action
-Share the v0.7 unsigned Windows ZIP. Request manual testing: Pet placement Auto/top/bottom/left/right; Playful/Gentle/Off; voice-speaking mouth; blinking; Done/Snooze happy/acknowledgement reaction; restart preference persistence; regular reminders and daily/weekly recurrence. Record user evidence, fix P0 problems. Then plan v0.8 packaging and quality, **Windows before Android**, preserving zero-cost local-first architecture. Formal lock/sleep and mixed-DPI QA still open.
+Open PR for v0.8, run Windows CI and fix any XAML/compiler/Inno/setup failures. Do not merge without green build and installer smoke. Update this handoff with exact CI run, PR and commit IDs; share portable ZIP and unsigned setup EXE. Ask user to test installer upgrade and dashboard filters on Windows. Formal sleep/lock/multi-DPI QA is still outstanding. Future after v0.8: Windows beta release gate, then Android architecture.
