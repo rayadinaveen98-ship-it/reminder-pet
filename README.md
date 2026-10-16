@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current deliverable:** Windows Alpha v0.7 pet experience in development, pending Windows CI. User reports v0.6 works; independent lock/sleep/multi-monitor testing remains open. This is not a production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current deliverable:** Windows Alpha v0.7 expressive pet, corner placement and animation settings. GitHub Windows CI passed **56 core checks**, compiled Windows x64 and generated an unsigned ZIP; hands-on v0.7 QA is pending. This is not a production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -98,3 +98,9 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - The pet remains a single original orange vector cat; alternate animals and new illustrated packs are deferred, not silently claimed as implemented.
 
 - Done/Snooze now show short confirmations **only after the reminder state has saved**; if saving fails the pet stays available for retry.
+
+## Final v0.7 build evidence
+- PR #6 merged into main: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/6
+- CI: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38872547917 — 56/56 tests, WPF compile, unsigned ZIP uploaded.
+- Artifact: `PetPing-Windows-v0.7-unsigned` (ID 12034680037). ZIP integrity checked and executable verified.
+- For future chats read `docs/PROJECT_STATUS.md` and `docs/ENGINEERING_LOG.md` first, and update both after changes.
