@@ -219,6 +219,7 @@ No account, no backend, no AI APIs, no purchase flows, no child-themed RPG mecha
 - [x] Create new 8-page editable Canva design review, audit and document off-target generated copy
 - [x] Create precise Home/Reminders WPF layout and interaction spec, plus original 1440×900 editable SVG screen mockups with explicit sample-watermark
 - [x] Refine semantic UI tokens; flag failing mint/white color contrast
+- [x] Stage A original logo/UI source merged PR #16, green existing Windows CI
 - [ ] User visual approval of logo A/B/C, general UI language and high-fidelity layout
 - [ ] Stage B final logo master/ICO and coherent WPF resources, Home & Reminders implementation with real reminder data
 - [ ] Stage C My Pets/Studio/Settings full UI polish; empty/error/loading/responsive/accessibility states
