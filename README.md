@@ -1,6 +1,6 @@
 # PetPing — Desktop-first Reminder Companion
 
-**Current working release:** Windows **v0.9** user-tested alpha. **Last merged tested preview:** Windows v0.12 redesigned dashboard. **v0.13 in development:** genuine Cat/Dog/Bunny selection with saved customization. Final GitHub Windows CI passed 91 core checks, compiled portable x64 and optional installer, and verified installer preserves user data. Actual on-device UI acceptance still pending. GitHub Actions passed 86 core checks and compiled both installer and portable build; real laptop visual/voice QA is pending. This is unsigned and not a production release. Android is next in the roadmap; no Android APK has been produced yet.
+**Current working release:** Windows **v0.9** user-tested alpha. **Latest Windows test build:** v0.13, genuine Cat/Dog/Bunny selection and separate saved customization for each species. GitHub Windows CI passed 105 core checks, compiled portable x64 and optional installer, and verified installer preserves user data. Actual on-device UI acceptance still pending. GitHub Actions passed 86 core checks and compiled both installer and portable build; real laptop visual/voice QA is pending. This is unsigned and not a production release. Android is next in the roadmap; no Android APK has been produced yet.
 
 **Continuity:** See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for current progress, CI evidence, known issues and new-chat handoff; and [docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md) for a chronological implementation log.
 
@@ -162,4 +162,9 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Pet Studio customization: 4 coats, 3 accessories, 3 sizes, 3 personalities, two Done and two Snooze action variations, 30/60/120-second voice repeat; existing placement/motion controls remain.
 - Each pet retains its **own** saved appearance/actions when switching species; selections persist locally in a versioned `pet-profile.json`; old `reminders.json` and `pet-appearance.json` remain unchanged.
 - Profile corruption falls back to defaults without wiping reminders or the corrupt file; invalid values and failed writes cannot change last saved settings.
-- v0.14 adds richer actions/visual effects; v0.13 provides the functional foundation, not full effects. Windows CI and physical UI QA pending at this checkpoint.
+- v0.14 adds richer actions/visual effects; v0.13 provides the functional foundation, not full effects. Windows CI passed; laptop appearance, interactions and audio testing still pending.
+
+## v0.13 verified release checkpoint
+- Merged PR #12. Windows Actions run 38897525278 passed 105 core checks and unsigned install/reinstall/uninstall data preservation.
+- Portable Windows ZIP artifact: 12044223333. Installer ZIP artifact: 12045065431. Both archives verified intact and the installer executable extracted.
+- v0.13 profile settings are independent from reminder data. User device acceptance is still pending.
