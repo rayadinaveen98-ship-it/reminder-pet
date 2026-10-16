@@ -96,3 +96,5 @@ Open `preview/RunPreview.cmd` to see the pet pop up after 3 seconds and hear an 
 - Placement chooses the screen of the currently foreground application and maps monitor pixels into WPF logical coordinates. Mixed-DPI hardware still requires physical testing.
 - Settings are saved independently at `%LOCALAPPDATA%\PetPing\pet-appearance.json`; old reminders and repeat rules are left unchanged. Settings apply to the next pet popup.
 - The pet remains a single original orange vector cat; alternate animals and new illustrated packs are deferred, not silently claimed as implemented.
+
+- Done/Snooze now show short confirmations **only after the reminder state has saved**; if saving fails the pet stays available for retry.

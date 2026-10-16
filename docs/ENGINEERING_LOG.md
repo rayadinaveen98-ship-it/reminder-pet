@@ -68,3 +68,9 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Settings are local and independent of the reminder JSON. Existing daily/weekly engine intentionally unchanged.
 - Added smoke checks for preference persistence, invalid enum, disk write rollback and corrupt settings isolation.
 - Windows compile and hands-on appearance tests pending at this checkpoint. Next: PR, CI, bug fixes, status refresh, merge.
+
+## 2026-10-16 — v0.7 first CI and action safety refinement
+- Pull request #6: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/6 .
+- Initial Windows CI run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38872180216 **passed**: 56 core tests, compiled executable, uploaded unsigned alpha.
+- Subsequent safety fix: pet Done/Snooze now get explicit success from the persistence callbacks. On save failure pet remains actionable rather than closing as if completed. On success the pet briefly replies with a friendly acknowledgement before animating away.
+- Final CI for the additional code change not yet verified at this checkpoint; do not merge until green.

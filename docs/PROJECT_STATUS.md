@@ -20,9 +20,9 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
-**v0.7 — pet experience**. Branch `feature/windows-v0.7-pet-experience`. Source committed; Windows PR/CI pending.
+**v0.7 — pet experience**. Branch `feature/windows-v0.7-pet-experience`. Source committed and PR #6 opened. Initial CI run #38872180216 passed with 56 checks, then a user-action save consistency fix was added and final CI is pending.
 
-Current status: **v0.7 DEVELOPMENT / CI PENDING**. Last CI-verified release v0.6 (49 checks). User reports v0.6 works. Lock/sleep/multi-monitor testing remains unverified.
+Current status: **v0.7 IN PULL REQUEST #6; initial Windows CI 56/56 passed, final post-fix CI pending.** Last merged version v0.6 works for the user. Formal lock/sleep/multi-monitor testing remains unverified.
 
 Priority work:
 1. Handle presentation failures safely and visibly; do not lose state because a pet popup or speech cannot render.
@@ -64,9 +64,9 @@ Priority work:
 
 ## v0.7 scope / implementation
 - Persistent `pet-appearance.json` independent of reminders, with Auto/Top/Bottom corner selection and Playful/Gentle/Off motion.
-- Original vector cat blinking eyes and speech-mouth driven by Windows TTS started/completed events.
+- Original vector cat blinking eyes and speech-mouth driven by Windows TTS started/completed events; friendly Done/Snooze reactions only when saving succeeds. Popup stays actionable if saving fails.
 - Uses foreground-monitor coordinate conversion to improve placement, but physical mixed-DPI QA is pending.
 - No alternate pet animals or compiled APK in this phase.
 
 ## Next action
-Open a PR for v0.7, inspect Windows CI and fix failures, update this file with exact passing build and merge commit. Then share unsigned Windows v0.7 archive and request hands-on testing of pet position, motion options and speaking. Preserve user-reported v0.6 working state and outstanding lock/sleep QA.
+Check latest CI for PR #6 after the save-consistency fix, repair any compiler/test failures, merge when green. Update Git handoff with run/commit IDs. Provide unsigned Windows v0.7 archive and ask user to test: placement choices, Playful/Gentle/Off, spoken mouth, saved preferences and Done/Snooze reactions. Formal lock/sleep QA remains outstanding.

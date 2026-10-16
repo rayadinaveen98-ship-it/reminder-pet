@@ -90,3 +90,6 @@ No "perfect", "exactly guaranteed", "runs after force-quit" or "locked-screen ov
 - Change pet preference, quit tray, restart EXE: saved choice persists, existing reminders unchanged.
 - Test corrupt `pet-appearance.json`: app starts with defaults without erasing reminders or file.
 - Repeat full Windows sleep/wake and lock/unlock regression tests, not implied passed by GitHub CI.
+
+- Click Done and Snooze with successful disk writes: pet should briefly say a friendly confirmation before disappearing.
+- Simulate disk write failure while clicking Done/Snooze: pet must remain visible rather than falsely claiming saved completion; a generic error notification may be suppressed by OS.
