@@ -74,3 +74,11 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Initial Windows CI run https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38872180216 **passed**: 56 core tests, compiled executable, uploaded unsigned alpha.
 - Subsequent safety fix: pet Done/Snooze now get explicit success from the persistence callbacks. On save failure pet remains actionable rather than closing as if completed. On success the pet briefly replies with a friendly acknowledgement before animating away.
 - Final CI for the additional code change not yet verified at this checkpoint; do not merge until green.
+
+## 2026-10-16 — v0.7 final CI, merge and Windows ZIP
+- PR #6 merged: https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/6 ; squash commit `3115b84ddea107fdd8606e45d187374866470a9e`.
+- Final Actions run: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38872547917 — **success**, 56 core smoke checks; static XAML checks, Windows x64 compilation and unsigned ZIP upload passed.
+- Artifact: `PetPing-Windows-v0.7-unsigned`, ID 12034680037. Downloaded ZIP, checked archive integrity, verified `PetPing.Windows.exe` present.
+- Includes blink, speech-mouth, local pet placement/motion settings, and saved-action-only Done/Snooze confirmation. Existing reminder recurrence untouched.
+- Hands-on physical testing remains open (animation visuals, voice timing, mixed-DPI monitors, lock/sleep). Do not treat passing CI as proof of those scenarios.
+- Next: user v0.7 testing, P0 defects, then v0.8 Windows polish/packaging before Android.
