@@ -186,3 +186,8 @@ Keep this append-only by milestone. Link commits and CI runs; note failures as w
 - Connected My Pets buttons to persisted species selection and Pet Studio controls to saved preference updates. Injected saved pet into real App/voice cadence, not just a mockup. Update applies to next reminder and preview.
 - Added persistence/failure/corruption regression smoke checks and v0.13 artifact/version names.
 - CI and laptop tests pending. v0.14 remains advanced particle effects and deeper animal reactions.
+
+## 2026-10-16 — v0.13 per-pet personalization refinement
+- Clarified the persistence model: Milo, Buddy and Luna each retain **their own** palette, accessory, size, personality and actions when user switches away and back; last selected species also persists.
+- Modified the profile JSON to hold a validated species roster rather than one shared active profile. Added switch-and-restart regression tests and safely resized preview artwork through WPF Viewbox so no ears/feet are cropped in cards.
+- First v0.13 CI run #38896987114 passed, but these additional per-pet edits require a new green run before merge and distribution.
