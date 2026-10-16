@@ -28,7 +28,7 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 
 - User reported v0.12 looked fine and approved proceeding with v0.13. Baseline v0.12 is merged/CI verified (91 checks); physical extensive Windows QA remains limited.
 - Branch `feature/windows-v0.13-multipet-customization` contains source; CI and actual Windows device QA pending at this checkpoint.
-- Added `PetProfileSettings`: independent versioned `%LOCALAPPDATA%\PetPing\pet-profile.json` with an atomic save, validation and safe fallback on corruption, preserving existing reminders and `pet-appearance.json`.
+- Added `PetProfileSettings`: independent versioned `%LOCALAPPDATA%\PetPing\pet-profile.json` roster with separate per-species customization and an atomic save, validation and safe fallback on corruption, preserving existing reminders and `pet-appearance.json`.
 - **Three distinct, original vector rigs:** Milo Cat with pointed ears/whiskers/tail; Buddy Dog with drooping ears/muzzle/tail; Luna Bunny with tall ears/cotton tail. The same character component renders in Home, My Pets, Pet Studio and the actual walking reminder overlay.
 - My Pets now selects the real active companion and persists across restart; Pet Studio controls coat palette (4), accessory (None/Bow/Scarf), size (3), personality (Playful/Calm/Curious), Done action (Hop/Wave), Snooze action (Yawn/Stretch) and spoken reannouncement interval (30/60/120 seconds), in addition to existing arrival side/motion controls. Settings apply to the next reminder.
 - Pet actor uses selected species/appearance and basic supported behavior variations. Full species-specific expressive particle/celebration animation upgrades are **v0.14**, not claimed as complete in v0.13.
