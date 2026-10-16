@@ -32,6 +32,8 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 ## Active milestone
 **Windows v0.17 unsigned DESIGN PREVIEW — GitHub verified, physical user acceptance pending.**
 
+- **v0.18 R2-A is underway but NOT MERGED or released:** draft PR #20 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/20 . Flexible snooze (5/10/15/30/60min, custom <=24h), shared reminder editor rules, true local next-due preview, midnight/DST validation and store safety tests. Code CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38928471033 **passed** core checks, Windows build, installer and real v0.15→v0.17 upgrade. Preserve the v0.17 laptop review gate; see `docs/V018_R2A_EDITOR_IMPLEMENTATION.md` and `docs/V018_R2A_SNOOZE_IMPLEMENTATION.md` **on the PR branch**.
+
 - User chose **C — Companion Beacon**. App uses an original WPF brand mark, semantic warm light theme, branded runtime tray/titlebar icon and seven-size ICO packaged in executable/installer.
 - Stage A PR #16: concepts; Stage B PR #17: native Home/Reminders; Stage B packaging and Stage C UI PR #18: My Pets, Pet Studio and Settings plus compact layouts; release preview PR #19: version 0.17 package. All merged into main.
 - Green Windows preview build/installer and **real v0.15→v0.17 upgrade**: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38922662056 .
