@@ -154,9 +154,9 @@ public partial class MainWindow : Window
         HomeHelloButton.Content = "Say hello to " + label.Split(' ')[0];
         StudioCharacter.Apply(p);
         HomeCharacter.Apply(p);
-        PetsCatCharacter.Apply(p with { Species = PetSpecies.Cat });
-        PetsDogCharacter.Apply(p with { Species = PetSpecies.Dog });
-        PetsBunnyCharacter.Apply(p with { Species = PetSpecies.Bunny });
+        PetsCatCharacter.Apply(_petProfiles.Get(PetSpecies.Cat));
+        PetsDogCharacter.Apply(_petProfiles.Get(PetSpecies.Dog));
+        PetsBunnyCharacter.Apply(_petProfiles.Get(PetSpecies.Bunny));
         CatChoiceStatus.Text = p.Species == PetSpecies.Cat ? "Active" : "Available";
         DogChoiceStatus.Text = p.Species == PetSpecies.Dog ? "Active" : "Available";
         BunnyChoiceStatus.Text = p.Species == PetSpecies.Bunny ? "Active" : "Available";
@@ -173,7 +173,8 @@ public partial class MainWindow : Window
         if (_petProfiles.Current.Species == species) return;
         try
         {
-            _petProfiles.Update(_petProfiles.Current with { Species = species });
+            _petProfiles.Select(species);
+            PopulateProfilePickers();
             RefreshPetUI();
             ErrorToast.Visibility = Visibility.Collapsed;
         }
