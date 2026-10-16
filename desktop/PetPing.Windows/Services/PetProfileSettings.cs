@@ -87,8 +87,7 @@ public sealed class PetProfileSettings
 
     public PetProfileSettings(string? directory = null)
     {
-        var folder = directory ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PetPing");
+        var folder = directory ?? PetPingDataRoot.DefaultDirectory;
         Directory.CreateDirectory(folder);
         _path = Path.Combine(folder, "pet-profile.json");
         if (!File.Exists(_path)) return;
