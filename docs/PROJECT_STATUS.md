@@ -29,6 +29,9 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Reminder UX: one-off reminders, 10m snooze, Needs Attention inbox, sleep/restart catch-up (15m), tray opt-in autostart.
 
 ## Active milestone
+**v0.17 Windows design preview candidate — versioned build in progress.** PR #18 delivered the branded multi-size ICO, polished My Pets/Pet Studio/Settings and green legacy upgrade CI. A separate preview branch upgrades the binary/installer version to 0.17, and updates Windows CI to test a genuine v0.15 → v0.17 upgrade preserving local files. Physical-device visual, lock/wake, narration and accessibility acceptance remain open; this is NOT a production release.
+
+
 **v0.17 Stage B — Companion Beacon brand native Windows implementation. PR #17 MERGED after green Windows CI; v0.15 remains the latest versioned Windows executable.**
 
 - User selected **Logo C / Companion Beacon** on 2026-10-16; candidate A and B are kept as historical concepts only.
@@ -85,4 +88,4 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 - Added pure filter rules and deterministic smoke checks. The reminder scheduling/store schema and pet behavior are unchanged.
 
 ## Next action
-PR #17 is merged and CI-green. Obtain physical laptop visual/behavior acceptance. Produce packaged multiresolution ICO and installer mark, then Stage C My Pets/Studio/Settings before calling v0.17 complete. Keep v0.15 data compatible, with unchanged reminder JSON and local profiles.
+Complete v0.17 preview Windows CI with real pinned v0.15→v0.17 installer upgrade and immutable local reminders/pet profile verification. Distribute the unsigned preview for physical Windows QA: verify first launch, full five-page navigation, 16–256px branding, 100–200% DPI, tray, voice, recurring reminders, snooze and lock/wake. Record user feedback before declaring v0.17 ready for a stable release. Keep advanced recurrence v0.18 and final pet animation work v0.19 separate.

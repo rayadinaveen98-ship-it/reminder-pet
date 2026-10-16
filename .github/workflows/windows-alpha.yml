@@ -26,7 +26,7 @@ jobs:
       - name: Core reminder tests
         run: dotnet run --project tests/PetPing.CoreChecks/PetPing.CoreChecks.csproj -c Release
       - name: Build portable Windows EXE
-        run: dotnet publish desktop/PetPing.Windows/PetPing.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/PetPing-Windows-v0.15
+        run: dotnet publish desktop/PetPing.Windows/PetPing.Windows.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/PetPing-Windows-v0.17
       - name: Validate seven-size Companion Beacon app icon
         shell: pwsh
         run: |
@@ -57,8 +57,8 @@ jobs:
       - name: Upload unsigned alpha
         uses: actions/upload-artifact@v4
         with:
-          name: PetPing-Windows-v0.15-unsigned
-          path: artifacts/PetPing-Windows-v0.15/
+          name: PetPing-Windows-v0.17-unsigned
+          path: artifacts/PetPing-Windows-v0.17/
           if-no-files-found: error
           retention-days: 7
 
@@ -72,32 +72,32 @@ jobs:
           if (!(Test-Path $compiler)) { throw "Inno Setup compiler not found: $compiler" }
           & $compiler "/Q" "installer\PetPing.iss"
           if ($LASTEXITCODE -ne 0) { throw "Inno installer compilation failed" }
-          if (!(Test-Path "artifacts\PetPing-Installer-v0.15\PetPing-Setup-v0.15-unsigned.exe")) {
+          if (!(Test-Path "artifacts\PetPing-Installer-v0.17\PetPing-Setup-v0.17-unsigned.exe")) {
             throw "Expected installer artifact was not created"
           }
       # Pin and rebuild the real predecessor: avoids relying on expiring CI ZIPs.
-      - name: Test v0.14 to v0.15 upgrade preserves reminders and pet profiles
+      - name: Test v0.15 to v0.17 upgrade preserves reminders and pet profiles
         shell: pwsh
         run: |
-          $oldRoot = Join-Path $env:RUNNER_TEMP "PetPing-Previous-v014"
-          git worktree add --detach "$oldRoot" "4f8be7cae20651161651bbec444f412fa34902df"
-          if ($LASTEXITCODE -ne 0) { throw "Cannot check out pinned v0.14" }
-          $oldPublish = Join-Path $oldRoot "artifacts\PetPing-Windows-v0.14"
+          $oldRoot = Join-Path $env:RUNNER_TEMP "PetPing-Previous-v015"
+          git worktree add --detach "$oldRoot" "3ec779352c0a35f83981ac01d01a7947429b0e2f"
+          if ($LASTEXITCODE -ne 0) { throw "Cannot check out pinned v0.15" }
+          $oldPublish = Join-Path $oldRoot "artifacts\PetPing-Windows-v0.15"
           dotnet publish (Join-Path $oldRoot "desktop\PetPing.Windows\PetPing.Windows.csproj") -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o "$oldPublish"
-          if ($LASTEXITCODE -ne 0) { throw "Cannot publish v0.14" }
+          if ($LASTEXITCODE -ne 0) { throw "Cannot publish v0.15" }
           $compiler = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
           & $compiler "/Q" (Join-Path $oldRoot "installer\PetPing.iss")
-          if ($LASTEXITCODE -ne 0) { throw "Cannot build v0.14 installer" }
-          $oldSetup = Join-Path $oldRoot "artifacts\PetPing-Installer-v0.14\PetPing-Setup-v0.14-unsigned.exe"
-          $newSetup = (Resolve-Path "artifacts\PetPing-Installer-v0.15\PetPing-Setup-v0.15-unsigned.exe").Path
-          if (!(Test-Path $oldSetup)) { throw "Missing v0.14 setup" }
+          if ($LASTEXITCODE -ne 0) { throw "Cannot build v0.15 installer" }
+          $oldSetup = Join-Path $oldRoot "artifacts\PetPing-Installer-v0.15\PetPing-Setup-v0.15-unsigned.exe"
+          $newSetup = (Resolve-Path "artifacts\PetPing-Installer-v0.17\PetPing-Setup-v0.17-unsigned.exe").Path
+          if (!(Test-Path $oldSetup)) { throw "Missing v0.15 setup" }
           $installDir = Join-Path $env:LOCALAPPDATA "Programs\PetPing-CI-Upgrade"
           $dataDir = Join-Path $env:LOCALAPPDATA "PetPing"
           New-Item -ItemType Directory -Force $dataDir | Out-Null
           $installArgs = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', ('/DIR="' + $installDir + '"'))
           $oldInstall = Start-Process -FilePath $oldSetup -ArgumentList $installArgs -Wait -PassThru
-          if ($oldInstall.ExitCode -ne 0) { throw "v0.14 install failed" }
-          if (!(Test-Path (Join-Path $installDir "PetPing.Windows.exe"))) { throw "v0.14 binary missing" }
+          if ($oldInstall.ExitCode -ne 0) { throw "v0.15 install failed" }
+          if (!(Test-Path (Join-Path $installDir "PetPing.Windows.exe"))) { throw "v0.15 binary missing" }
           $reminders = Join-Path $dataDir "reminders.json"
           $profiles = Join-Path $dataDir "pet-profile.json"
           $fixture = ConvertTo-Json -InputObject @(
@@ -112,16 +112,16 @@ jobs:
           $reminderHash = (Get-FileHash $reminders -Algorithm SHA256).Hash
           $profileHash = (Get-FileHash $profiles -Algorithm SHA256).Hash
           $newInstall = Start-Process -FilePath $newSetup -ArgumentList $installArgs -Wait -PassThru
-          if ($newInstall.ExitCode -ne 0) { throw "v0.15 upgrade failed" }
+          if ($newInstall.ExitCode -ne 0) { throw "v0.17 upgrade failed" }
           $upgradedExe = Join-Path $installDir "PetPing.Windows.exe"
           if (!(Test-Path $upgradedExe)) { throw "Upgraded binary missing" }
           $upgradedVersion = (Get-Item $upgradedExe).VersionInfo.FileVersion
-          if ($upgradedVersion -notlike '0.15.0*') {
-            throw "Upgrade did not install new v0.15 binary: $upgradedVersion"
+          if ($upgradedVersion -notlike '0.17.0*') {
+            throw "Upgrade did not install new v0.17 binary: $upgradedVersion"
           }
           if ((Get-FileHash $reminders -Algorithm SHA256).Hash -ne $reminderHash -or
               (Get-FileHash $profiles -Algorithm SHA256).Hash -ne $profileHash) {
-            throw "v0.14 -> v0.15 upgrade changed reminder or pet data"
+            throw "v0.15 -> v0.17 upgrade changed reminder or pet data"
           }
           $uninstall = Join-Path $installDir "unins000.exe"
           if (!(Test-Path $uninstall)) { throw "Upgraded uninstaller missing" }
@@ -132,12 +132,12 @@ jobs:
             throw "Uninstall changed user data"
           }
           Remove-Item $reminders,$profiles -Force
-          Write-Host "PASS: real v0.14-to-v0.15 upgrade and uninstall preserved saved data."
+          Write-Host "PASS: real v0.15-to-v0.17 upgrade and uninstall preserved saved data."
 
       - name: Validate installed files and preserve reminder data
         shell: pwsh
         run: |
-          $installer = (Resolve-Path "artifacts\PetPing-Installer-v0.15\PetPing-Setup-v0.15-unsigned.exe").Path
+          $installer = (Resolve-Path "artifacts\PetPing-Installer-v0.17\PetPing-Setup-v0.17-unsigned.exe").Path
           $installDir = Join-Path $env:LOCALAPPDATA "Programs\PetPing-CI"
           $dataDir = Join-Path $env:LOCALAPPDATA "PetPing"
           New-Item -ItemType Directory -Force $dataDir | Out-Null
@@ -168,7 +168,7 @@ jobs:
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: PetPing-Installer-v0.15-unsigned
-          path: artifacts/PetPing-Installer-v0.15/PetPing-Setup-v0.15-unsigned.exe
+          name: PetPing-Installer-v0.17-unsigned
+          path: artifacts/PetPing-Installer-v0.17/PetPing-Setup-v0.17-unsigned.exe
           if-no-files-found: error
           retention-days: 7

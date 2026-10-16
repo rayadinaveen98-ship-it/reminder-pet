@@ -544,7 +544,7 @@
                 <Button Content="Open data and diagnostics folder" HorizontalAlignment="Left"
                         Click="OnOpenDataFolder" Background="#F2EEE8"
                         AutomationProperties.Name="Open local reminder data and diagnostics folder"/>
-                <TextBlock Text="PetPing Windows v0.15 • v0.17 design preview" FontSize="11"
+                <TextBlock Text="PetPing Windows v0.17 • preview" FontSize="11"
                            Foreground="{StaticResource MutedBrush}" Margin="0,14,0,0"/>
               </StackPanel>
             </Border>
