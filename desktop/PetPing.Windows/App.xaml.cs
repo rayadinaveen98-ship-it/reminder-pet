@@ -96,10 +96,10 @@ public partial class App : System.Windows.Application
                     "to make a safe copy before attempting repairs.", error);
 
             var result = System.Windows.MessageBox.Show(
-                "PetPing cannot read the saved reminder file.\\n\\n" +
+                "PetPing cannot read the saved reminder file.\n\n" +
                 "A valid backup from BEFORE your most recent save is available. " +
-                "Restoring it may remove newer reminder changes.\\n\\n" +
-                "The damaged original will be kept separately for recovery.\\n\\n" +
+                "Restoring it may remove newer reminder changes.\n\n" +
+                "The damaged original will be kept separately for recovery.\n\n" +
                 "Restore the older backup and continue?",
                 "Restore previous reminder backup?",
                 MessageBoxButton.YesNo,
@@ -114,7 +114,7 @@ public partial class App : System.Windows.Application
             _diagnostics?.Record("reminder_backup_restored");
             var restored = new ReminderStore();
             System.Windows.MessageBox.Show(
-                "The backup was restored. Some recent changes may be missing.\\n\\n" +
+                "The backup was restored. Some recent changes may be missing.\n\n" +
                 (string.IsNullOrEmpty(retainedPath)
                     ? "The previous backup remains in your PetPing data folder."
                     : "The unreadable file has been kept separately in your PetPing data folder."),
