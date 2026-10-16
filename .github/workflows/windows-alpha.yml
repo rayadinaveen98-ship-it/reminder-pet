@@ -126,7 +126,7 @@ jobs:
         run: |
           $installer = (Resolve-Path "artifacts\PetPing-Installer-v0.18-experimental\PetPing-Setup-v0.18-experimental-unsigned.exe").Path
           $installDir = Join-Path $env:LOCALAPPDATA "Programs\PetPing-CI"
-          $dataDir = Join-Path $env:LOCALAPPDATA "PetPing"
+          $dataDir = Join-Path $env:LOCALAPPDATA "PetPing-Experimental"
           New-Item -ItemType Directory -Force $dataDir | Out-Null
           $sentinel = Join-Path $dataDir "ci-preserve-test.txt"
           Set-Content -LiteralPath $sentinel -Value "retain reminder data"
