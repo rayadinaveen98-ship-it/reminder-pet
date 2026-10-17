@@ -1,6 +1,6 @@
 # Reminder Pet — Project status & chat handoff
 
-_Last updated: 2026-10-16. This file is canonical and is updated as work is committed._
+_Last updated: 2026-10-17. This file is canonical and is updated as work is committed._
 
 ## Identity
 - Repository: `rayadinaveen98-ship-it/reminder-pet`. Keep the GitHub name **reminder-pet**.
@@ -31,6 +31,9 @@ _Last updated: 2026-10-16. This file is canonical and is updated as work is comm
 
 ## Active milestone
 **Windows v0.17 unsigned DESIGN PREVIEW — GitHub verified, physical user acceptance pending.**
+
+- **v0.18 Phase 1 reminder reliability and backup export is CODE-COMPLETE / CI-GREEN, but DRAFT and UNMERGED:** PR #26 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/26 is stacked on experimental PR #25. Pure `ReminderDueProcessor` runs deterministic timed reconciliation while WPF scheduler remains a 1s dispatcher adapter; tests cover callback/reentrant double tick, delayed/missed, rollback on disk error, 30s retry, callback list deletion and long-weekly downtime. Store uses one event clock for Missed status and series advancement. Settings gains user-chosen verified read-only reminder JSON export with SHA-256 equality and non-overwriting filenames; only reminder data is exported, not pet settings. Experimental startup error now points to its own profile. **Windows CI passed:** https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38994800925 (XAML/core, WPF, experimental installer and SHA-256 preservation of production and experimental data). See `docs/V018_RELIABILITY_PHASE1.md` on PR #26. Existing v0.17 `main` release, saved data and download are unchanged. Physical laptop timing/lock/sleep, voice and export-path QA remain outstanding. Never claim exact-time delivery during sleep/off.
+
 
 - **v0.18 R2-A + R2-B COMBINED / VERIFIED, STILL DRAFT:** integration PR #24 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/24 is stacked on PR #23. It combines flexible snooze (5/10/15/30/60/custom minutes) with the custom weekday/N-day editor, shared validated time/title parsing, atomic custom series and all regression fixtures. Full Windows CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38940915946 **passed** core checks, WPF x64 and existing v0.15→v0.17 upgrade smoke. Not merged into main.
 - **v0.18.0 EXPERIMENTAL BUILD available for deliberate sandbox laptop testing, NOT a normal update:** stacked draft PR #25 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/25 . Windows CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/38942105318 **passed** core tests, isolated Inno installer, WPF, and SHA-256 preservation of both production/experimental data through install, reinstall and uninstall. Artifacts `PetPing-Installer-v0.18-experimental-unsigned` and `PetPing-Windows-v0.18-experimental-unsigned` in that workflow are time-limited. Separate Inno AppId/shortcuts/install directory, separate mutex and Start with Windows entry, separate local data root `%LOCALAPPDATA%\PetPing-Experimental` (original v0.17 remains `%LOCALAPPDATA%\PetPing`). The experiment asks before the first custom schedule and writes its own pre-custom JSON snapshot. **No production app upgrade or shared-profile migration is claimed.** Physical-device QA and supported import/export remain pending. See `docs/V018_EXPERIMENTAL_PREVIEW.md` on PR #25.
