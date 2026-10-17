@@ -841,7 +841,8 @@ public partial class MainWindow : Window
                 "Reminder backup saved", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or
-            ArgumentException or InvalidOperationException or System.Text.Json.JsonException)
+            ArgumentException or InvalidOperationException or InvalidDataException or
+            System.Text.Json.JsonException)
         {
             ShowError("Couldn't export reminders: " + error.Message);
         }
