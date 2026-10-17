@@ -1223,6 +1223,54 @@ try
           new ReminderStore(offlineFolder).Reminders.Count == 2,
         "second offline reconciliation preserves one-successor recurrence after restart");
 
+    // User-driven read-only export must never alter source or overwrite
+    // previous backups, and refuses corrupt on-disk primary data.
+    var exportSourceFolder = Path.Combine(temp, "export-source");
+    var exportTargetFolder = Path.Combine(temp, "user-chosen-backups");
+    var exportStore = new ReminderStore(exportSourceFolder);
+    exportStore.Add("Keep my morning reminder", DateTimeOffset.UtcNow.AddHours(5));
+    var currentJson = Path.Combine(exportSourceFolder, "reminders.json");
+    var originalJson = File.ReadAllText(currentJson);
+    var exported1 = exportStore.ExportVerifiedBackup(exportTargetFolder);
+    Check(File.Exists(exported1) && File.ReadAllText(exported1) == originalJson &&
+          File.ReadAllText(currentJson) == originalJson,
+        "verified export matches the active saved reminders without changing them");
+    exportStore.Add("Added after first export", DateTimeOffset.UtcNow.AddHours(6));
+    var exported2 = exportStore.ExportVerifiedBackup(exportTargetFolder);
+    Check(exported1 != exported2 && File.Exists(exported1) && File.Exists(exported2) &&
+          new ReminderStore(exportSourceFolder).Reminders.Count == 2 &&
+          System.Text.Json.JsonSerializer.Deserialize<List<Reminder>>(
+              File.ReadAllText(exported1), new JsonSerializerOptions
+              {
+                  Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+              })?.Count == 1 &&
+          System.Text.Json.JsonSerializer.Deserialize<List<Reminder>>(
+              File.ReadAllText(exported2), new JsonSerializerOptions
+              {
+                  Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+              })?.Count == 2,
+        "repeated exports never overwrite earlier snapshots or delete newer reminders");
+    bool sameFolderExportRefused = false;
+    try { exportStore.ExportVerifiedBackup(exportSourceFolder); }
+    catch (ArgumentException) { sameFolderExportRefused = true; }
+    Check(sameFolderExportRefused,
+        "backup export refuses the active PetPing data folder as destination");
+    var previouslyExported = File.ReadAllText(exported2);
+    File.WriteAllText(currentJson, "damaged-json-do-not-export");
+    bool corruptExportRefused = false;
+    try { exportStore.ExportVerifiedBackup(exportTargetFolder); }
+    catch (JsonException) { corruptExportRefused = true; }
+    Check(corruptExportRefused && File.ReadAllText(currentJson) ==
+          "damaged-json-do-not-export" && File.ReadAllText(exported2) == previouslyExported &&
+          Directory.GetFiles(exportTargetFolder, "*.json").Length == 2,
+        "corrupt source is not exported or overwritten and prior good backups survive");
+    var neverSavedStore = new ReminderStore(Path.Combine(temp, "no-export-yet"));
+    bool emptyStoreExportRefused = false;
+    try { neverSavedStore.ExportVerifiedBackup(exportTargetFolder); }
+    catch (InvalidOperationException) { emptyStoreExportRefused = true; }
+    Check(emptyStoreExportRefused,
+        "first-run store without a saved JSON file cannot falsely report export success");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
