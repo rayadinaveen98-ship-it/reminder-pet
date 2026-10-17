@@ -368,16 +368,19 @@ public sealed class ReminderStore
         }, advanceSeries: true, now: deliveredAt);
     }
 
-    public void Mark(Reminder reminder, ReminderStatus status)
+    public void Mark(Reminder reminder, ReminderStatus status,
+        DateTimeOffset? occurredAt = null)
     {
         if (!Enum.IsDefined(status))
             throw new ArgumentException("Unknown reminder status.");
+        var eventTime = occurredAt ?? DateTimeOffset.UtcNow;
         var wasPending = reminder.Status == ReminderStatus.Pending;
         Change(reminder, () =>
         {
             reminder.Status = status;
-            reminder.FinishedAt = DateTimeOffset.UtcNow;
-        }, advanceSeries: wasPending && (status is ReminderStatus.Missed or ReminderStatus.Completed));
+            reminder.FinishedAt = eventTime;
+        }, advanceSeries: wasPending && (status is ReminderStatus.Missed or ReminderStatus.Completed),
+            now: eventTime);
     }
 
     public void Snooze(Reminder reminder, TimeSpan duration)
