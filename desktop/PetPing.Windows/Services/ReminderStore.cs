@@ -127,6 +127,52 @@ public sealed class ReminderStore
             File.Move(temp, _dataPath);
     }
 
+    /// <summary>
+    /// Create a read-only verified reminder backup for a user-selected folder.
+    /// This never modifies the active store or overwrites earlier exports.
+    /// Import/restore is intentionally NOT implicit.
+    /// </summary>
+    public string ExportVerifiedBackup(string destinationDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(destinationDirectory))
+            throw new ArgumentException("Choose a folder for the reminder backup.");
+        if (!File.Exists(_dataPath))
+            throw new InvalidOperationException("Create a reminder before exporting a backup.");
+
+        var sourceDirectory = Path.GetFullPath(Path.GetDirectoryName(_dataPath)!);
+        var destination = Path.GetFullPath(destinationDirectory);
+        if (string.Equals(sourceDirectory.TrimEnd(Path.DirectorySeparatorChar),
+                destination.TrimEnd(Path.DirectorySeparatorChar),
+                StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException(
+                "Choose a separate folder, not PetPing's active data folder.");
+
+        // Refuse to copy unreadable data, even if stale valid reminders remain
+        // in memory after an external process corrupted the primary file.
+        _ = ReadValidated(_dataPath);
+        Directory.CreateDirectory(destination);
+        var name = "PetPing-reminders-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") +
+            "-" + Guid.NewGuid().ToString("N")[..8] + ".json";
+        var exportedPath = Path.Combine(destination, name);
+        File.Copy(_dataPath, exportedPath, overwrite: false);
+        try
+        {
+            _ = ReadValidated(exportedPath);
+            using var source = File.OpenRead(_dataPath);
+            using var copy = File.OpenRead(exportedPath);
+            if (!System.Security.Cryptography.SHA256.HashData(source)
+                .SequenceEqual(System.Security.Cryptography.SHA256.HashData(copy)))
+                throw new IOException("The backup did not match your saved reminders.");
+        }
+        catch
+        {
+            try { File.Delete(exportedPath); }
+            catch (IOException) { /* do not hide validation failure */ }
+            throw;
+        }
+        return exportedPath;
+    }
+
     private static void ValidateTitleAndTime(string title, DateTimeOffset dueAt)
     {
         _ = ReminderEditorRules.ValidateTitle(title);
@@ -368,16 +414,19 @@ public sealed class ReminderStore
         }, advanceSeries: true, now: deliveredAt);
     }
 
-    public void Mark(Reminder reminder, ReminderStatus status)
+    public void Mark(Reminder reminder, ReminderStatus status,
+        DateTimeOffset? occurredAt = null)
     {
         if (!Enum.IsDefined(status))
             throw new ArgumentException("Unknown reminder status.");
+        var eventTime = occurredAt ?? DateTimeOffset.UtcNow;
         var wasPending = reminder.Status == ReminderStatus.Pending;
         Change(reminder, () =>
         {
             reminder.Status = status;
-            reminder.FinishedAt = DateTimeOffset.UtcNow;
-        }, advanceSeries: wasPending && (status is ReminderStatus.Missed or ReminderStatus.Completed));
+            reminder.FinishedAt = eventTime;
+        }, advanceSeries: wasPending && (status is ReminderStatus.Missed or ReminderStatus.Completed),
+            now: eventTime);
     }
 
     public void Snooze(Reminder reminder, TimeSpan duration)

@@ -822,6 +822,32 @@ public partial class MainWindow : Window
         catch (IOException ex) { ShowError("Could not delete reminder: " + ex.Message); }
     }
 
+    private void OnExportReminderBackup(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            using var picker = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Choose a separate folder or external drive for a reminder backup",
+                ShowNewFolderButton = true,
+                SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            };
+            if (picker.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+            var backup = _store.ExportVerifiedBackup(picker.SelectedPath);
+            ErrorToast.Visibility = Visibility.Collapsed;
+            System.Windows.MessageBox.Show(
+                "Your reminder backup was verified and saved here:\n\n" + backup +
+                "\n\nThis is a copy. Your active reminders were not changed.",
+                "Reminder backup saved", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or
+            ArgumentException or InvalidOperationException or InvalidDataException or
+            System.Text.Json.JsonException)
+        {
+            ShowError("Couldn't export reminders: " + error.Message);
+        }
+    }
+
     private void OnOpenDataFolder(object sender, RoutedEventArgs e)
     {
         try

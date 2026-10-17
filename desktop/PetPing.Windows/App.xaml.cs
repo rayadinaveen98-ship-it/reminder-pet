@@ -122,8 +122,9 @@ public partial class App : System.Windows.Application
             if (!ReminderStore.HasValidBackup())
                 throw new InvalidDataException(
                     "The reminder file cannot be read and no usable backup was found. " +
-                    "The original file has NOT been erased. Open %LOCALAPPDATA%\\PetPing " +
-                    "to make a safe copy before attempting repairs.", error);
+                    "The original file has NOT been erased. Open " +
+                    ReminderStore.DefaultDataDirectory +
+                    " to make a safe copy before attempting repairs.", error);
 
             var result = System.Windows.MessageBox.Show(
                 "PetPing cannot read the saved reminder file.\n\n" +

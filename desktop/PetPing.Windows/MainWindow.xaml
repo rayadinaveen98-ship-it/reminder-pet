@@ -614,6 +614,12 @@
                 <TextBlock Text="Your data and privacy" Style="{StaticResource SectionHeading}"/>
                 <TextBlock Text="Everything is saved on this PC. No account or cloud connection is needed."
                            Style="{StaticResource SecondaryBody}" Margin="0,8,0,14"/>
+                <Button Content="Export reminder backup" HorizontalAlignment="Left"
+                        Click="OnExportReminderBackup" Background="#EAE5FB"
+                        AutomationProperties.Name="Export a verified copy of saved reminders"/>
+                <TextBlock Text="Save a copy to another folder or drive. This does not replace your active reminders."
+                           Style="{StaticResource SecondaryBody}" TextWrapping="Wrap"
+                           Margin="0,8,0,12"/>
                 <Button Content="Open data and diagnostics folder" HorizontalAlignment="Left"
                         Click="OnOpenDataFolder" Background="#F2EEE8"
                         AutomationProperties.Name="Open local reminder data and diagnostics folder"/>
