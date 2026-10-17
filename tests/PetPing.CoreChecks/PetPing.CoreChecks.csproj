@@ -10,6 +10,7 @@
     <Compile Include="../../desktop/PetPing.Windows/Models/Reminder.cs" Link="Reminder.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Models/CustomRepeatOptions.cs" Link="CustomRepeatOptions.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/ReminderRules.cs" Link="ReminderRules.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/ReminderDueProcessor.cs" Link="ReminderDueProcessor.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/SnoozePolicy.cs" Link="SnoozePolicy.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/ReminderEditorRules.cs" Link="ReminderEditorRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/RecurrenceRules.cs" Link="RecurrenceRules.cs" />
