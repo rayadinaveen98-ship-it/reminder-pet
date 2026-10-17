@@ -1102,6 +1102,127 @@ try
     Check(ReminderStore.DefaultDataDirectory == PetPingDataRoot.DefaultDirectory,
         "experimental reminder store never defaults to v0.17 production data");
 
+    // R2 reliability: reconcile a deterministic clock while simulating
+    // long scheduler gaps, lock/sleep, reentrant UI and filesystem faults.
+    var pulseFolder = Path.Combine(temp, "due-processor");
+    var pulseStore = new ReminderStore(pulseFolder);
+    var pulseAt = DateTimeOffset.UtcNow.AddHours(1);
+    var closePulse = pulseStore.Add("Deliver after delayed tick", pulseAt.AddMinutes(10));
+    var missedPulse = pulseStore.Add("Expired during downtime", pulseAt.AddMinutes(11));
+    var futurePulse = pulseStore.Add("Not due yet", pulseAt.AddMinutes(12));
+    closePulse.DueAt = pulseAt.AddMinutes(-1);
+    missedPulse.DueAt = pulseAt.AddMinutes(-20);
+    pulseStore.Save();
+
+    var pulse = new ReminderDueProcessor(pulseStore);
+    int deliveredPulses = 0, missedPulses = 0, pulseChanged = 0, callbackFaults = 0;
+    pulse.ReminderDue += r =>
+    {
+        deliveredPulses++;
+        pulse.CheckNow(pulseAt); // must be ignored rather than nested/duplicated
+        throw new InvalidOperationException("UI temporarily unavailable");
+    };
+    pulse.RemindersMissed += n => missedPulses += n;
+    pulse.Changed += () => pulseChanged++;
+    pulse.SchedulerFault += (code, error) =>
+    {
+        if (code == "presentation_failed") callbackFaults++;
+    };
+    pulse.CheckNow(pulseAt);
+    Check(pulse.LastCheckedAt == pulseAt &&
+          closePulse.Status == ReminderStatus.Delivered &&
+          missedPulse.Status == ReminderStatus.Missed &&
+          futurePulse.Status == ReminderStatus.Pending,
+        "tick reconciliation commits recent due, flags downtime miss and leaves future untouched");
+    Check(deliveredPulses == 1 && missedPulses == 1 &&
+          pulseChanged == 2 && callbackFaults == 1,
+        "UI presentation exception and recursive tick do not duplicate delivery");
+    Check(new ReminderStore(pulseFolder).Reminders.Single(r => r.Id == closePulse.Id).Status
+             == ReminderStatus.Delivered &&
+          new ReminderStore(pulseFolder).Reminders.Single(r => r.Id == missedPulse.Id).Status
+             == ReminderStatus.Missed,
+        "due and missed decisions reach disk before callbacks");
+    pulse.CheckNow(pulseAt);
+    Check(deliveredPulses == 1 && missedPulses == 1 && pulseChanged == 2,
+        "repeated tick is idempotent after committed delivery");
+
+    // A presentation callback may remove an item already in the tick's
+    // snapshot. The processor must revalidate presence and status.
+    var mutationFolder = Path.Combine(temp, "callback-mutation");
+    var mutationStore = new ReminderStore(mutationFolder);
+    var firstMutation = mutationStore.Add("First popup", pulseAt.AddMinutes(1));
+    var secondMutation = mutationStore.Add("Second popup", pulseAt.AddMinutes(2));
+    firstMutation.DueAt = pulseAt.AddSeconds(-90);
+    secondMutation.DueAt = pulseAt.AddSeconds(-80);
+    mutationStore.Save();
+    var mutationProcessor = new ReminderDueProcessor(mutationStore);
+    int mutationCount = 0;
+    mutationProcessor.ReminderDue += _ =>
+    {
+        mutationCount++;
+        mutationStore.Delete(secondMutation);
+    };
+    mutationProcessor.CheckNow(pulseAt);
+    Check(mutationCount == 1 && mutationStore.Reminders.Count == 1 &&
+          firstMutation.Status == ReminderStatus.Delivered,
+        "due snapshot safely skips reminders deleted by a presentation callback");
+
+    // Storage retry is deterministic and has a 30-second cooldown; in-memory
+    // Pending and on-disk JSON are unchanged throughout failed commits.
+    var retryFolder = Path.Combine(temp, "due-processor-retry");
+    var retryStore = new ReminderStore(retryFolder);
+    var retryPending = retryStore.Add("Retry failed disk write", pulseAt.AddMinutes(3));
+    retryPending.DueAt = pulseAt.AddMinutes(-2);
+    retryStore.Save();
+    var retryTempPath = Path.Combine(retryFolder, "reminders.json.tmp");
+    var retryBeforeJson = File.ReadAllText(Path.Combine(retryFolder, "reminders.json"));
+    Directory.CreateDirectory(retryTempPath);
+    var retry = new ReminderDueProcessor(retryStore);
+    int retryFaults = 0, retryDeliveries = 0;
+    retry.SchedulerFault += (code, error) =>
+    {
+        if (code == "store_update_failed") retryFaults++;
+        throw new Exception("Even error reporting can fail");
+    };
+    retry.ReminderDue += _ => retryDeliveries++;
+    retry.CheckNow(pulseAt);
+    Check(retryFaults == 1 && retryDeliveries == 0 &&
+          retryPending.Status == ReminderStatus.Pending &&
+          retry.RetryAfter == pulseAt.Add(ReminderDueProcessor.StorageRetryDelay) &&
+          File.ReadAllText(Path.Combine(retryFolder, "reminders.json")) == retryBeforeJson,
+        "disk failure fails closed, rolls back, and schedules bounded retry");
+    Directory.Delete(retryTempPath);
+    retry.CheckNow(pulseAt.AddSeconds(20));
+    Check(retryDeliveries == 0 && retryPending.Status == ReminderStatus.Pending,
+        "scheduler honors storage-failure cooldown after disk becomes available");
+    retry.CheckNow(pulseAt.AddSeconds(30));
+    Check(retryDeliveries == 1 && retryFaults == 1 &&
+          retryPending.Status == ReminderStatus.Delivered &&
+          new ReminderStore(retryFolder).Reminders.Single().Status ==
+              ReminderStatus.Delivered,
+        "exact retry boundary delivers once and persists even if fault observer threw");
+
+    // A missed weekly series calculates its successor using the same event
+    // instant that established the missed decision, not UtcNow inside Store.
+    var offlineFolder = Path.Combine(temp, "due-processor-weekly-offline");
+    var offlineStore = new ReminderStore(offlineFolder);
+    var offlineFirst = offlineStore.Add("Weekly across long downtime",
+        DateTimeOffset.UtcNow.AddHours(3), RepeatPattern.Weekly, TimeZoneInfo.Utc.Id);
+    var afterOffline = DateTimeOffset.UtcNow.AddDays(21);
+    var offline = new ReminderDueProcessor(offlineStore);
+    offline.CheckNow(afterOffline);
+    var offlineNext = offlineStore.Reminders.Single(r =>
+        r.Id != offlineFirst.Id && r.SeriesId == offlineFirst.SeriesId);
+    Check(offlineFirst.Status == ReminderStatus.Missed &&
+          offlineFirst.FinishedAt == afterOffline &&
+          offlineNext.DueAt > afterOffline &&
+          offlineStore.Reminders.Count == 2,
+        "missed weekly reminder skips backlog and advances strictly after reconciliation clock");
+    offline.CheckNow(afterOffline);
+    Check(offlineStore.Reminders.Count == 2 &&
+          new ReminderStore(offlineFolder).Reminders.Count == 2,
+        "second offline reconciliation preserves one-successor recurrence after restart");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
