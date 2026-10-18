@@ -1480,7 +1480,7 @@ try
           CatV2WalkPlaybackRules.FrameAt(1000,PetMotion.Full) == 0,
         "Cat V2 32-frame 1000ms Full gait samples boundaries correctly");
     Check(Enumerable.Range(0,32)
-          .Select(i=>CatV2WalkPlaybackRules.FrameAt(i*1000/32,PetMotion.Full))
+          .Select(i=>CatV2WalkPlaybackRules.FrameAt((i*1000+31)/32,PetMotion.Full))
           .Distinct().Count() == 32,
         "Cat V2 Full preview reaches each distinct authored frame per second");
     Check(CatV2WalkPlaybackRules.FrameAt(700,PetMotion.Gentle) == 16 &&
