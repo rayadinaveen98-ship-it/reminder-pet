@@ -20,6 +20,7 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     private readonly Stopwatch _clock = new();
     private readonly Dictionary<string, BitmapImage> _frames = [];
     private readonly Dictionary<int, BitmapImage> _walkFrames = [];
+    private BitmapImage? _talkRestFrame;
     private bool _walking;
     private PetMotion _motion = PetMotion.Full;
     private bool _speaking;
@@ -30,6 +31,7 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     private string _current = "";
     public bool Available => _frames.Count == 4;
     public bool WalkAvailable => _walkFrames.Count == CatWalkPlaybackRules.FrameCount;
+    public bool TalkAvailable => _talkRestFrame is not null;
 
     public CatIdleSprite()
     {
@@ -77,6 +79,7 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
                 _frames.Clear();
                 foreach (var (key, frame) in loaded) _frames.Add(key, frame);
                 LoadWalkingFrames(folder);
+                LoadTalkingFrame(folder);
                 UpdateImage("open");
                 return true;
             }
@@ -90,6 +93,30 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
             }
         }
         return false;
+    }
+
+    private void LoadTalkingFrame(string folder)
+    {
+        try
+        {
+            var file = Path.Combine(folder, "Cat_Talk_rest_164x218.png");
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(file, UriKind.Absolute);
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.EndInit();
+            if (bitmap.PixelWidth != 164 || bitmap.PixelHeight != 218)
+                throw new InvalidDataException("Talking sprite dimensions do not match.");
+            bitmap.Freeze();
+            _talkRestFrame = bitmap;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException
+            or NotSupportedException or InvalidOperationException
+            or System.Runtime.InteropServices.COMException or ArgumentException
+            or FormatException)
+        {
+            _talkRestFrame = null; // older 8-sprite packs remain functional
+        }
     }
 
     private void LoadWalkingFrames(string folder)
@@ -248,7 +275,12 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     private void UpdateImage(string key)
     {
         if (_current == key) return;
-        if (_frames.TryGetValue(key, out var image))
+        if (key == "rest")
+        {
+            CatFrame.Source = _talkRestFrame ?? _frames.GetValueOrDefault("half");
+            _current = key;
+        }
+        else if (_frames.TryGetValue(key, out var image))
         {
             CatFrame.Source = image;
             _current = key;
