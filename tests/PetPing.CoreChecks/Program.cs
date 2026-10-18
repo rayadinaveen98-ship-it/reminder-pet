@@ -1303,6 +1303,27 @@ try
           CatIdlePlaybackRules.FrameAt(0, PetMotion.Full, respondingDone:true) == "happy" &&
           CatIdlePlaybackRules.FrameAt(0, PetMotion.Full, respondingSnooze:true) == "closed",
         "cat speaking/reaction expressions stay deterministic and motion-aware");
+    Check(CatWalkPlaybackRules.FrameCount == 4 &&
+          CatWalkPlaybackRules.FrameAt(0, PetMotion.Full) == 0 &&
+          CatWalkPlaybackRules.FrameAt(149, PetMotion.Full) == 0 &&
+          CatWalkPlaybackRules.FrameAt(150, PetMotion.Full) == 1 &&
+          CatWalkPlaybackRules.FrameAt(300, PetMotion.Full) == 2 &&
+          CatWalkPlaybackRules.FrameAt(450, PetMotion.Full) == 3 &&
+          CatWalkPlaybackRules.FrameAt(600, PetMotion.Full) == 0,
+        "premium cat walk: four keyframes cycle without missed or duplicate frame indices");
+    Check(CatWalkPlaybackRules.FrameAt(299, PetMotion.Gentle) == 0 &&
+          CatWalkPlaybackRules.FrameAt(300, PetMotion.Gentle) == 1 &&
+          CatWalkPlaybackRules.FrameAt(600, PetMotion.Gentle) == 2 &&
+          CatWalkPlaybackRules.FrameAt(1200, PetMotion.Gentle) == 0,
+        "premium cat walking Gentle mode uses a slower step timeline");
+    Check(CatWalkPlaybackRules.FrameAt(1000, PetMotion.Off) == 0 &&
+          CatWalkPlaybackRules.FrameAt(-200, PetMotion.Full) >= 0,
+        "premium cat walking Off mode stays on static first frame");
+    bool invalidWalkMotionRejected = false;
+    try { CatWalkPlaybackRules.FrameAt(500, (PetMotion)100); }
+    catch (ArgumentOutOfRangeException) { invalidWalkMotionRejected = true; }
+    Check(invalidWalkMotionRejected,
+        "premium cat walking refuses invalid motion enum values");
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
