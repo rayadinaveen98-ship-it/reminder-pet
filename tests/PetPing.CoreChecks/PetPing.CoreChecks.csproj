@@ -26,6 +26,7 @@
     <Compile Include="../../desktop/PetPing.Windows/Services/CatIdlePlaybackRules.cs" Link="CatIdlePlaybackRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/CatWalkPlaybackRules.cs" Link="CatWalkPlaybackRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/CatRiggedGaitRules.cs" Link="CatRiggedGaitRules.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/CatV2WalkPlaybackRules.cs" Link="CatV2WalkPlaybackRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/CatTalkPlaybackRules.cs" Link="CatTalkPlaybackRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/CatAnimationFlowRules.cs" Link="CatAnimationFlowRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/PetWalkRules.cs" Link="PetWalkRules.cs" />
