@@ -20,6 +20,8 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     private readonly Stopwatch _clock = new();
     private readonly Dictionary<string, BitmapImage> _frames = [];
     private readonly Dictionary<int, BitmapImage> _walkFrames = [];
+    private readonly BitmapImage[] _walkV2Frames = new BitmapImage[CatV2WalkPlaybackRules.FrameCount];
+    private bool _hasWalkV2;
     private BitmapImage? _talkRestFrame;
     private bool _walking;
     private CatStage _stage = CatStage.Stopped;
@@ -32,7 +34,8 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     private bool _snooze;
     private string _current = "";
     public bool Available => _frames.Count == 4;
-    public bool WalkAvailable => _walkFrames.Count == CatWalkPlaybackRules.FrameCount;
+    public bool WalkAvailable => _hasWalkV2 || _walkFrames.Count == CatWalkPlaybackRules.FrameCount;
+    public bool WalkV2Available => _hasWalkV2;
     public bool TalkAvailable => _talkRestFrame is not null;
 
     public CatIdleSprite()
@@ -81,6 +84,7 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
                 _frames.Clear();
                 foreach (var (key, frame) in loaded) _frames.Add(key, frame);
                 LoadWalkingFrames(folder);
+                LoadWalkingV2Frames();
                 LoadTalkingFrame(folder);
                 UpdateImage("open");
                 return true;
@@ -95,6 +99,55 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
             }
         }
         return false;
+    }
+
+    private void LoadWalkingV2Frames()
+    {
+        _hasWalkV2 = false;
+        // A user-approved 32-frame gait study is provisioned as a separate
+        // explicit sidecar. Never scan production v0.17's profile for artwork.
+        foreach (var folder in new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "Assets", "CatWalkV2"),
+            Path.Combine(PetPingDataRoot.DefaultDirectory, "CatWalkV2")
+        })
+        {
+            if (!Directory.Exists(folder)) continue;
+            try
+            {
+                var loaded = new BitmapImage[CatV2WalkPlaybackRules.FrameCount];
+                for (int i = 0; i < loaded.Length; i++)
+                {
+                    var path = Path.Combine(folder, $"CatV2_Rig_Proof_{i:D2}.png");
+                    var frame = new BitmapImage();
+                    frame.BeginInit();
+                    frame.UriSource = new Uri(path, UriKind.Absolute);
+                    frame.CacheOption = BitmapCacheOption.OnLoad;
+                    // The transparent 640x850 source is downsampled once to
+                    // ~164x218 for desktop use (about 4.6 MB decoded total).
+                    frame.DecodePixelHeight = CatV2WalkPlaybackRules.PreviewDecodeHeight;
+                    frame.EndInit();
+                    if (frame.PixelHeight != CatV2WalkPlaybackRules.PreviewDecodeHeight ||
+                        Math.Abs((double)frame.PixelWidth / frame.PixelHeight -
+                            (double)CatV2WalkPlaybackRules.SourceWidth /
+                            CatV2WalkPlaybackRules.SourceHeight) > 0.01)
+                        throw new InvalidDataException("Cat V2 frame aspect ratio is invalid.");
+                    frame.Freeze();
+                    loaded[i] = frame;
+                }
+                Array.Copy(loaded, _walkV2Frames, loaded.Length);
+                _hasWalkV2 = true;
+                return;
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException
+                or NotSupportedException or InvalidOperationException
+                or System.Runtime.InteropServices.COMException or ArgumentException
+                or FormatException)
+            {
+                // Partial or corrupt frame set must NEVER be animated.
+                _hasWalkV2 = false;
+            }
+        }
     }
 
     private void LoadTalkingFrame(string folder)
@@ -166,14 +219,24 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
         _spokenWords = 0;
         _lastSpokenWordAt = -1;
         _clock.Restart();
+        UpdateTickRate();
         if (IsVisible && _motion != PetMotion.Off) _timer.Start();
         Tick();
         return true;
     }
 
+    private void UpdateTickRate()
+    {
+        // Old Idle/Talking uses 83ms, but the 32-frame V2 gait needs a
+        // ~31ms dispatcher interval; never run the faster rate when idle.
+        _timer.Interval = TimeSpan.FromMilliseconds(_walking && _hasWalkV2 &&
+            _motion == PetMotion.Full ? 31 : _walking && _hasWalkV2 ? 43 : 83);
+    }
+
     public void SetMotion(PetMotion motion)
     {
         _motion = motion;
+        UpdateTickRate();
         if (motion == PetMotion.Off) Pause();
         else if (IsVisible) Start();
         Tick();
@@ -223,6 +286,7 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     {
         _stage = CatAnimationFlowRules.Next(_stage, CatStageEvent.Reset);
         _walking = false;
+        UpdateTickRate();
         _spokenWords = 0;
         _lastSpokenWordAt = -1;
         _speaking = _done = _snooze = false;
@@ -262,7 +326,9 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     {
         if (!Available) return;
         var elapsed = _clock.ElapsedMilliseconds;
-        if (_walking && WalkAvailable)
+        if (_walking && _hasWalkV2)
+            UpdateWalkV2Image(CatV2WalkPlaybackRules.FrameAt(elapsed, _motion));
+        else if (_walking && WalkAvailable)
             UpdateWalkImage(CatWalkPlaybackRules.FrameAt(elapsed, _motion));
         else if (_speaking)
             UpdateImage(CatTalkPlaybackRules.FrameAt(elapsed, _lastSpokenWordAt,
@@ -274,6 +340,17 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
         BreathingScale.ScaleX = BreathingScale.ScaleY = breathe;
         IdleShift.Y = _motion == PetMotion.Full && !_walking && !_speaking && !_done && !_snooze
             ? Math.Sin(elapsed / 3200.0 * 2 * Math.PI) * 1.5 : 0;
+    }
+
+    private void UpdateWalkV2Image(int index)
+    {
+        var key = "walkV2_" + index;
+        if (_current == key) return;
+        if ((uint)index < _walkV2Frames.Length && _walkV2Frames[index] is { } bitmap)
+        {
+            CatFrame.Source = bitmap;
+            _current = key;
+        }
     }
 
     private void UpdateWalkImage(int index)
