@@ -33,3 +33,6 @@
 6. Test **Off** motion: no walking/breathing/mouth motion, actions remain functional.
 7. Test a Dog or Bunny and a Cat with a non-default palette/accessory: current vector art should remain and function.
 8. Report actual device observations before declaring release ready.
+
+## Build identification
+The final QA test EXE must show **PetPing Experimental — Cat Sequence QA V1** in the main window title (and **Cat Sequence QA V1** in the footer), to distinguish it from the earlier Talking V1 candidate. The correct nine-image user ZIP should be built from the matching commit and verified again. A running earlier experimental process must be fully exited from the tray before opening the new EXE due to the existing single-instance mutex.
