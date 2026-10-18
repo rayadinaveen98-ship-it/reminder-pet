@@ -626,7 +626,7 @@
                 <Button Content="Open data and diagnostics folder" HorizontalAlignment="Left"
                         Click="OnOpenDataFolder" Background="#F2EEE8"
                         AutomationProperties.Name="Open local reminder data and diagnostics folder"/>
-                <TextBlock Text="PetPing v0.19 • CAT V2 GAIT STUDY (experimental — art not final)" FontSize="11"
+                <TextBlock Text="PetPing v0.18 experimental • CAT V2 GAIT STUDY (art not final)" FontSize="11"
                            Foreground="{StaticResource MutedBrush}" Margin="0,14,0,0"/>
               </StackPanel>
             </Border>
