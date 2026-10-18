@@ -80,7 +80,8 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
                 }
                 _frames.Clear();
                 foreach (var (key, frame) in loaded) _frames.Add(key, frame);
-                LoadWalkingFrames(folder);
+                // Walking is disabled for the final static pet experience.
+                // Do not load old walking sprite files left in prior profiles.
                 LoadTalkingFrame(folder);
                 UpdateImage("open");
                 return true;
