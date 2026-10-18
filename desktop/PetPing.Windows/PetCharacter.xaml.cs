@@ -16,7 +16,6 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
     private bool _catSpriteEnabled;
     private PetMotion _requestedMotion = PetMotion.Full;
     public bool UsingPremiumCat => _catSpriteEnabled;
-    public bool UsingPremiumWalk => _catSpriteEnabled && CatIdleOverlay.WalkAvailable;
     public bool UsingPremiumTalk => _catSpriteEnabled && CatIdleOverlay.TalkAvailable;
 
     public PetCharacter()
@@ -144,50 +143,6 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
         RepeatBehavior = RepeatBehavior.Forever,
         EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
     };
-
-    public void Walk(bool active)
-    {
-        ResetCharacterMotion();
-        // Walking needs its own pose-specific frames. Until approved, use
-        // the existing walking rig without showing a sitting cat sliding.
-        if (_catSpriteEnabled)
-        {
-            if (active && CatIdleOverlay.WalkAvailable)
-            {
-                ShowCatSprite(true);
-                CatIdleOverlay.SetWalking(true);
-                return; // no older cat rig flashes during actual walking
-            }
-            ShowCatSprite(!active);
-            if (!active) CatIdleOverlay.SetIdle();
-        }
-        if (!active) return;
-        var gait = PetAnimationRules.Gait(_profile.Species, _profile.Personality);
-        LeftFootShift.BeginAnimation(TranslateTransform.YProperty,
-            Cycle(0, -gait.FootLift, gait.StepMilliseconds));
-        RightFootShift.BeginAnimation(TranslateTransform.YProperty,
-            Cycle(-gait.FootLift, 0, gait.StepMilliseconds));
-        PetFloat.BeginAnimation(TranslateTransform.YProperty,
-            Cycle(0, -gait.BobHeight, gait.BobMilliseconds / 2));
-
-        switch (_profile.Species)
-        {
-            case PetSpecies.Cat:
-                TailWag.BeginAnimation(RotateTransform.AngleProperty,
-                    Cycle(-gait.TailAngle, gait.TailAngle, 390));
-                break;
-            case PetSpecies.Dog:
-                DogTailWag.BeginAnimation(RotateTransform.AngleProperty,
-                    Cycle(-gait.TailAngle, gait.TailAngle, 205));
-                DogEarTilt.BeginAnimation(RotateTransform.AngleProperty,
-                    Cycle(-5, 5, 290));
-                break;
-            case PetSpecies.Bunny:
-                BunnyEarTilt.BeginAnimation(RotateTransform.AngleProperty,
-                    Cycle(-7, 7, gait.EarWiggleMilliseconds));
-                break;
-        }
-    }
 
     /// <summary>Species-specific idle, stopped on voice reaction, exit or sleep.</summary>
     public void Float(bool active)
