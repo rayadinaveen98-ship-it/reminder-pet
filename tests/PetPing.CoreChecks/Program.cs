@@ -1404,6 +1404,67 @@ try
     catch (ArgumentOutOfRangeException) { rejectedCatEvent = true; }
     Check(rejectedCatEvent, "Cat V1 rejects unsupported transition events");
 
+    // Cat V2 gait is a mechanical quality gate (not a 3D rendered asset).
+    var firstRigSample = CatRiggedGaitRules.SampleAll(0);
+    Check(firstRigSample.Count == 4 &&
+          firstRigSample.Select(l => l.Leg).Distinct().Count() == 4,
+        "Cat V2 gait models four individually animated feline legs");
+    Check(CatRiggedGaitRules.ProofFrameCount == 32 &&
+          CatRiggedGaitRules.FullCycleMilliseconds == 1000 &&
+          CatRiggedGaitRules.DutyFactor is > .5 and < .7,
+        "Cat V2 uses 32-frame one-second gait with a grounded 60% stance phase");
+    var strideWindows = Enum.GetValues<CatLegId>()
+        .Select(leg => Enumerable.Range(0, CatRiggedGaitRules.ProofFrameCount)
+            .Select(i => CatRiggedGaitRules.Sample(
+                i * CatRiggedGaitRules.FullCycleMilliseconds /
+                    CatRiggedGaitRules.ProofFrameCount, leg))
+            .ToArray())
+        .ToArray();
+    Check(strideWindows.All(frames => frames.Any(f => !f.Planted) &&
+          frames.Any(f => f.Planted)),
+        "Cat V2 every paw swings AND plants during one full gait cycle");
+    Check(strideWindows.All(frames =>
+    {
+        var planted = frames.Where(f => f.Planted).ToArray();
+        return planted.Length >= 15 && planted.Max(f => f.Paw.Y) -
+            planted.Min(f => f.Paw.Y) < 0.001;
+    }), "Cat V2 planted paws remain at exact ground height throughout stance");
+    Check(strideWindows.All(frames => frames.Where(f => !f.Planted)
+            .Min(f => f.Paw.Y) < frames.Where(f => f.Planted)
+                .First().Paw.Y - 30),
+        "Cat V2 swing legs have visible upward paw clearance");
+    Check(strideWindows.All(frames =>
+    {
+        var first = frames[0].Knee;
+        return frames.Any(f => Math.Abs(f.Knee.X - first.X) > 3 ||
+                               Math.Abs(f.Knee.Y - first.Y) > 3);
+    }), "Cat V2 knee joints truly articulate rather than rotating one image");
+    Check(strideWindows.Select((frames,i) =>
+         frames[0].Paw).Distinct().Count() == 4,
+        "Cat V2 legs have separate coordinates, not four identical floating paws");
+    Check(Enum.GetValues<CatLegId>().All(leg =>
+    {
+        var a = CatRiggedGaitRules.Sample(0,leg);
+        var b = CatRiggedGaitRules.Sample(1000,leg);
+        return Math.Abs(a.Paw.X-b.Paw.X)<.001 &&
+               Math.Abs(a.Paw.Y-b.Paw.Y)<.001 &&
+               Math.Abs(a.Knee.X-b.Knee.X)<.001;
+    }), "Cat V2 gait loops without foot/knee discontinuity at one second");
+    Check(Enum.GetValues<CatLegId>().All(leg =>
+        CatRiggedGaitRules.Sample(0,leg,PetMotion.Off).Paw ==
+        CatRiggedGaitRules.Sample(920,leg,PetMotion.Off).Paw),
+        "Cat V2 Off mode holds four stable, planted paws");
+    Check(Enum.GetValues<CatLegId>().All(leg =>
+        CatRiggedGaitRules.Sample(0,leg,PetMotion.Gentle).Paw ==
+        CatRiggedGaitRules.Sample(1400,leg,PetMotion.Gentle).Paw),
+        "Cat V2 Gentle mode cycles smoothly at slower walking cadence");
+    bool badCatLeg = false, badCatMotion = false;
+    try { CatRiggedGaitRules.Sample(0,(CatLegId)20); }
+    catch (ArgumentOutOfRangeException) { badCatLeg = true; }
+    try { CatRiggedGaitRules.Sample(0,CatLegId.HindNear,(PetMotion)20); }
+    catch (ArgumentOutOfRangeException) { badCatMotion = true; }
+    Check(badCatLeg && badCatMotion,
+        "Cat V2 gait rejects unsupported limb or motion enum inputs");
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
