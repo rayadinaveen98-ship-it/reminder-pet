@@ -14,7 +14,7 @@ namespace PetPing.Windows;
 /// v0.17's profile. If missing/corrupt, the legacy WPF cat still renders.
 /// Does not load GIF/WebP codecs or allocate bitmaps on animation ticks.
 /// </summary>
-public partial class CatIdleSprite : UserControl
+public partial class CatIdleSprite : System.Windows.Controls.UserControl
 {
     private readonly DispatcherTimer _timer;
     private readonly Stopwatch _clock = new();
