@@ -48,8 +48,10 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
         // experimental PNGs inside the signed/stable WPF asset bundle.
         var roots = new[]
         {
-            Path.Combine(PetPingDataRoot.DefaultDirectory, "CatIdle"),
-            Path.Combine(AppContext.BaseDirectory, "Assets", "CatIdle")
+            // Prefer the complete release-matched art beside the executable;
+            // an older 4-image profile sidecar must not mask new Walking art.
+            Path.Combine(AppContext.BaseDirectory, "Assets", "CatIdle"),
+            Path.Combine(PetPingDataRoot.DefaultDirectory, "CatIdle")
         };
         foreach (var folder in roots)
         {
