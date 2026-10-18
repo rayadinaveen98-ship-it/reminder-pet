@@ -13,6 +13,8 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
 {
     private PetProfile _profile = new();
     private int _effectsGeneration;
+    private bool _catSpriteEnabled;
+    private PetMotion _requestedMotion = PetMotion.Full;
 
     public PetCharacter()
     {
@@ -24,6 +26,17 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
         PetProfileCatalog.Validate(profile);
         Stop();
         _profile = profile;
+        // The approved orange base artwork has fixed colors and collar.
+        // Respect user-owned palettes/accessories by retaining the old rig
+        // whenever they differ from the approved design.
+        _catSpriteEnabled = profile.Species == PetSpecies.Cat &&
+            profile.Palette == PetPalette.Apricot &&
+            profile.Accessory == PetAccessory.None &&
+            CatIdleOverlay.TryLoad();
+        CatIdleOverlay.SetMotion(_requestedMotion);
+        CatIdleOverlay.Visibility = _catSpriteEnabled ? Visibility.Visible : Visibility.Collapsed;
+        VectorArt.Visibility = _catSpriteEnabled ? Visibility.Collapsed : Visibility.Visible;
+        if (_catSpriteEnabled) CatIdleOverlay.SetIdle();
         CatEars.Visibility = profile.Species == PetSpecies.Cat ? Visibility.Visible : Visibility.Collapsed;
         CatTail.Visibility = CatEars.Visibility;
         CatWhiskers.Visibility = CatEars.Visibility;
@@ -84,6 +97,21 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
 
     public void FaceToward(bool movingRight) => PetFacing.ScaleX = movingRight ? 1 : -1;
 
+    public void SetMotion(PetMotion motion)
+    {
+        _requestedMotion = motion;
+        if (_catSpriteEnabled) CatIdleOverlay.SetMotion(motion);
+    }
+
+    private void ShowCatSprite(bool active)
+    {
+        if (!_catSpriteEnabled) return;
+        VectorArt.Visibility = active ? Visibility.Collapsed : Visibility.Visible;
+        CatIdleOverlay.Visibility = active ? Visibility.Visible : Visibility.Collapsed;
+        if (active) CatIdleOverlay.Start();
+        else CatIdleOverlay.Pause();
+    }
+
     private void ResetCharacterMotion()
     {
         LeftFootShift.BeginAnimation(TranslateTransform.YProperty, null);
@@ -117,6 +145,13 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
     public void Walk(bool active)
     {
         ResetCharacterMotion();
+        // Walking needs its own pose-specific frames. Until approved, use
+        // the existing walking rig without showing a sitting cat sliding.
+        if (_catSpriteEnabled)
+        {
+            ShowCatSprite(!active);
+            if (!active) CatIdleOverlay.SetIdle();
+        }
         if (!active) return;
         var gait = PetAnimationRules.Gait(_profile.Species, _profile.Personality);
         LeftFootShift.BeginAnimation(TranslateTransform.YProperty,
@@ -149,6 +184,13 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
     public void Float(bool active)
     {
         ResetCharacterMotion();
+        if (_catSpriteEnabled)
+        {
+            ShowCatSprite(true);
+            CatIdleOverlay.SetMotion(active ? PetMotion.Full : PetMotion.Gentle);
+            CatIdleOverlay.SetIdle();
+            return;
+        }
         if (!active) return;
         var calm = _profile.Personality == PetPersonality.Calm;
         var bob = _profile.Species == PetSpecies.Bunny ? -7.0 : -3.0;
@@ -169,6 +211,7 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
 
     public void Blink()
     {
+        if (_catSpriteEnabled && CatIdleOverlay.IsVisible) return; // sprite blinks on its own
         var animation = new DoubleAnimation(1, .1, TimeSpan.FromMilliseconds(100))
         { AutoReverse = true };
         LeftBlink.BeginAnimation(ScaleTransform.ScaleYProperty, animation);
@@ -177,6 +220,11 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
 
     public void SetSpeaking(bool speaking, bool animate)
     {
+        if (_catSpriteEnabled && CatIdleOverlay.IsVisible)
+        {
+            CatIdleOverlay.SetSpeaking(speaking);
+            return;
+        }
         MouthSmile.Visibility = speaking ? Visibility.Collapsed : Visibility.Visible;
         MouthSpeak.Visibility = speaking ? Visibility.Visible : Visibility.Collapsed;
         MouthSpeak.BeginAnimation(OpacityProperty, null);
@@ -193,6 +241,22 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
     {
         var plan = PetAnimationRules.Reaction(_profile, completed, motion);
         Stop();
+        if (_catSpriteEnabled)
+        {
+            ShowCatSprite(true);
+            CatIdleOverlay.SetMotion(motion);
+            if (motion != PetMotion.Off)
+            {
+                CatIdleOverlay.SetResponse(completed);
+                if (completed && motion == PetMotion.Full &&
+                    _profile.DoneAction == PetDoneAction.Hop)
+                    PetFloat.BeginAnimation(TranslateTransform.YProperty,
+                        new DoubleAnimation(0, -plan.HopHeight,
+                            TimeSpan.FromMilliseconds(290))
+                        { AutoReverse = true, EasingFunction = new SineEase() });
+            }
+            return plan.DurationMilliseconds;
+        }
         if (motion == PetMotion.Off) return plan.DurationMilliseconds;
         var shortMotion = motion == PetMotion.Gentle;
         var speed = shortMotion ? 210 : 310;
@@ -308,6 +372,7 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
 
     public void Stop()
     {
+        CatIdleOverlay.Pause();
         _effectsGeneration++;
         ResetCharacterMotion();
         MouthSpeak.BeginAnimation(OpacityProperty, null);
