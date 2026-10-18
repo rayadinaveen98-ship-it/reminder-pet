@@ -22,6 +22,8 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     private readonly Dictionary<int, BitmapImage> _walkFrames = [];
     private BitmapImage? _talkRestFrame;
     private bool _walking;
+    private CatStage _stage = CatStage.Stopped;
+    public CatStage Stage => _stage;
     private PetMotion _motion = PetMotion.Full;
     private bool _speaking;
     private long _lastSpokenWordAt = -1;
@@ -154,20 +156,17 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     public bool SetWalking(bool walking)
     {
         if (walking && !WalkAvailable) return false;
-        _walking = walking;
+        var next = CatAnimationFlowRules.Next(_stage,
+            walking ? CatStageEvent.BeginWalk : CatStageEvent.Arrive);
+        if (walking && next != CatStage.Walking) return false;
+        if (!walking && next != CatStage.Idle) return false;
+        _stage = next;
+        _walking = next == CatStage.Walking;
         _done = _snooze = _speaking = false;
         _spokenWords = 0;
         _lastSpokenWordAt = -1;
-        if (_walking)
-        {
-            _clock.Restart();
-            if (IsVisible && _motion != PetMotion.Off) _timer.Start();
-        }
-        else
-        {
-            _clock.Restart();
-            if (IsVisible && _motion != PetMotion.Off) _timer.Start();
-        }
+        _clock.Restart();
+        if (IsVisible && _motion != PetMotion.Off) _timer.Start();
         Tick();
         return true;
     }
@@ -182,13 +181,14 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
 
     public void SetSpeaking(bool speaking)
     {
-        if (_speaking != speaking)
-        {
-            _speaking = speaking;
-            _spokenWords = 0;
-            _lastSpokenWordAt = -1;
-            if (speaking && !_clock.IsRunning) _clock.Start();
-        }
+        var next = CatAnimationFlowRules.Next(_stage,
+            speaking ? CatStageEvent.SpeechStarted : CatStageEvent.SpeechStopped);
+        if (next == _stage) return;
+        _stage = next;
+        _speaking = next == CatStage.Talking;
+        _spokenWords = 0;
+        _lastSpokenWordAt = -1;
+        if (_speaking && !_clock.IsRunning) _clock.Start();
         Tick();
     }
 
@@ -198,7 +198,7 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     /// </summary>
     public void OnSpeechWord()
     {
-        if (!Available || !_speaking || _walking || _done || _snooze) return;
+        if (!Available || !CatAnimationFlowRules.CanAnimateSpeech(_stage)) return;
         _lastSpokenWordAt = _clock.ElapsedMilliseconds;
         _spokenWords++;
         Tick();
@@ -206,17 +206,22 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
 
     public void SetResponse(bool completed)
     {
-        _walking = false;
-        _speaking = false;
+        var next = CatAnimationFlowRules.Next(_stage,
+            completed ? CatStageEvent.Done : CatStageEvent.Snooze);
+        if (next == _stage) return;
+        _stage = next;
+        _walking = _speaking = false;
+        _spokenWords = 0;
         _lastSpokenWordAt = -1;
-        _done = completed;
-        _snooze = !completed;
+        _done = next == CatStage.Done;
+        _snooze = next == CatStage.Snoozed;
         Pause();
         Tick();
     }
 
     public void SetIdle()
     {
+        _stage = CatAnimationFlowRules.Next(_stage, CatStageEvent.Reset);
         _walking = false;
         _spokenWords = 0;
         _lastSpokenWordAt = -1;
@@ -230,7 +235,8 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
 
     public void Start()
     {
-        if (!Available || _motion == PetMotion.Off || _timer.IsEnabled ||
+        if (!Available || CatAnimationFlowRules.IsTerminal(_stage) ||
+            _motion == PetMotion.Off || _timer.IsEnabled ||
             !IsVisible || _done || _snooze) return;
         _clock.Restart();
         _timer.Start();
@@ -241,6 +247,15 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     {
         _timer.Stop();
         _clock.Stop();
+    }
+
+    public void StopAnimation()
+    {
+        _stage = CatAnimationFlowRules.Next(_stage, CatStageEvent.Stop);
+        _walking = _speaking = _done = _snooze = false;
+        _lastSpokenWordAt = -1;
+        _spokenWords = 0;
+        Pause();
     }
 
     private void Tick()
