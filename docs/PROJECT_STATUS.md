@@ -11,6 +11,13 @@ User tested Cat V1 and V2 on Windows, rejected both walking experiments as unnat
 - Rejected walking draft PR #28, #31 and #32 are closed/unmerged; no visual Cat V2 artifacts shipped. **Stable production main remains v0.17.** No unreviewed migration of v0.18 experimental data to production and no claims of signed release or real-device QA of this exact installer.
 - Product acceptance: appearance/voice/reminder actions are preserved; user requested installer, real laptop confirmation still advised. Source change details: `docs/V018_FINAL_STATIC_COMPANIONS.md` on PR #33.
 
+## ANDROID DEVELOPMENT STARTED — 2026-10-18
+
+- **Android v0.1 first NATIVE Kotlin/Compose APK compiled and verified:** draft PR #34 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/34 at head `55589eba664587b936402ce750a152d757a2880d`. **ANDROID CI SUCCESS** https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/39113245645: Android SDK API36, AGP 8.13.2, Gradle 8.13, Kotlin Compose 2.2.21, Compose BOM 2025.12.00, unit tests and built `:app:assembleDebug`. Downloadable `PetPing-Android-v0.1-Debug.apk` **11,733,588 bytes, SHA-256 `a165abb8ad732bca6fec691d60ce27c9ebbb4ffc6147719e03428b1f6ece7c03`**, locally ZIP-structure verified; build artifact id `12131700945` (retention 14 days).
+- Functionality: native offline one-time reminders, atomic private JSON store, Cat/Dog/Bunny selection, Android AlarmManager precise access check + inexact fallback, POST_NOTIFICATIONS permission, heads-up normal notification with Done/Snooze 10m, missed after 15 min and reboot/time-change rescheduling. **No walking, no intrusive screen overlays**.
+- **Critical design boundary:** Android's emoji pet picker is ONLY a v0.1 placeholder; user-approved premium cat art, original Dog/Bunny vectors and actual static pet UI are **not yet ported**. Recurring reminders, Room storage, automatic TTS, foreground alarm escalation/full-screen and physical phone acceptance also remain pending. Debug APK is not a signed Play release and precise alarms require user special access. No claim exact OS timing under denied permissions or force-stop.
+- The user was supplied a local Android source ZIP and direct APK via the conversation; all source is also committed to PR #34. Windows `main` v0.17 source and v0.18 no-walking candidate stay untouched. Next milestone is user's real Android device QA and approved static character-art import, then stronger reminder options.
+
 ## Identity
 - Repository: `rayadinaveen98-ship-it/reminder-pet`. Keep the GitHub name **reminder-pet**.
 - Working product codename: PetPing (not final branding).
