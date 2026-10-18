@@ -10,8 +10,9 @@ using Forms = System.Windows.Forms;
 namespace PetPing.Windows.Views;
 
 /// <summary>
-/// Small transparent walking actor. We animate Window.Left rather than a
-/// full-screen transparent surface: other desktop controls remain accessible.
+/// Small transparent stationary reminder companion. Pets appear at their
+/// final location; never slide or play an artificial walk across the screen.
+ /// No fullscreen interaction layer: other desktop controls remain accessible.
 /// </summary>
 public partial class PetWindow : Window
 {
@@ -25,7 +26,6 @@ public partial class PetWindow : Window
     private bool _reacting;
     private bool _arrived;
     private bool _muted;
-    private double _destinationLeft;
 
     public Guid ReminderId => _reminder.Id;
     public Guid SpeechSessionId { get; } = Guid.NewGuid();
@@ -34,7 +34,7 @@ public partial class PetWindow : Window
     public event Action? Arrived;
     public event Action? InteractionStopped;
     public event Func<Reminder, bool>? Completed;
-    public event Func<Reminder, bool>? Snoozed;
+    public event Func<Reminder, TimeSpan, bool>? Snoozed;
 
     public PetWindow(Reminder reminder,
         PetPlacement placement = PetPlacement.Auto,
@@ -47,6 +47,7 @@ public partial class PetWindow : Window
         _motion = motion;
         _profile = profile ?? new PetProfile();
         Character.Apply(_profile);
+        Character.SetMotion(_motion);
         ReminderTitle.Text = reminder.Title;
         ReminderTitle.ToolTip = reminder.Title;
         System.Windows.Automation.AutomationProperties.SetName(
@@ -99,8 +100,9 @@ public partial class PetWindow : Window
         };
 
         var path = PetWalkRules.Plan(area.Left, area.Width, Width, fromLeft);
-        _destinationLeft = path.End;
-        Left = _motion == PetMotion.Off ? path.End : path.Start;
+        // Static character preference: always appear directly at the
+        // destination. Placement and screen DPI calculations stay unchanged.
+        Left = path.End;
         var topSide = _placement is PetPlacement.TopLeft or PetPlacement.TopRight;
         Top = topSide ? area.Top + 12 : area.Bottom - Height - 15;
         Top = Math.Clamp(Top, area.Top, Math.Max(area.Top, area.Bottom - Height));
@@ -114,31 +116,10 @@ public partial class PetWindow : Window
 
     private void OnPetLoaded(object sender, RoutedEventArgs e)
     {
+        // No walking, sliding, sprite gait, approach bounce or arrival timer.
+        // Display the existing companion at its destination immediately.
         Opacity = 1;
-        if (_motion == PetMotion.Off || Math.Abs(Left - _destinationLeft) < 1)
-        {
-            Arrive();
-            return;
-        }
-
-        var duration = _motion == PetMotion.Gentle
-            ? TimeSpan.FromSeconds(1.15)
-            : TimeSpan.FromSeconds(_profile.Personality == PetPersonality.Calm ? 3.3
-                : _profile.Personality == PetPersonality.Curious ? 2.5 : 2.8);
-        var walk = new DoubleAnimation(Left, _destinationLeft, duration)
-        {
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
-        };
-        walk.Completed += (_, _) =>
-        {
-            if (_closing) return;
-            BeginAnimation(LeftProperty, null);
-            Left = _destinationLeft;
-            Character.Walk(false);
-            Arrive();
-        };
-        BeginAnimation(LeftProperty, walk);
-        Character.Walk(_motion == PetMotion.Full);
+        Arrive();
     }
 
     private void Arrive()
@@ -153,7 +134,9 @@ public partial class PetWindow : Window
             ReminderTitle.BeginAnimation(OpacityProperty, fade);
             ActionChips.BeginAnimation(OpacityProperty, fade);
             _blink.Start();
-            Character.Float(_motion == PetMotion.Full);
+            // Suppress floating/bobbing and tail/body movement. The existing
+            // stationary cat may blink and speak; no gait visuals are entered.
+            Character.Float(false);
         }
         Arrived?.Invoke();
     }
@@ -164,9 +147,18 @@ public partial class PetWindow : Window
         Character.Blink();
     }
 
+    // Routed only from the active SpeechSessionId on the WPF dispatcher.
+    public void OnSpeechWord()
+    {
+        if (!_arrived || _closing || _reacting || _muted) return;
+        Character.OnSpeechWord();
+    }
+
     public void SetSpeaking(bool speaking)
     {
-        if (!_arrived || _closing || _reacting) return;
+        // A queued SpeechStarted event can reach the Dispatcher just after
+        // Mute was clicked. Never restart the cat's mouth once muted.
+        if (!_arrived || _closing || _reacting || (_muted && speaking)) return;
         Character.SetSpeaking(speaking, _motion == PetMotion.Full);
     }
 
@@ -222,10 +214,33 @@ public partial class PetWindow : Window
         ReactAndLeave("Nice work! ✓", true);
     }
 
-    private void OnSnooze(object sender, RoutedEventArgs e)
+    private void OnMoreSnooze(object sender, RoutedEventArgs e)
     {
         if (!AwaitingResponse) return;
-        if (Snoozed?.Invoke(_reminder) == false)
+        var menu = MoreSnoozeButton.ContextMenu;
+        if (menu is null) return;
+        menu.PlacementTarget = MoreSnoozeButton;
+        menu.IsOpen = true;
+    }
+
+    private void OnSnoozePreset(object sender, RoutedEventArgs e)
+    {
+        if (!AwaitingResponse) return;
+        if (sender is not System.Windows.Controls.MenuItem menu ||
+            menu.Tag is not string value ||
+            !int.TryParse(value, out var minutes) ||
+            !SnoozePolicy.Presets.Contains(minutes))
+            return;
+        SnoozeAndLeave(SnoozePolicy.FromMinutes(minutes));
+    }
+
+    private void OnSnooze(object sender, RoutedEventArgs e) =>
+        SnoozeAndLeave(SnoozePolicy.FromMinutes(SnoozePolicy.DefaultMinutes));
+
+    private void SnoozeAndLeave(TimeSpan duration)
+    {
+        if (!AwaitingResponse) return;
+        if (Snoozed?.Invoke(_reminder, duration) != true)
         {
             ShowSaveFailure();
             return;

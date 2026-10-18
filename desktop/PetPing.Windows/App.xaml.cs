@@ -33,10 +33,10 @@ public partial class App : System.Windows.Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        _singleInstance = new Mutex(true, @"Local\PetPing.Windows.Instance", out bool firstInstance);
+        _singleInstance = new Mutex(true, @"Local\PetPing.Experimental.Windows.Instance", out bool firstInstance);
         if (!firstInstance)
         {
-            System.Windows.MessageBox.Show("PetPing is already running. Open it from the system tray.", "PetPing");
+            System.Windows.MessageBox.Show("PetPing Experimental is already running. Open it from the system tray.", "PetPing");
             Shutdown();
             return;
         }
@@ -56,6 +56,13 @@ public partial class App : System.Windows.Application
                 {
                     if (_petWindow?.SpeechSessionId == session)
                         _petWindow.SetSpeaking(speaking);
+                }));
+            _voice.SessionWordStarted += session =>
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_petWindow?.SpeechSessionId == session &&
+                        _petWindow.AwaitingResponse)
+                        _petWindow.OnSpeechWord();
                 }));
             _voice.SessionSpeechFinished += session =>
                 Dispatcher.BeginInvoke(new Action(() =>
@@ -122,8 +129,9 @@ public partial class App : System.Windows.Application
             if (!ReminderStore.HasValidBackup())
                 throw new InvalidDataException(
                     "The reminder file cannot be read and no usable backup was found. " +
-                    "The original file has NOT been erased. Open %LOCALAPPDATA%\\PetPing " +
-                    "to make a safe copy before attempting repairs.", error);
+                    "The original file has NOT been erased. Open " +
+                    ReminderStore.DefaultDataDirectory +
+                    " to make a safe copy before attempting repairs.", error);
 
             var result = System.Windows.MessageBox.Show(
                 "PetPing cannot read the saved reminder file.\n\n" +
@@ -170,7 +178,7 @@ public partial class App : System.Windows.Application
         _tray = new Forms.NotifyIcon
         {
             Icon = _brandTrayIcon ?? SystemIcons.Application,
-            Text = "PetPing - reminders running",
+            Text = "PetPing Exp - reminders running",
             Visible = true,
             ContextMenuStrip = menu
         };
@@ -192,8 +200,8 @@ public partial class App : System.Windows.Application
         if (_tray is null || _store is null) return;
         var needsAttention = _store.Reminders.Count(ReminderRules.NeedsAttention);
         _tray.Text = needsAttention > 0
-            ? $"PetPing - {needsAttention} need attention"
-            : "PetPing - reminders running";
+            ? $"PetPing Exp - {needsAttention} need attention"
+            : "PetPing Exp - reminders running";
     }
 
     private void OnRemindersMissed(int count)
@@ -288,11 +296,11 @@ public partial class App : System.Windows.Application
                         return false;
                     }
                 };
-                popup.Snoozed += r =>
+                popup.Snoozed += (r, duration) =>
                 {
                     try
                     {
-                        _store!.Snooze(r, TimeSpan.FromMinutes(10));
+                        _store!.Snooze(r, duration);
                         RefreshAfterSavedAction();
                         return true;
                     }

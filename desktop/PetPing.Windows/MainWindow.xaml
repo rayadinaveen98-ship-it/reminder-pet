@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:PetPing.Windows"
-        Title="PetPing — Your desktop companion"
+        Title="PetPing v0.18 — Original Companions (No Walking)"
         Width="1100" Height="780" MinWidth="810" MinHeight="640"
         Background="{StaticResource BackgroundBrush}"
         FontFamily="Segoe UI" UseLayoutRounding="True"
@@ -195,6 +195,7 @@
                 <TextBlock Text="What would you like your companion to remind you about?"
                            Style="{StaticResource SecondaryBody}" Margin="0,5,0,14"/>
                 <TextBox x:Name="ReminderName" MaxLength="120" FontSize="14"
+                         TextChanged="OnRepeatEditorChanged"
                          AutomationProperties.Name="Reminder name"
                          ToolTip="For example: Start editing my video"/>
                 <Grid x:Name="ReminderFieldsGrid" Margin="0,14,0,0">
@@ -210,22 +211,27 @@
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
                   <StackPanel x:Name="ReminderDateGroup" Grid.Column="0" Margin="0,0,12,0">
-                    <TextBlock Text="Date" Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
+                    <TextBlock x:Name="ReminderDateLabel" Text="Date"
+                               Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
                     <DatePicker x:Name="ReminderDate" Height="38"
+                                SelectedDateChanged="OnRepeatEditorChanged"
                                 AutomationProperties.Name="Reminder date"/>
                   </StackPanel>
                   <StackPanel x:Name="ReminderTimeGroup" Grid.Column="1" Margin="0,0,12,0">
                     <TextBlock Text="Time (24h)" Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
                     <TextBox x:Name="ReminderTime" Text="19:00"
+                             MaxLength="5" TextChanged="OnRepeatEditorChanged"
                              AutomationProperties.Name="Reminder time in 24-hour format"/>
                   </StackPanel>
                   <StackPanel x:Name="ReminderRepeatGroup" Grid.Column="2">
                     <TextBlock Text="Repeat" Style="{StaticResource SecondaryBody}" Margin="0,0,0,5"/>
                     <ComboBox x:Name="RepeatPicker" Height="38" FontSize="13" SelectedIndex="0"
+                              SelectionChanged="OnRepeatPickerChanged"
                               AutomationProperties.Name="Repeat frequency">
                       <ComboBoxItem Content="One time"/>
                       <ComboBoxItem Content="Every day"/>
                       <ComboBoxItem Content="Every week"/>
+                      <ComboBoxItem Content="Custom schedule"/>
                     </ComboBox>
                   </StackPanel>
                   <WrapPanel x:Name="ReminderFieldsActions" Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Right"
@@ -239,6 +245,57 @@
                             Click="OnAddReminder"/>
                   </WrapPanel>
                 </Grid>
+                <Border x:Name="CustomRepeatPanel" Visibility="Collapsed"
+                        Background="#FAF8FF" CornerRadius="12"
+                        BorderBrush="#DAD1F6" BorderThickness="1"
+                        Padding="14" Margin="0,13,0,0">
+                  <StackPanel>
+                    <TextBlock Text="Custom repeat" Style="{StaticResource SectionHeading}"
+                               FontSize="15" Margin="0,0,0,5"/>
+                    <TextBlock Text="Choose your schedule. The date above is when it starts."
+                               Style="{StaticResource SecondaryBody}" TextWrapping="Wrap"
+                               Margin="0,0,0,12"/>
+                    <ComboBox x:Name="CustomRepeatKindPicker" Height="38"
+                              SelectedIndex="0" SelectionChanged="OnCustomRepeatChanged"
+                              AutomationProperties.Name="Custom repeat type">
+                      <ComboBoxItem Content="On selected weekdays"/>
+                      <ComboBoxItem Content="Every few days"/>
+                    </ComboBox>
+                    <WrapPanel Margin="0,12,0,8" VerticalAlignment="Center">
+                      <TextBlock Text="Every" VerticalAlignment="Center"
+                                 Style="{StaticResource SecondaryBody}" Margin="0,0,9,0"/>
+                      <TextBox x:Name="CustomInterval" Text="1" MaxLength="3"
+                               Width="64" TextChanged="OnRepeatEditorChanged"
+                               AutomationProperties.Name="Custom repeat interval"/>
+                      <TextBlock x:Name="CustomIntervalUnit" Text="week(s)"
+                                 VerticalAlignment="Center" Margin="9,0,0,0"
+                                 Style="{StaticResource SecondaryBody}"/>
+                    </WrapPanel>
+                    <WrapPanel x:Name="CustomWeekdays" Margin="0,6,0,7">
+                      <CheckBox x:Name="RepeatMon" Content="Mon" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Monday"/>
+                      <CheckBox x:Name="RepeatTue" Content="Tue" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Tuesday"/>
+                      <CheckBox x:Name="RepeatWed" Content="Wed" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Wednesday"/>
+                      <CheckBox x:Name="RepeatThu" Content="Thu" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Thursday"/>
+                      <CheckBox x:Name="RepeatFri" Content="Fri" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Friday"/>
+                      <CheckBox x:Name="RepeatSat" Content="Sat" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Saturday"/>
+                      <CheckBox x:Name="RepeatSun" Content="Sun" Margin="0,0,15,10"
+                                Click="OnRepeatEditorChanged" AutomationProperties.Name="Repeat Sunday"/>
+                    </WrapPanel>
+                    <TextBlock Text="EXPERIMENTAL: This preview saves to PetPing-Experimental, not your v0.17 profile. Back up any important reminders before testing."
+                               Style="{StaticResource SecondaryBody}" TextWrapping="Wrap"/>
+                  </StackPanel>
+                </Border>
+                <TextBlock x:Name="RepeatSchedulePreview"
+                           Text="Choose a date, time and repeat setting."
+                           Style="{StaticResource SecondaryBody}"
+                           TextWrapping="Wrap" Margin="0,12,0,0"
+                           AutomationProperties.Name="Next scheduled reminder"/>
               </StackPanel>
             </Border>
 
@@ -298,8 +355,24 @@
                           AutomationProperties.Name="Edit selected reminder"/>
                   <Button Content="Done" Click="OnSelectedDone"
                           AutomationProperties.Name="Mark selected reminder complete"/>
-                  <Button Content="Snooze 10m" Click="OnSelectedSnooze"
-                          AutomationProperties.Name="Snooze selected reminder ten minutes"/>
+                  <ComboBox x:Name="SnoozeDurationPicker" Width="105" Height="42"
+                            Margin="0,0,8,0" SelectedIndex="1"
+                            SelectionChanged="OnSnoozeDurationChanged"
+                            AutomationProperties.Name="Snooze duration">
+                    <ComboBoxItem Content="5 min" Tag="5"/>
+                    <ComboBoxItem Content="10 min" Tag="10"/>
+                    <ComboBoxItem Content="15 min" Tag="15"/>
+                    <ComboBoxItem Content="30 min" Tag="30"/>
+                    <ComboBoxItem Content="1 hour" Tag="60"/>
+                    <ComboBoxItem Content="Custom" Tag="custom"/>
+                  </ComboBox>
+                  <TextBox x:Name="CustomSnoozeMinutes" Width="92" MaxLength="4"
+                           Text="20" Visibility="Collapsed" Margin="0,0,8,0"
+                           VerticalContentAlignment="Center"
+                           ToolTip="Custom snooze: 1 to 1440 minutes (up to 24 hours)"
+                           AutomationProperties.Name="Custom snooze duration in minutes"/>
+                  <Button Content="Snooze" Click="OnSelectedSnooze"
+                          AutomationProperties.Name="Snooze selected reminder using selected duration"/>
                   <Button Content="Delete" Click="OnDelete"
                           AutomationProperties.Name="Delete selected reminder"/>
                 </WrapPanel>
@@ -360,6 +433,9 @@
               <StackPanel>
                 <TextBlock x:Name="ActivePetDescription" Style="{StaticResource SecondaryBody}"
                            Text="Your choice is saved automatically on this computer."/>
+                <TextBlock x:Name="PremiumCatArtStatus" Style="{StaticResource SecondaryBody}"
+                           Margin="0,10,0,0" TextWrapping="Wrap"
+                           AutomationProperties.LiveSetting="Polite"/>
                 <WrapPanel Margin="0,13,0,0">
                   <Button Content="Preview active pet" Click="OnTestPet" Background="#EDE7FB"/>
                   <Button Content="Customize companion" Click="OnNavigateStudio"/>
@@ -541,10 +617,16 @@
                 <TextBlock Text="Your data and privacy" Style="{StaticResource SectionHeading}"/>
                 <TextBlock Text="Everything is saved on this PC. No account or cloud connection is needed."
                            Style="{StaticResource SecondaryBody}" Margin="0,8,0,14"/>
+                <Button Content="Export reminder backup" HorizontalAlignment="Left"
+                        Click="OnExportReminderBackup" Background="#EAE5FB"
+                        AutomationProperties.Name="Export a verified copy of saved reminders"/>
+                <TextBlock Text="Save a copy to another folder or drive. This does not replace your active reminders."
+                           Style="{StaticResource SecondaryBody}" TextWrapping="Wrap"
+                           Margin="0,8,0,12"/>
                 <Button Content="Open data and diagnostics folder" HorizontalAlignment="Left"
                         Click="OnOpenDataFolder" Background="#F2EEE8"
                         AutomationProperties.Name="Open local reminder data and diagnostics folder"/>
-                <TextBlock Text="PetPing Windows v0.17 • preview" FontSize="11"
+                <TextBlock Text="PetPing v0.18 • Original pets • No walking (preview)" FontSize="11"
                            Foreground="{StaticResource MutedBrush}" Margin="0,14,0,0"/>
               </StackPanel>
             </Border>

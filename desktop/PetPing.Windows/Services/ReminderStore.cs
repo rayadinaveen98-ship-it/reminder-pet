@@ -12,8 +12,7 @@ public sealed class ReminderStore
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public static string DefaultDataDirectory => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PetPing");
+    public static string DefaultDataDirectory => PetPingDataRoot.DefaultDirectory;
 
     private readonly string _dataPath;
     public List<Reminder> Reminders { get; private set; } = [];
@@ -36,6 +35,24 @@ public sealed class ReminderStore
             throw new InvalidDataException("Reminder data contains duplicate IDs.");
         if (restored.Any(r => !Enum.IsDefined(r.Repeat) || !Enum.IsDefined(r.Status)))
             throw new InvalidDataException("Reminder data contains an unsupported state.");
+        foreach (var reminder in restored)
+        {
+            if (reminder.Repeat == RepeatPattern.Custom)
+            {
+                if (reminder.CustomSchedule is null ||
+                    string.IsNullOrWhiteSpace(reminder.RepeatTimeZoneId) ||
+                    reminder.RepeatLocalTime is not { } time ||
+                    time < TimeSpan.Zero || time >= TimeSpan.FromDays(1) ||
+                    reminder.SeriesId is null)
+                    throw new InvalidDataException("Custom repeat record is incomplete.");
+                reminder.CustomSchedule.Validate();
+                try { _ = TimeZoneInfo.FindSystemTimeZoneById(reminder.RepeatTimeZoneId); }
+                catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException)
+                { throw new InvalidDataException("Custom repeat has an invalid time zone.", ex); }
+            }
+            else if (reminder.CustomSchedule is not null)
+                throw new InvalidDataException("A legacy reminder has unexpected custom settings.");
+        }
         return restored;
     }
 
@@ -110,16 +127,62 @@ public sealed class ReminderStore
             File.Move(temp, _dataPath);
     }
 
+    /// <summary>
+    /// Create a read-only verified reminder backup for a user-selected folder.
+    /// This never modifies the active store or overwrites earlier exports.
+    /// Import/restore is intentionally NOT implicit.
+    /// </summary>
+    public string ExportVerifiedBackup(string destinationDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(destinationDirectory))
+            throw new ArgumentException("Choose a folder for the reminder backup.");
+        if (!File.Exists(_dataPath))
+            throw new InvalidOperationException("Create a reminder before exporting a backup.");
+
+        var sourceDirectory = Path.GetFullPath(Path.GetDirectoryName(_dataPath)!);
+        var destination = Path.GetFullPath(destinationDirectory);
+        if (string.Equals(sourceDirectory.TrimEnd(Path.DirectorySeparatorChar),
+                destination.TrimEnd(Path.DirectorySeparatorChar),
+                StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException(
+                "Choose a separate folder, not PetPing's active data folder.");
+
+        // Refuse to copy unreadable data, even if stale valid reminders remain
+        // in memory after an external process corrupted the primary file.
+        _ = ReadValidated(_dataPath);
+        Directory.CreateDirectory(destination);
+        var name = "PetPing-reminders-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") +
+            "-" + Guid.NewGuid().ToString("N")[..8] + ".json";
+        var exportedPath = Path.Combine(destination, name);
+        File.Copy(_dataPath, exportedPath, overwrite: false);
+        try
+        {
+            _ = ReadValidated(exportedPath);
+            using var source = File.OpenRead(_dataPath);
+            using var copy = File.OpenRead(exportedPath);
+            if (!System.Security.Cryptography.SHA256.HashData(source)
+                .SequenceEqual(System.Security.Cryptography.SHA256.HashData(copy)))
+                throw new IOException("The backup did not match your saved reminders.");
+        }
+        catch
+        {
+            try { File.Delete(exportedPath); }
+            catch (IOException) { /* do not hide validation failure */ }
+            throw;
+        }
+        return exportedPath;
+    }
+
     private static void ValidateTitleAndTime(string title, DateTimeOffset dueAt)
     {
-        if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("A reminder needs a name.");
-        if (title.Trim().Length > 120) throw new ArgumentException("Keep the name within 120 characters.");
+        _ = ReminderEditorRules.ValidateTitle(title);
         if (dueAt <= DateTimeOffset.UtcNow) throw new ArgumentException("Choose a future time.");
     }
 
     private static string? ValidateRecurrence(RepeatPattern repeat, string? zoneId)
     {
-        if (!Enum.IsDefined(repeat)) throw new ArgumentException("Unsupported repeat setting.");
+        if (!Enum.IsDefined(repeat) || repeat == RepeatPattern.Custom)
+            throw new ArgumentException("Use AddCustom for custom schedules.");
         if (repeat == RepeatPattern.None) return null;
         zoneId ??= TimeZoneInfo.Local.Id;
         _ = TimeZoneInfo.FindSystemTimeZoneById(zoneId);
@@ -148,6 +211,42 @@ public sealed class ReminderStore
         return reminder;
     }
 
+    /// <summary>
+    /// Creates one future custom occurrence using a local anchor/date and
+    /// intended wall clock, without rewriting any old reminder records.
+    /// This is a domain-only entry point until a gated v0.18 editor exists.
+    /// </summary>
+    public Reminder AddCustom(string title, TimeSpan localTime, string timeZoneId,
+        CustomRepeatOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        options.Validate();
+        if (string.IsNullOrWhiteSpace(timeZoneId))
+            throw new ArgumentException("Choose a time zone.", nameof(timeZoneId));
+        var tz = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        if (localTime < TimeSpan.Zero || localTime >= TimeSpan.FromDays(1))
+            throw new ArgumentOutOfRangeException(nameof(localTime));
+        var now = DateTimeOffset.UtcNow;
+        var nextDue = NextCustomDue(options, localTime, tz, now);
+        ValidateTitleAndTime(title, nextDue);
+        EnsurePreCustomBackup();
+        var reminder = new Reminder
+        {
+            Title = title.Trim(),
+            DueAt = nextDue,
+            OriginalDueAt = nextDue,
+            Repeat = RepeatPattern.Custom,
+            SeriesId = Guid.NewGuid(),
+            RepeatTimeZoneId = timeZoneId,
+            RepeatLocalTime = localTime,
+            CustomSchedule = options
+        };
+        Reminders.Add(reminder);
+        try { Save(); }
+        catch { Reminders.Remove(reminder); throw; }
+        return reminder;
+    }
+
     /// <summary>Edits only the next ordinary pending occurrence. Historical events
     /// and already-snoozed recurring occurrences are intentionally immutable.</summary>
     public void Edit(Reminder reminder, string title, DateTimeOffset dueAt,
@@ -155,6 +254,8 @@ public sealed class ReminderStore
     {
         if (reminder.Status != ReminderStatus.Pending || reminder.RepeatContinuationCreated)
             throw new InvalidOperationException("Only upcoming, unsent reminders can be edited.");
+        if (reminder.Repeat == RepeatPattern.Custom || repeat == RepeatPattern.Custom)
+            throw new InvalidOperationException("Custom schedules need their dedicated editor.");
         ValidateTitleAndTime(title, dueAt);
         var tz = ValidateRecurrence(repeat, timeZoneId);
         Change(reminder, () =>
@@ -168,6 +269,81 @@ public sealed class ReminderStore
             reminder.RepeatLocalTime = tz is null ? null
                 : TimeZoneInfo.ConvertTime(dueAt, TimeZoneInfo.FindSystemTimeZoneById(tz)).TimeOfDay;
         });
+    }
+
+    /// <summary>
+    /// Edits the next unsent custom occurrence only. The edited occurrence
+    /// becomes the source of later scheduling. Earlier history is immutable.
+    /// </summary>
+    public void EditCustom(Reminder reminder, string title, TimeSpan localTime,
+        string timeZoneId, CustomRepeatOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(reminder);
+        ArgumentNullException.ThrowIfNull(options);
+        if (reminder.Repeat != RepeatPattern.Custom || reminder.Status != ReminderStatus.Pending ||
+            reminder.RepeatContinuationCreated || !Reminders.Contains(reminder))
+            throw new InvalidOperationException("Only an upcoming unsent custom reminder can be edited.");
+        options.Validate();
+        if (string.IsNullOrWhiteSpace(timeZoneId))
+            throw new ArgumentException("Choose a time zone.", nameof(timeZoneId));
+        var tz = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        if (localTime < TimeSpan.Zero || localTime >= TimeSpan.FromDays(1))
+            throw new ArgumentOutOfRangeException(nameof(localTime));
+        var next = NextCustomDue(options, localTime, tz, DateTimeOffset.UtcNow);
+        ValidateTitleAndTime(title, next);
+        Change(reminder, () =>
+        {
+            reminder.Title = title.Trim();
+            reminder.DueAt = next;
+            reminder.OriginalDueAt = next;
+            reminder.RepeatTimeZoneId = timeZoneId;
+            reminder.RepeatLocalTime = localTime;
+            reminder.CustomSchedule = options;
+        });
+    }
+
+    /// <summary>One calculator shared by the custom editor and store.</summary>
+    private static DateTimeOffset NextCustomDue(CustomRepeatOptions options,
+        TimeSpan localTime, TimeZoneInfo zone, DateTimeOffset now) =>
+        options.Kind switch
+        {
+            CustomRepeatKind.Weekdays => AdvancedRepeatRules.NextWeekdayOccurrence(
+                options.AnchorLocalDate, localTime, options.SelectedWeekdays(),
+                options.Interval, zone, now),
+            CustomRepeatKind.EveryNDays => AdvancedRepeatRules.NextDayIntervalOccurrence(
+                options.AnchorLocalDate, localTime, options.Interval, zone, now),
+            _ => throw new InvalidDataException("Unsupported custom recurrence kind.")
+        };
+
+    /// <summary>
+    /// Preserve a pre-custom file users can explicitly restore if a future
+    /// v0.17 downgrade refuses to read Custom records. Never overwrite it.
+    /// </summary>
+    private void EnsurePreCustomBackup()
+    {
+        var backup = Path.Combine(Path.GetDirectoryName(_dataPath)!,
+            "reminders.pre-custom-v017.json");
+        if (File.Exists(backup))
+        {
+            var saved = ReadValidated(backup);
+            if (saved.Any(r => r.Repeat == RepeatPattern.Custom))
+                throw new InvalidDataException("The pre-custom backup is not a legacy snapshot.");
+            return;
+        }
+        if (Reminders.Any(r => r.Repeat == RepeatPattern.Custom))
+            throw new InvalidOperationException("Legacy backup missing. Export a safe backup before adding custom reminders.");
+        if (File.Exists(_dataPath))
+        {
+            _ = ReadValidated(_dataPath);
+            File.Copy(_dataPath, backup, overwrite: false);
+        }
+        else
+        {
+            using var stream = new FileStream(backup, FileMode.CreateNew,
+                FileAccess.Write, FileShare.None);
+            JsonSerializer.Serialize(stream, Array.Empty<Reminder>(), JsonOptions);
+            stream.Flush(flushToDisk: true);
+        }
     }
 
     public void Delete(Reminder reminder)
@@ -204,7 +380,8 @@ public sealed class ReminderStore
                     Repeat = reminder.Repeat,
                     SeriesId = reminder.SeriesId ?? Guid.NewGuid(),
                     RepeatTimeZoneId = reminder.RepeatTimeZoneId,
-                    RepeatLocalTime = reminder.RepeatLocalTime
+                    RepeatLocalTime = reminder.RepeatLocalTime,
+                    CustomSchedule = reminder.CustomSchedule
                 };
                 reminder.RepeatContinuationCreated = true;
                 // Defensive guard against duplicated future series occurrences.
@@ -237,23 +414,26 @@ public sealed class ReminderStore
         }, advanceSeries: true, now: deliveredAt);
     }
 
-    public void Mark(Reminder reminder, ReminderStatus status)
+    public void Mark(Reminder reminder, ReminderStatus status,
+        DateTimeOffset? occurredAt = null)
     {
         if (!Enum.IsDefined(status))
             throw new ArgumentException("Unknown reminder status.");
+        var eventTime = occurredAt ?? DateTimeOffset.UtcNow;
         var wasPending = reminder.Status == ReminderStatus.Pending;
         Change(reminder, () =>
         {
             reminder.Status = status;
-            reminder.FinishedAt = DateTimeOffset.UtcNow;
-        }, advanceSeries: wasPending && (status is ReminderStatus.Missed or ReminderStatus.Completed));
+            reminder.FinishedAt = eventTime;
+        }, advanceSeries: wasPending && (status is ReminderStatus.Missed or ReminderStatus.Completed),
+            now: eventTime);
     }
 
     public void Snooze(Reminder reminder, TimeSpan duration)
     {
         if (!ReminderRules.CanSnooze(reminder))
             throw new InvalidOperationException("Only reminders that need attention can be snoozed.");
-        if (duration <= TimeSpan.Zero) throw new ArgumentException("Snooze must be positive.");
+        SnoozePolicy.Validate(duration);
         Change(reminder, () =>
         {
             reminder.DueAt = DateTimeOffset.UtcNow.Add(duration);
@@ -280,6 +460,7 @@ public sealed class ReminderStore
         private readonly string? _zone = reminder.RepeatTimeZoneId;
         private readonly TimeSpan? _localTime = reminder.RepeatLocalTime;
         private readonly bool _continued = reminder.RepeatContinuationCreated;
+        private readonly CustomRepeatOptions? _custom = reminder.CustomSchedule;
 
         public void Restore(Reminder r)
         {
@@ -295,6 +476,7 @@ public sealed class ReminderStore
             r.RepeatTimeZoneId = _zone;
             r.RepeatLocalTime = _localTime;
             r.RepeatContinuationCreated = _continued;
+            r.CustomSchedule = _custom;
         }
     }
 }

@@ -23,6 +23,7 @@ public partial class MainWindow : Window
     private readonly Action _stopNarration;
     private readonly Action<Reminder> _reminderChanged;
     private bool _reallyQuit;
+    private bool _savingReminder;
     private Reminder? _editing;
     private DashboardPage _currentPage = DashboardPage.Home;
 
@@ -46,8 +47,7 @@ public partial class MainWindow : Window
         _testPet = testPet;
         _stopNarration = stopNarration;
         _reminderChanged = reminderChanged;
-        ReminderDate.SelectedDate = DateTime.Today;
-        ReminderTime.Text = DateTime.Now.AddMinutes(5).ToString("HH:mm");
+        SetDefaultWhen();
         VoiceToggle.IsChecked = _speechSettings.Enabled;
         StartupToggle.IsChecked = StartupRegistrar.IsEnabled();
         _loadingAppearance = true;
@@ -237,6 +237,16 @@ public partial class MainWindow : Window
         PetsCatCharacter.Apply(_petProfiles.Get(PetSpecies.Cat));
         PetsDogCharacter.Apply(_petProfiles.Get(PetSpecies.Dog));
         PetsBunnyCharacter.Apply(_petProfiles.Get(PetSpecies.Bunny));
+        PremiumCatArtStatus.Visibility = p.Species == PetSpecies.Cat
+            ? Visibility.Visible : Visibility.Collapsed;
+        if (p.Species == PetSpecies.Cat)
+        {
+            PremiumCatArtStatus.Text = StudioCharacter.UsingPremiumCat
+                ? "Premium Cat artwork ready. Walking removed; the companion stays in place."
+                : p.Palette != PetPalette.Apricot || p.Accessory != PetAccessory.None
+                    ? "Your original custom cat appearance is preserved. Walking is disabled."
+                    : "The premium cat artwork is unavailable; the original cat remains. Walking is disabled.";
+        }
         CatChoiceStatus.Text = p.Species == PetSpecies.Cat ? "Active" : "Available";
         DogChoiceStatus.Text = p.Species == PetSpecies.Dog ? "Active" : "Available";
         BunnyChoiceStatus.Text = p.Species == PetSpecies.Bunny ? "Active" : "Available";
@@ -406,62 +416,247 @@ public partial class MainWindow : Window
     public void OpenDashboard() { Show(); WindowState = WindowState.Normal; Activate(); }
     public void AllowQuit() => _reallyQuit = true;
 
-    private static RepeatPattern PickerPattern(int index) => index switch
-    {
-        1 => RepeatPattern.Daily,
-        2 => RepeatPattern.Weekly,
-        _ => RepeatPattern.None
-    };
+    private static RepeatPattern PickerPattern(int index) =>
+        index == 3 ? RepeatPattern.Custom : ReminderEditorRules.SelectRepeat(index);
 
-    private DateTimeOffset ReadDueAt()
+    private void SetDefaultWhen()
     {
-        if (ReminderDate.SelectedDate is not DateTime date)
-            throw new ArgumentException("Please choose a date.");
+        var local = ReminderEditorRules.DefaultLocalDue(DateTimeOffset.Now, TimeZoneInfo.Local);
+        ReminderDate.SelectedDate = local.Date;
+        ReminderTime.Text = local.ToString("HH:mm", CultureInfo.InvariantCulture);
+    }
+
+    private TimeSpan ReadClockTime()
+    {
         if (!TimeSpan.TryParseExact(ReminderTime.Text.Trim(), @"hh\:mm",
-                CultureInfo.InvariantCulture, out var time) || time.TotalHours >= 24)
+                CultureInfo.InvariantCulture, out var time) ||
+            time < TimeSpan.Zero || time >= TimeSpan.FromDays(1))
             throw new ArgumentException("Use a time like 09:30 or 19:00.");
+        return time;
+    }
 
-        var local = DateTime.SpecifyKind(date.Date.Add(time), DateTimeKind.Unspecified);
-        if (TimeZoneInfo.Local.IsInvalidTime(local))
-            throw new ArgumentException("That time does not exist because the clocks change. Choose another.");
-        if (TimeZoneInfo.Local.IsAmbiguousTime(local))
-            throw new ArgumentException("That time happens twice because the clocks change. Choose another.");
-        return new DateTimeOffset(local, TimeZoneInfo.Local.GetUtcOffset(local));
+    private DateTimeOffset ReadDueAt() =>
+        ReminderEditorRules.ReadLocalDue(ReminderDate.SelectedDate, ReminderTime.Text,
+            TimeZoneInfo.Local, DateTimeOffset.Now);
+
+    private System.Windows.Controls.CheckBox[] WeekdayCheckBoxes() =>
+        [RepeatMon, RepeatTue, RepeatWed, RepeatThu, RepeatFri, RepeatSat, RepeatSun];
+
+    private (TimeSpan Time, CustomRepeatOptions Options) ReadCustomSchedule()
+    {
+        if (ReminderDate.SelectedDate is not DateTime firstDate)
+            throw new ArgumentException("Choose the first date for your schedule.");
+        var clock = ReadClockTime();
+        if (!int.TryParse(CustomInterval.Text.Trim(), System.Globalization.NumberStyles.None,
+                CultureInfo.InvariantCulture, out var interval))
+            throw new ArgumentException("Enter a whole number for the repeat interval.");
+
+        byte mask = 0;
+        var kind = CustomRepeatKindPicker.SelectedIndex switch
+        {
+            0 => CustomRepeatKind.Weekdays,
+            1 => CustomRepeatKind.EveryNDays,
+            _ => throw new ArgumentException("Choose a custom repeat type.")
+        };
+        if (kind == CustomRepeatKind.Weekdays)
+        {
+            var checks = WeekdayCheckBoxes();
+            for (int i = 0; i < checks.Length; i++)
+                if (checks[i].IsChecked == true)
+                    mask |= (byte)(1 << i);
+        }
+        var options = new CustomRepeatOptions
+        {
+            Kind = kind,
+            AnchorLocalDate = DateTime.SpecifyKind(firstDate.Date, DateTimeKind.Unspecified),
+            Interval = interval,
+            WeekdayMask = mask
+        };
+        options.Validate();
+        return (clock, options);
+    }
+
+    private static DateTimeOffset PreviewNextCustom(
+        TimeSpan clock, CustomRepeatOptions options, DateTimeOffset now)
+    {
+        var zone = TimeZoneInfo.Local;
+        return options.Kind switch
+        {
+            CustomRepeatKind.Weekdays => AdvancedRepeatRules.NextWeekdayOccurrence(
+                options.AnchorLocalDate, clock, options.SelectedWeekdays(),
+                options.Interval, zone, now),
+            CustomRepeatKind.EveryNDays => AdvancedRepeatRules.NextDayIntervalOccurrence(
+                options.AnchorLocalDate, clock, options.Interval, zone, now),
+            _ => throw new InvalidDataException("Custom repeat type is not supported.")
+        };
+    }
+
+    private void OnRepeatPickerChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (CustomRepeatPanel is null || QuickAddButton is null ||
+            ReminderDateLabel is null) return;
+        var custom = RepeatPicker.SelectedIndex == 3;
+        CustomRepeatPanel.Visibility = custom ? Visibility.Visible : Visibility.Collapsed;
+        ReminderDateLabel.Text = custom ? "Start date" : "Date";
+        QuickAddButton.IsEnabled = !custom && !_savingReminder;
+        RefreshRepeatPreview();
+    }
+
+    private void OnCustomRepeatChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (CustomWeekdays is null || CustomIntervalUnit is null ||
+            CustomRepeatKindPicker is null) return;
+        var weekdays = CustomRepeatKindPicker.SelectedIndex == 0;
+        CustomWeekdays.Visibility = weekdays ? Visibility.Visible : Visibility.Collapsed;
+        CustomIntervalUnit.Text = weekdays ? "week(s)" : "day(s)";
+        RefreshRepeatPreview();
+    }
+
+    private void OnRepeatEditorChanged(object sender, RoutedEventArgs e) =>
+        RefreshRepeatPreview();
+
+    private void RefreshRepeatPreview()
+    {
+        if (RepeatSchedulePreview is null || ReminderDate is null ||
+            ReminderTime is null || RepeatPicker is null ||
+            CustomInterval is null || CustomRepeatKindPicker is null ||
+            RepeatMon is null || _store is null)
+            return;
+
+        try
+        {
+            var repeat = PickerPattern(RepeatPicker.SelectedIndex);
+            if (_editing is { } selected &&
+                (selected.Repeat == RepeatPattern.Custom) != (repeat == RepeatPattern.Custom))
+            {
+                RepeatSchedulePreview.Text =
+                    "To change between custom and regular repeats, create a new reminder.";
+                return;
+            }
+            DateTimeOffset next;
+            string label;
+            if (repeat == RepeatPattern.Custom)
+            {
+                var (clock, options) = ReadCustomSchedule();
+                next = PreviewNextCustom(clock, options, DateTimeOffset.UtcNow);
+                label = options.Kind == CustomRepeatKind.Weekdays
+                    ? $"Every {options.Interval} week(s) on selected days"
+                    : $"Every {options.Interval} day(s)";
+            }
+            else
+            {
+                next = ReadDueAt();
+                label = repeat switch
+                {
+                    RepeatPattern.Daily => "Every day",
+                    RepeatPattern.Weekly => "Every week",
+                    _ => "One time"
+                };
+            }
+            RepeatSchedulePreview.Text =
+                $"Next: {next.ToLocalTime():ddd, dd MMM yyyy • HH:mm}  |  {label}";
+        }
+        catch (Exception error) when (error is ArgumentException or
+            InvalidDataException or InvalidOperationException)
+        { RepeatSchedulePreview.Text = error.Message; }
     }
 
     private void OnAddReminder(object sender, RoutedEventArgs e)
     {
+        if (_savingReminder) return;
+        _savingReminder = true;
+        AddButton.IsEnabled = false;
+        QuickAddButton.IsEnabled = false;
         try
         {
-            var due = ReadDueAt();
-            var mode = PickerPattern(RepeatPicker.SelectedIndex);
-            if (_editing is { } previous)
+            var title = ReminderEditorRules.ValidateTitle(ReminderName.Text);
+            var repeat = PickerPattern(RepeatPicker.SelectedIndex);
+            if (_editing is { } existing &&
+                (existing.Repeat == RepeatPattern.Custom) != (repeat == RepeatPattern.Custom))
+                throw new InvalidOperationException(
+                    "To change between custom and regular repeats, create a new reminder.");
+
+            if (repeat == RepeatPattern.Custom)
             {
-                _store.Edit(previous, ReminderName.Text, due, mode);
-                _reminderChanged(previous);
+                var (clock, options) = ReadCustomSchedule();
+                if (_editing is { } customReminder)
+                {
+                    _store.EditCustom(customReminder, title,
+                        clock, TimeZoneInfo.Local.Id, options);
+                    _reminderChanged(customReminder);
+                }
+                else
+                {
+                    // Experimental data is isolated; first use still needs consent.
+                    if (!_store.Reminders.Any(r => r.Repeat == RepeatPattern.Custom))
+                    {
+                        var response = System.Windows.MessageBox.Show(
+                            "Experimental custom scheduling uses a separate PetPing-Experimental " +
+                            "data folder. A pre-custom backup will also be created. " +
+                            "Create this schedule?",
+                            "PetPing Experimental — custom schedule",
+                            MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                            MessageBoxResult.No);
+                        if (response != MessageBoxResult.Yes) return;
+                    }
+                    _store.AddCustom(title, clock, TimeZoneInfo.Local.Id, options);
+                }
             }
             else
-                _store.Add(ReminderName.Text, due, mode);
+            {
+                var due = ReadDueAt();
+                if (_editing is { } regularReminder)
+                {
+                    _store.Edit(regularReminder, title, due, repeat);
+                    _reminderChanged(regularReminder);
+                }
+                else
+                    _store.Add(title, due, repeat);
+            }
             ResetForm();
             RefreshList();
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException
-            or IOException or TimeZoneNotFoundException or InvalidTimeZoneException)
+            or IOException or UnauthorizedAccessException or TimeZoneNotFoundException
+            or InvalidTimeZoneException)
         { ShowError(ex.Message); }
+        finally
+        {
+            _savingReminder = false;
+            AddButton.IsEnabled = true;
+            QuickAddButton.IsEnabled = RepeatPicker.SelectedIndex != 3 &&
+                _editing is null;
+        }
     }
 
     private void OnQuickAdd(object sender, RoutedEventArgs e)
     {
+        if (_savingReminder) return;
         if (_editing is not null) { ShowError("Finish or cancel editing first."); return; }
+        if (RepeatPicker.SelectedIndex == 3)
+        {
+            ShowError("Use Add reminder to save a custom repeat schedule.");
+            return;
+        }
+        _savingReminder = true;
+        AddButton.IsEnabled = false;
+        QuickAddButton.IsEnabled = false;
         try
         {
-            _store.Add(ReminderName.Text, DateTimeOffset.Now.AddMinutes(1),
+            _store.Add(ReminderEditorRules.ValidateTitle(ReminderName.Text), DateTimeOffset.Now.AddMinutes(1),
                 PickerPattern(RepeatPicker.SelectedIndex));
             ResetForm();
             RefreshList();
         }
-        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or IOException)
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException
+            or IOException or UnauthorizedAccessException)
         { ShowError(ex.Message); }
+        finally
+        {
+            _savingReminder = false;
+            AddButton.IsEnabled = true;
+            QuickAddButton.IsEnabled = RepeatPicker.SelectedIndex != 3;
+        }
     }
 
     private void OnSelectedEdit(object sender, RoutedEventArgs e)
@@ -475,19 +670,42 @@ public partial class MainWindow : Window
         }
         _editing = reminder;
         ReminderName.Text = reminder.Title;
-        var local = reminder.DueAt.ToLocalTime();
-        ReminderDate.SelectedDate = local.Date;
-        ReminderTime.Text = local.ToString("HH:mm", CultureInfo.InvariantCulture);
-        RepeatPicker.SelectedIndex = reminder.Repeat switch
+        if (reminder.Repeat == RepeatPattern.Custom)
         {
-            RepeatPattern.Daily => 1,
-            RepeatPattern.Weekly => 2,
-            _ => 0
-        };
+            if (reminder.CustomSchedule is not { } options ||
+                reminder.RepeatLocalTime is not { } clock)
+            {
+                _editing = null;
+                ShowError("This custom schedule is incomplete and cannot be edited safely.");
+                return;
+            }
+            ReminderDate.SelectedDate = options.AnchorLocalDate;
+            ReminderTime.Text = clock.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
+            RepeatPicker.SelectedIndex = 3;
+            CustomRepeatKindPicker.SelectedIndex =
+                options.Kind == CustomRepeatKind.Weekdays ? 0 : 1;
+            CustomInterval.Text = options.Interval.ToString(CultureInfo.InvariantCulture);
+            var checks = WeekdayCheckBoxes();
+            for (int i = 0; i < checks.Length; i++)
+                checks[i].IsChecked = (options.WeekdayMask & (1 << i)) != 0;
+        }
+        else
+        {
+            var local = reminder.DueAt.ToLocalTime();
+            ReminderDate.SelectedDate = local.Date;
+            ReminderTime.Text = local.ToString("HH:mm", CultureInfo.InvariantCulture);
+            RepeatPicker.SelectedIndex = reminder.Repeat switch
+            {
+                RepeatPattern.Daily => 1,
+                RepeatPattern.Weekly => 2,
+                _ => 0
+            };
+        }
         QuickAddButton.Visibility = Visibility.Collapsed;
         CancelEditButton.Visibility = Visibility.Visible;
         AddButton.Content = "Save changes";
         ErrorToast.Visibility = Visibility.Collapsed;
+        RefreshRepeatPreview();
         ReminderName.Focus();
     }
 
@@ -497,13 +715,16 @@ public partial class MainWindow : Window
     {
         _editing = null;
         ReminderName.Clear();
-        ReminderDate.SelectedDate = DateTime.Today;
-        ReminderTime.Text = DateTime.Now.AddMinutes(5).ToString("HH:mm");
+        SetDefaultWhen();
         RepeatPicker.SelectedIndex = 0;
+        CustomRepeatKindPicker.SelectedIndex = 0;
+        CustomInterval.Text = "1";
+        foreach (var check in WeekdayCheckBoxes()) check.IsChecked = false;
         QuickAddButton.Visibility = Visibility.Visible;
         CancelEditButton.Visibility = Visibility.Collapsed;
         AddButton.Content = "Add reminder";
         ErrorToast.Visibility = Visibility.Collapsed;
+        RefreshRepeatPreview();
     }
 
     private void ShowError(string message)
@@ -540,6 +761,34 @@ public partial class MainWindow : Window
         { ShowError("Could not mark reminder done: " + ex.Message); }
     }
 
+    private void OnSnoozeDurationChanged(object sender,
+        SelectionChangedEventArgs e)
+    {
+        if (SnoozeDurationPicker is null || CustomSnoozeMinutes is null) return;
+        var isCustom = (SnoozeDurationPicker.SelectedItem as ComboBoxItem)?.Tag as string
+            == "custom";
+        CustomSnoozeMinutes.Visibility = isCustom
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private TimeSpan ReadSnoozeDuration()
+    {
+        var selected = (SnoozeDurationPicker.SelectedItem as ComboBoxItem)?.Tag as string;
+        if (selected == "custom")
+        {
+            var value = CustomSnoozeMinutes.Text.Trim();
+            if (!int.TryParse(value, System.Globalization.NumberStyles.None,
+                CultureInfo.InvariantCulture, out var customMinutes))
+                throw new ArgumentException("Enter a whole number of minutes (1–1440).");
+            return SnoozePolicy.FromMinutes(customMinutes);
+        }
+        if (!int.TryParse(selected, System.Globalization.NumberStyles.None,
+            CultureInfo.InvariantCulture, out var minutes) ||
+            !SnoozePolicy.Presets.Contains(minutes))
+            throw new ArgumentException("Choose a valid snooze duration.");
+        return SnoozePolicy.FromMinutes(minutes);
+    }
+
     private void OnSelectedSnooze(object sender, RoutedEventArgs e)
     {
         var reminder = SelectedOrWarn();
@@ -551,12 +800,14 @@ public partial class MainWindow : Window
         }
         try
         {
-            _store.Snooze(reminder, TimeSpan.FromMinutes(10));
+            var duration = ReadSnoozeDuration();
+            _store.Snooze(reminder, duration);
             _reminderChanged(reminder);
             ErrorToast.Visibility = Visibility.Collapsed;
             RefreshList();
         }
-        catch (Exception ex) when (ex is IOException or InvalidOperationException)
+        catch (Exception ex) when (ex is IOException or InvalidOperationException
+            or ArgumentException)
         { ShowError("Couldn't save snooze: " + ex.Message); }
     }
 
@@ -579,6 +830,32 @@ public partial class MainWindow : Window
             RefreshList();
         }
         catch (IOException ex) { ShowError("Could not delete reminder: " + ex.Message); }
+    }
+
+    private void OnExportReminderBackup(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            using var picker = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Choose a separate folder or external drive for a reminder backup",
+                ShowNewFolderButton = true,
+                SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            };
+            if (picker.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+            var backup = _store.ExportVerifiedBackup(picker.SelectedPath);
+            ErrorToast.Visibility = Visibility.Collapsed;
+            System.Windows.MessageBox.Show(
+                "Your reminder backup was verified and saved here:\n\n" + backup +
+                "\n\nThis is a copy. Your active reminders were not changed.",
+                "Reminder backup saved", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or
+            ArgumentException or InvalidOperationException or InvalidDataException or
+            System.Text.Json.JsonException)
+        {
+            ShowError("Couldn't export reminders: " + error.Message);
+        }
     }
 
     private void OnOpenDataFolder(object sender, RoutedEventArgs e)

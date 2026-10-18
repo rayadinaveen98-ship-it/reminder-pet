@@ -619,6 +619,791 @@ try
     Check(new ReminderStore(repeatFolder).Reminders.Count == reminderCountBefore,
         "v0.14 effects configuration leaves reminder data unchanged");
 
+    // R2-B isolated custom recurrence previews. Zero schema / UI migration.
+    var r2bAnchor = new DateTime(2026, 10, 12); // Monday
+    var r2bNow = new DateTimeOffset(2026, 10, 13, 10, 0, 0, TimeSpan.Zero);
+    var monWedFri = new [] { DayOfWeek.Monday, DayOfWeek.Wednesday, DayOfWeek.Friday };
+    var midWeekNext = AdvancedRepeatRules.NextWeekdayOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0), monWedFri, 1, TimeZoneInfo.Utc, r2bNow);
+    Check(midWeekNext == new DateTimeOffset(2026, 10, 14, 9, 0, 0, TimeSpan.Zero),
+        "custom Mon/Wed/Fri recurrence chooses the next selected local weekday");
+    var afterFriday = new DateTimeOffset(2026, 10, 16, 12, 0, 0, TimeSpan.Zero);
+    var nextMonday = AdvancedRepeatRules.NextWeekdayOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0), monWedFri, 1, TimeZoneInfo.Utc, afterFriday);
+    Check(nextMonday == new DateTimeOffset(2026, 10, 19, 9, 0, 0, TimeSpan.Zero),
+        "custom weekdays wrap correctly from Friday into the next week");
+    var everyTwoWeeks = AdvancedRepeatRules.NextWeekdayOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0),
+        [DayOfWeek.Monday, DayOfWeek.Wednesday], 2, TimeZoneInfo.Utc, afterFriday);
+    Check(everyTwoWeeks == new DateTimeOffset(2026, 10, 26, 9, 0, 0, TimeSpan.Zero),
+        "selected days every second week retain the original Monday-week anchor");
+    var anchorInsideWeek = AdvancedRepeatRules.NextWeekdayOccurrence(
+        new DateTime(2026, 10, 15), new TimeSpan(9, 0, 0),
+        [DayOfWeek.Monday, DayOfWeek.Wednesday], 2, TimeZoneInfo.Utc, afterFriday);
+    Check(anchorInsideWeek == everyTwoWeeks,
+        "custom repeat never schedules a selected weekday before the anchor date");
+    var uniqueWeekday = AdvancedRepeatRules.NextWeekdayOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0),
+        [DayOfWeek.Wednesday, DayOfWeek.Wednesday], 1, TimeZoneInfo.Utc, r2bNow);
+    Check(uniqueWeekday == midWeekNext,
+        "duplicate weekday selections are normalized without duplicate schedules");
+
+    var dayThree = AdvancedRepeatRules.NextDayIntervalOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0), 3, TimeZoneInfo.Utc, r2bNow);
+    Check(dayThree == new DateTimeOffset(2026, 10, 15, 9, 0, 0, TimeSpan.Zero),
+        "every-three-day schedule advances from its original local anchor");
+    var longOffline = new DateTimeOffset(2045, 4, 19, 8, 0, 0, TimeSpan.Zero);
+    var jumpedWeek = AdvancedRepeatRules.NextWeekdayOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0), [DayOfWeek.Tuesday], 3,
+        TimeZoneInfo.Utc, longOffline);
+    var jumpedDay = AdvancedRepeatRules.NextDayIntervalOccurrence(
+        r2bAnchor, new TimeSpan(9, 0, 0), 15, TimeZoneInfo.Utc, longOffline);
+    Check(jumpedWeek > longOffline && jumpedWeek <= longOffline.AddDays(22) &&
+          jumpedDay > longOffline && jumpedDay <= longOffline.AddDays(16),
+        "years of downtime jump directly to a bounded future selected occurrence");
+
+    bool missingDayRejected = false, invalidWeekRejected = false,
+         invalidDayStepRejected = false, invalidClockRejected = false,
+         invalidWeekdayRejected = false;
+    try { AdvancedRepeatRules.NextWeekdayOccurrence(r2bAnchor, TimeSpan.FromHours(9),
+        Array.Empty<DayOfWeek>(), 1, TimeZoneInfo.Utc, r2bNow); }
+    catch (ArgumentException) { missingDayRejected = true; }
+    try { AdvancedRepeatRules.NextWeekdayOccurrence(r2bAnchor, TimeSpan.FromHours(9),
+        [DayOfWeek.Monday], 53, TimeZoneInfo.Utc, r2bNow); }
+    catch (ArgumentOutOfRangeException) { invalidWeekRejected = true; }
+    try { AdvancedRepeatRules.NextDayIntervalOccurrence(r2bAnchor,
+        TimeSpan.FromHours(9), 0, TimeZoneInfo.Utc, r2bNow); }
+    catch (ArgumentOutOfRangeException) { invalidDayStepRejected = true; }
+    try { AdvancedRepeatRules.NextDayIntervalOccurrence(r2bAnchor,
+        TimeSpan.FromDays(1), 2, TimeZoneInfo.Utc, r2bNow); }
+    catch (ArgumentOutOfRangeException) { invalidClockRejected = true; }
+    try { AdvancedRepeatRules.NextWeekdayOccurrence(r2bAnchor, TimeSpan.FromHours(9),
+        [(DayOfWeek)999], 1, TimeZoneInfo.Utc, r2bNow); }
+    catch (ArgumentException) { invalidWeekdayRejected = true; }
+    Check(missingDayRejected && invalidWeekRejected && invalidDayStepRejected &&
+          invalidClockRejected && invalidWeekdayRejected,
+        "custom repeat rejects no weekdays, invalid weekdays, invalid intervals/time");
+
+    var r2bDstStart = TimeZoneInfo.TransitionTime.CreateFloatingDateRule(
+        new DateTime(1, 1, 1, 2, 0, 0), 3, 2, DayOfWeek.Sunday);
+    var r2bDstEnd = TimeZoneInfo.TransitionTime.CreateFloatingDateRule(
+        new DateTime(1, 1, 1, 2, 0, 0), 11, 1, DayOfWeek.Sunday);
+    var r2bRule = TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
+        new DateTime(2020, 1, 1), new DateTime(2035, 12, 31),
+        TimeSpan.FromHours(1), r2bDstStart, r2bDstEnd);
+    var r2bZone = TimeZoneInfo.CreateCustomTimeZone("PetPing-Repeat-DST-Test",
+        TimeSpan.FromHours(-5), "Synthetic US timezone", "Winter", "Summer", [r2bRule]);
+    var springDue = AdvancedRepeatRules.NextWeekdayOccurrence(
+        new DateTime(2026, 3, 1), new TimeSpan(2, 30, 0), [DayOfWeek.Sunday],
+        1, r2bZone, new DateTimeOffset(2026, 3, 7, 16, 0, 0, TimeSpan.Zero));
+    Check(springDue.Date == new DateTime(2026, 3, 8) &&
+          springDue.TimeOfDay == new TimeSpan(3, 0, 0) &&
+          springDue.Offset == TimeSpan.FromHours(-4),
+        "custom weekly DST spring gap moves just this occurrence to first valid minute");
+    var followingSpring = AdvancedRepeatRules.NextWeekdayOccurrence(
+        new DateTime(2026, 3, 1), new TimeSpan(2, 30, 0), [DayOfWeek.Sunday],
+        1, r2bZone, new DateTimeOffset(2026, 3, 8, 16, 0, 0, TimeSpan.Zero));
+    Check(followingSpring.Date == new DateTime(2026, 3, 15) &&
+          followingSpring.TimeOfDay == new TimeSpan(2, 30, 0),
+        "DST spring recovery restores the originally requested weekly wall time");
+    var overlapDue = AdvancedRepeatRules.NextWeekdayOccurrence(
+        new DateTime(2026, 10, 25), new TimeSpan(1, 30, 0), [DayOfWeek.Sunday],
+        1, r2bZone, new DateTimeOffset(2026, 10, 31, 16, 0, 0, TimeSpan.Zero));
+    Check(overlapDue.Date == new DateTime(2026, 11, 1) &&
+          overlapDue.Offset == TimeSpan.FromHours(-4),
+        "custom recurrence chooses the earlier instant at the fall DST overlap");
+
+    // R2-B persistence safety: opt-in custom series records are additive,
+    // never inferred from legacy Daily / Weekly JSON.
+    var customRoot = Path.Combine(temp, "advanced-repeat-store");
+    var customStore = new ReminderStore(customRoot);
+    var customAnchor = DateTime.SpecifyKind(DateTime.UtcNow.Date.AddDays(2),
+        DateTimeKind.Unspecified);
+    var customDayBit = (byte)(1 << (((int)customAnchor.DayOfWeek + 6) % 7));
+    var customOptions = new CustomRepeatOptions
+    {
+        SchemaVersion = 1,
+        Kind = CustomRepeatKind.Weekdays,
+        AnchorLocalDate = customAnchor,
+        Interval = 1,
+        WeekdayMask = customDayBit
+    };
+    var customFirst = customStore.AddCustom("Every week on chosen days",
+        new TimeSpan(9, 0, 0), TimeZoneInfo.Utc.Id, customOptions);
+    Check(customFirst.Repeat == RepeatPattern.Custom &&
+          customFirst.CustomSchedule == customOptions &&
+          customFirst.SeriesId is not null &&
+          customFirst.RepeatLocalTime == new TimeSpan(9, 0, 0),
+        "custom recurring creation stores versioned anchor, local wall clock and stable series");
+    var initialCustomJSON = File.ReadAllText(Path.Combine(customRoot, "reminders.json"));
+    var customReloaded = new ReminderStore(customRoot);
+    Check(customReloaded.Reminders.Count == 1 &&
+          customReloaded.Reminders[0].CustomSchedule == customOptions &&
+          customReloaded.Reminders[0].DueAt == customFirst.DueAt,
+        "new custom metadata and exact due timestamp survive restart");
+
+    bool customLegacyEditBlocked = false;
+    try { customStore.Edit(customFirst, "Unexpected change",
+        DateTimeOffset.UtcNow.AddDays(3), RepeatPattern.None); }
+    catch (InvalidOperationException) { customLegacyEditBlocked = true; }
+    Check(customLegacyEditBlocked && customFirst.Repeat == RepeatPattern.Custom &&
+          File.ReadAllText(Path.Combine(customRoot, "reminders.json")) == initialCustomJSON,
+        "old reminder editor cannot silently convert a custom series to one-time");
+
+    var customSourceDue = customFirst.OriginalDueAt;
+    customStore.Deliver(customFirst, DateTimeOffset.UtcNow);
+    var customChild = customStore.Reminders.Single(r =>
+        r.SeriesId == customFirst.SeriesId && r.Status == ReminderStatus.Pending);
+    Check(customStore.Reminders.Count == 2 &&
+          customFirst.RepeatContinuationCreated &&
+          customChild.OriginalDueAt > customSourceDue &&
+          customChild.CustomSchedule == customOptions &&
+          customChild.RepeatLocalTime == customFirst.RepeatLocalTime,
+        "atomic custom delivery records one future child with identical recurrence definition");
+    customStore.Snooze(customFirst, TimeSpan.FromMinutes(10));
+    customStore.Deliver(customFirst, DateTimeOffset.UtcNow);
+    Check(customStore.Reminders.Count == 2 &&
+          customStore.Reminders.Count(r =>
+              r.SeriesId == customFirst.SeriesId && r.Status == ReminderStatus.Pending) == 1 &&
+          customChild.Id == customStore.Reminders.Single(r =>
+              r.SeriesId == customFirst.SeriesId && r.Status == ReminderStatus.Pending).Id,
+        "redelivered snoozed custom occurrence never duplicates the next series event");
+    var customReopen = new ReminderStore(customRoot);
+    Check(customReopen.Reminders.Count == 2 &&
+          customReopen.Reminders.Single(r => r.Id == customFirst.Id).RepeatContinuationCreated &&
+          customReopen.Reminders.Single(r => r.Id == customChild.Id).CustomSchedule == customOptions,
+        "restart retains idempotent custom continuation flags and versioned child metadata");
+
+    var intervalStore = new ReminderStore(Path.Combine(temp, "advanced-repeat-days"));
+    var intervalOptions = new CustomRepeatOptions
+    {
+        Kind = CustomRepeatKind.EveryNDays, AnchorLocalDate = customAnchor,
+        Interval = 3, WeekdayMask = 0
+    };
+    var intervalFirst = intervalStore.AddCustom("Every three days",
+        new TimeSpan(11, 0, 0), TimeZoneInfo.Utc.Id, intervalOptions);
+    intervalStore.Deliver(intervalFirst, DateTimeOffset.UtcNow);
+    var intervalNext = intervalStore.Reminders.Single(r =>
+        r.Id != intervalFirst.Id && r.Status == ReminderStatus.Pending);
+    Check(intervalNext.OriginalDueAt == intervalFirst.OriginalDueAt.AddDays(3) &&
+          intervalNext.CustomSchedule == intervalOptions,
+        "N-day persisted custom recurrence preserves its original day anchor");
+
+    var blockedCustomFolder = Path.Combine(temp, "advanced-repeat-rollback");
+    var blockedCustomStore = new ReminderStore(blockedCustomFolder);
+    var blockedCustom = blockedCustomStore.AddCustom("No false advance on disk error",
+        TimeSpan.FromHours(12), TimeZoneInfo.Utc.Id, customOptions);
+    var beforeBadDelivery = File.ReadAllText(
+        Path.Combine(blockedCustomFolder, "reminders.json"));
+    var blockedCustomTemp = Path.Combine(blockedCustomFolder, "reminders.json.tmp");
+    Directory.CreateDirectory(blockedCustomTemp);
+    bool customSaveFailed = false;
+    try { blockedCustomStore.Deliver(blockedCustom, DateTimeOffset.UtcNow); }
+    catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+    { customSaveFailed = true; }
+    Check(customSaveFailed && blockedCustomStore.Reminders.Count == 1 &&
+          blockedCustom.Status == ReminderStatus.Pending &&
+          !blockedCustom.RepeatContinuationCreated &&
+          File.ReadAllText(Path.Combine(blockedCustomFolder, "reminders.json")) ==
+              beforeBadDelivery,
+        "failed custom recurrence write restores in-memory state and original on-disk file");
+    Directory.Delete(blockedCustomTemp);
+    blockedCustomStore.Deliver(blockedCustom, DateTimeOffset.UtcNow);
+    Check(new ReminderStore(blockedCustomFolder).Reminders.Count == 2,
+        "retry after storage recovery writes exactly one custom continuation");
+
+    var corruptCustomFolder = Path.Combine(temp, "advanced-repeat-corrupt");
+    Directory.CreateDirectory(corruptCustomFolder);
+    var customNode = System.Text.Json.Nodes.JsonNode.Parse(initialCustomJSON)!.AsArray();
+    customNode[0]!["CustomSchedule"]!["SchemaVersion"] = 99;
+    var corruptCustomFile = Path.Combine(corruptCustomFolder, "reminders.json");
+    File.WriteAllText(corruptCustomFile, customNode.ToJsonString());
+    var corruptBytes = File.ReadAllText(corruptCustomFile);
+    bool corruptCustomRejected = false;
+    try { _ = new ReminderStore(corruptCustomFolder); }
+    catch (InvalidDataException) { corruptCustomRejected = true; }
+    Check(corruptCustomRejected && File.ReadAllText(corruptCustomFile) == corruptBytes,
+        "unsupported custom schema is rejected without overwriting user's unreadable data");
+
+    bool emptyDaysRejected = false, extraBitsRejected = false, badIntervalRejected = false;
+    try { (customOptions with { WeekdayMask = 0 }).Validate(); }
+    catch (InvalidDataException) { emptyDaysRejected = true; }
+    try { (customOptions with { WeekdayMask = 0x80 }).Validate(); }
+    catch (InvalidDataException) { extraBitsRejected = true; }
+    try { (intervalOptions with { Interval = 366 }).Validate(); }
+    catch (InvalidDataException) { badIntervalRejected = true; }
+    Check(emptyDaysRejected && extraBitsRejected && badIntervalRejected,
+        "custom schedule validation rejects missing/unknown weekdays and invalid intervals");
+
+    // A genuine legacy record remains readable when custom metadata does not
+    // exist. The new reader does not infer recurrence or change old fields.
+    Check(new ReminderStore(repeatFolder).Reminders.Count == reminderCountBefore &&
+          new ReminderStore(repeatFolder).Reminders.All(r => r.CustomSchedule is null),
+        "preexisting daily/weekly reminder data loads without new custom metadata");
+
+    // R2-B custom editor/domain: create and update only a future unsent
+    // occurrence, leave past history and prior-version recovery data alone.
+    var editorStoreFolder = Path.Combine(temp, "custom-editor-safety");
+    var editorStore = new ReminderStore(editorStoreFolder);
+    var legacyBeforeCustom = editorStore.Add("Original daily reminder",
+        DateTimeOffset.UtcNow.AddHours(6), RepeatPattern.Daily);
+    var initialLegacyBytes = File.ReadAllText(
+        Path.Combine(editorStoreFolder, "reminders.json"));
+    var editorAnchor = DateTime.SpecifyKind(DateTime.UtcNow.Date.AddDays(4),
+        DateTimeKind.Unspecified);
+    var editorOptions = new CustomRepeatOptions
+    {
+        Kind = CustomRepeatKind.EveryNDays,
+        AnchorLocalDate = editorAnchor,
+        Interval = 3,
+        WeekdayMask = 0
+    };
+    var editTarget = editorStore.AddCustom("Custom learning routine",
+        TimeSpan.FromHours(10), TimeZoneInfo.Utc.Id, editorOptions);
+    var backupPath = Path.Combine(editorStoreFolder, "reminders.pre-custom-v017.json");
+    Check(File.Exists(backupPath) &&
+          File.ReadAllText(backupPath) == initialLegacyBytes &&
+          new ReminderStore(editorStoreFolder).Reminders.Count == 2,
+        "first custom schedule creates a non-overwriting legacy-readable backup");
+    var oldSeriesId = editTarget.SeriesId;
+    var nextOptions = editorOptions with { Interval = 5 };
+    editorStore.EditCustom(editTarget, "Updated custom learning",
+        TimeSpan.FromHours(11), TimeZoneInfo.Utc.Id, nextOptions);
+    Check(editTarget.Title == "Updated custom learning" &&
+          editTarget.CustomSchedule == nextOptions &&
+          editTarget.RepeatLocalTime == TimeSpan.FromHours(11) &&
+          editTarget.SeriesId == oldSeriesId &&
+          editTarget.RepeatContinuationCreated == false &&
+          editorStore.Reminders.Count == 2,
+        "editing a future unsent custom occurrence updates time/schedule without new series");
+    Check(File.ReadAllText(backupPath) == initialLegacyBytes &&
+          new ReminderStore(editorStoreFolder).Reminders.Single(r => r.Id == editTarget.Id)
+              .CustomSchedule == nextOptions,
+        "custom edit persists and keeps the initial pre-custom downgrade backup immutable");
+
+    var beforeRejectedEdit = File.ReadAllText(
+        Path.Combine(editorStoreFolder, "reminders.json"));
+    bool invalidCustomEditRejected = false;
+    try
+    {
+        editorStore.EditCustom(editTarget, "Not saved",
+            TimeSpan.FromHours(12), TimeZoneInfo.Utc.Id,
+            nextOptions with { Interval = 366 });
+    }
+    catch (InvalidDataException) { invalidCustomEditRejected = true; }
+    Check(invalidCustomEditRejected &&
+          File.ReadAllText(Path.Combine(editorStoreFolder, "reminders.json")) ==
+              beforeRejectedEdit && editTarget.Title == "Updated custom learning",
+        "invalid edited custom schedule never mutates saved JSON or visible in-memory data");
+
+    var tempBlockedCustom = Path.Combine(editorStoreFolder, "reminders.json.tmp");
+    Directory.CreateDirectory(tempBlockedCustom);
+    bool customEditRollback = false;
+    try
+    {
+        editorStore.EditCustom(editTarget, "Not persisted during disk fault",
+            TimeSpan.FromHours(13), TimeZoneInfo.Utc.Id,
+            nextOptions with { Interval = 2 });
+    }
+    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+    { customEditRollback = true; }
+    Check(customEditRollback &&
+          editTarget.Title == "Updated custom learning" &&
+          editTarget.CustomSchedule == nextOptions &&
+          File.ReadAllText(Path.Combine(editorStoreFolder, "reminders.json")) ==
+              beforeRejectedEdit,
+        "custom edit rolls back edited fields when disk save fails");
+    Directory.Delete(tempBlockedCustom);
+
+    editorStore.Deliver(editTarget, DateTimeOffset.UtcNow);
+    bool historicalEditRejected = false;
+    try
+    {
+        editorStore.EditCustom(editTarget, "Try changing delivered history",
+            TimeSpan.FromHours(8), TimeZoneInfo.Utc.Id, nextOptions);
+    }
+    catch (InvalidOperationException) { historicalEditRejected = true; }
+    Check(historicalEditRejected &&
+          editTarget.Title == "Updated custom learning" &&
+          editorStore.Reminders.Count(r => r.SeriesId == oldSeriesId &&
+              r.Status == ReminderStatus.Pending) == 1,
+        "once delivered, a custom occurrence's historical schedule cannot be silently edited");
+
+    var corruptBackup = File.ReadAllText(backupPath);
+    var subsequentCustom = editorStore.AddCustom("Another custom routine",
+        TimeSpan.FromHours(15), TimeZoneInfo.Utc.Id, editorOptions);
+    Check(subsequentCustom.Repeat == RepeatPattern.Custom &&
+          File.ReadAllText(backupPath) == corruptBackup,
+        "additional custom reminder creation never replaces initial pre-custom backup");
+
+    // v0.18 R2-A: bounded, flexible snooze is additive to the legacy
+    // one-time / daily / weekly schema; saved history and series anchor stay intact.
+    Check(SnoozePolicy.Presets.SequenceEqual([5, 10, 15, 30, 60]),
+        "flexible snooze offers five predictable, ascending preset durations");
+    Check(SnoozePolicy.FromMinutes(1) == TimeSpan.FromMinutes(1) &&
+          SnoozePolicy.FromMinutes(1440) == TimeSpan.FromDays(1),
+        "custom snooze accepts the inclusive 1-minute to 24-hour bounds");
+    bool negativeSnoozeRejected = false;
+    bool zeroSnoozeRejected = false;
+    bool overlongSnoozeRejected = false;
+    bool fractionalUnderMinimumRejected = false;
+    try { SnoozePolicy.FromMinutes(-5); }
+    catch (ArgumentOutOfRangeException) { negativeSnoozeRejected = true; }
+    try { SnoozePolicy.FromMinutes(0); }
+    catch (ArgumentOutOfRangeException) { zeroSnoozeRejected = true; }
+    try { SnoozePolicy.FromMinutes(1441); }
+    catch (ArgumentOutOfRangeException) { overlongSnoozeRejected = true; }
+    try { SnoozePolicy.Validate(TimeSpan.FromSeconds(59)); }
+    catch (ArgumentOutOfRangeException) { fractionalUnderMinimumRejected = true; }
+    Check(negativeSnoozeRejected && zeroSnoozeRejected &&
+          overlongSnoozeRejected && fractionalUnderMinimumRejected,
+        "snooze policy rejects negative, zero, under-one-minute and >24h durations");
+
+    var flexibleFolder = Path.Combine(temp, "flexible-snooze");
+    var flexibleStore = new ReminderStore(flexibleFolder);
+    var flexible = flexibleStore.Add("Reminder with flexible snooze",
+        DateTimeOffset.Now.AddMinutes(30), RepeatPattern.Daily);
+    flexibleStore.Deliver(flexible, DateTimeOffset.UtcNow);
+    var pendingFutureId = flexibleStore.Reminders.Single(r =>
+        r.SeriesId == flexible.SeriesId && r.Status == ReminderStatus.Pending).Id;
+    var beforeShortSnooze = DateTimeOffset.UtcNow;
+    flexibleStore.Snooze(flexible, SnoozePolicy.FromMinutes(5));
+    Check(flexible.Status == ReminderStatus.Pending &&
+          flexible.SnoozeCount == 1 &&
+          flexible.DueAt >= beforeShortSnooze.AddMinutes(5) &&
+          flexible.DueAt <= DateTimeOffset.UtcNow.AddMinutes(5) &&
+          flexible.OriginalDueAt != flexible.DueAt,
+        "5-minute snooze persists future due while keeping original recurrence anchor");
+    Check(new ReminderStore(flexibleFolder).Reminders.Count == 2 &&
+          flexibleStore.Reminders.Single(r => r.Id == pendingFutureId).Status ==
+          ReminderStatus.Pending && flexible.RepeatContinuationCreated,
+        "snoozing a delivered daily series does not duplicate its next occurrence");
+    flexibleStore.Mark(flexible, ReminderStatus.Missed);
+    var beforeLongSnooze = DateTimeOffset.UtcNow;
+    flexibleStore.Snooze(flexible, SnoozePolicy.FromMinutes(1440));
+    Check(flexible.SnoozeCount == 2 &&
+          flexible.DueAt >= beforeLongSnooze.AddDays(1) &&
+          flexible.DueAt <= DateTimeOffset.UtcNow.AddDays(1) &&
+          flexibleStore.Reminders.Count == 2,
+        "24-hour snooze saves the due time and does not generate extra repeats");
+    var reopenedFlexible = new ReminderStore(flexibleFolder);
+    var matchingFlexible = reopenedFlexible.Reminders.Single(r => r.Id == flexible.Id);
+    Check(matchingFlexible.SnoozeCount == 2 &&
+          matchingFlexible.OriginalDueAt == flexible.OriginalDueAt &&
+          matchingFlexible.RepeatContinuationCreated &&
+          reopenedFlexible.Reminders.Count == 2,
+        "flexible snooze round-trip preserves occurrence history and series identity");
+    // Snooze is permitted only for Delivered/Missed, not already Pending.
+    // Recreate a Needs Attention state so this verifies bounds at the store
+    // boundary without bypassing its existing status protection.
+    reopenedFlexible.Mark(matchingFlexible, ReminderStatus.Missed);
+    var stateBeforeInvalidSnooze = matchingFlexible.DueAt;
+    bool storeLongRejected = false;
+    try { reopenedFlexible.Snooze(matchingFlexible, TimeSpan.FromDays(2)); }
+    catch (ArgumentOutOfRangeException) { storeLongRejected = true; }
+    Check(storeLongRejected && matchingFlexible.DueAt == stateBeforeInvalidSnooze &&
+          new ReminderStore(flexibleFolder).Reminders.Single(r => r.Id == flexible.Id).DueAt
+              == stateBeforeInvalidSnooze,
+        "storage-layer duration validation rejects oversized snooze without mutation");
+
+    // v0.18 R2-A: the same editor rules govern Create and Edit. No silent
+    // conversion of invalid local wall-times or impossible repeat selections.
+    Check(ReminderEditorRules.ValidateTitle("  Review storyboard  ") == "Review storyboard",
+        "editor trims title whitespace without losing meaningful characters");
+    Check(ReminderEditorRules.ValidateTitle(new string('a', 120)).Length == 120,
+        "editor permits names exactly at its 120-character boundary");
+    bool emptyTitleRejected = false;
+    bool overlongTitleRejected = false;
+    try { ReminderEditorRules.ValidateTitle("  "); }
+    catch (ArgumentException) { emptyTitleRejected = true; }
+    try { ReminderEditorRules.ValidateTitle(new string('x', 121)); }
+    catch (ArgumentException) { overlongTitleRejected = true; }
+    Check(emptyTitleRejected && overlongTitleRejected,
+        "editor rejects empty and overlong names without a store write");
+    Check(ReminderEditorRules.SelectRepeat(0) == RepeatPattern.None &&
+          ReminderEditorRules.SelectRepeat(1) == RepeatPattern.Daily &&
+          ReminderEditorRules.SelectRepeat(2) == RepeatPattern.Weekly,
+        "editor repeat selection preserves all three existing frequencies");
+    bool invalidRepeatRejected = false;
+    try { ReminderEditorRules.SelectRepeat(-1); }
+    catch (ArgumentException) { invalidRepeatRejected = true; }
+    Check(invalidRepeatRejected, "editor rejects an unset or unsupported repeat choice");
+
+    var midnightUtc = new DateTimeOffset(2026, 10, 16, 23, 58, 0, TimeSpan.Zero);
+    var midnightDefault = ReminderEditorRules.DefaultLocalDue(midnightUtc, TimeZoneInfo.Utc);
+    Check(midnightDefault.Date == new DateTime(2026, 10, 17) &&
+          midnightDefault.TimeOfDay == new TimeSpan(0, 3, 0),
+        "default reminder date and time advance together across midnight");
+    var sampleNow = new DateTimeOffset(2026, 10, 16, 14, 0, 0, TimeSpan.Zero);
+    var validDue = ReminderEditorRules.ReadLocalDue(
+        new DateTime(2026, 10, 17), "09:30", TimeZoneInfo.Utc, sampleNow);
+    Check(validDue == new DateTimeOffset(2026, 10, 17, 9, 30, 0, TimeSpan.Zero),
+        "editor parses a future 24-hour local time without silent adjustment");
+    bool dateRequired = false, timeRequired = false, timeSyntaxRejected = false,
+        pastRejected = false;
+    try { ReminderEditorRules.ReadLocalDue(null, "19:00", TimeZoneInfo.Utc, sampleNow); }
+    catch (ArgumentException) { dateRequired = true; }
+    try { ReminderEditorRules.ReadLocalDue(new DateTime(2026, 10, 17),
+        "", TimeZoneInfo.Utc, sampleNow); }
+    catch (ArgumentException) { timeRequired = true; }
+    try { ReminderEditorRules.ReadLocalDue(new DateTime(2026, 10, 17),
+        "24:00", TimeZoneInfo.Utc, sampleNow); }
+    catch (ArgumentException) { timeSyntaxRejected = true; }
+    try { ReminderEditorRules.ReadLocalDue(new DateTime(2026, 10, 16),
+        "13:59", TimeZoneInfo.Utc, sampleNow); }
+    catch (ArgumentException) { pastRejected = true; }
+    Check(dateRequired && timeRequired && timeSyntaxRejected && pastRejected,
+        "editor rejects unset dates, invalid 24-hour clocks, and past timestamps");
+
+    // Use an entirely synthetic timezone to avoid assumptions about Windows
+    // registry or ICU aliases on different CI machines.
+    var springSwitch = TimeZoneInfo.TransitionTime.CreateFloatingDateRule(
+        new DateTime(1, 1, 1, 2, 0, 0), 3, 2, DayOfWeek.Sunday);
+    var fallSwitch = TimeZoneInfo.TransitionTime.CreateFloatingDateRule(
+        new DateTime(1, 1, 1, 2, 0, 0), 11, 1, DayOfWeek.Sunday);
+    var syntheticDSTRule = TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
+        new DateTime(2020, 1, 1), new DateTime(2035, 12, 31),
+        TimeSpan.FromHours(1), springSwitch, fallSwitch);
+    var syntheticZone = TimeZoneInfo.CreateCustomTimeZone("PetPing-Editor-DST-Test",
+        TimeSpan.FromHours(-5), "PetPing editor test time zone", "Winter", "Summer",
+        [syntheticDSTRule]);
+    bool gapRejected = false, repeatedHourRejected = false;
+    try { ReminderEditorRules.ReadLocalDue(new DateTime(2026, 3, 8),
+        "02:30", syntheticZone, sampleNow.AddMonths(-8)); }
+    catch (ArgumentException) { gapRejected = true; }
+    try { ReminderEditorRules.ReadLocalDue(new DateTime(2026, 11, 1),
+        "01:30", syntheticZone, sampleNow); }
+    catch (ArgumentException) { repeatedHourRejected = true; }
+    Check(gapRejected && repeatedHourRejected,
+        "editor refuses DST gap and ambiguous repeated wall hour instead of guessing");
+    var normalSummerDue = ReminderEditorRules.ReadLocalDue(new DateTime(2026, 7, 15),
+        "10:00", syntheticZone, sampleNow.AddMonths(-8));
+    Check(normalSummerDue.Offset == TimeSpan.FromHours(-4) &&
+          normalSummerDue.Hour == 10,
+        "valid DST summer reminder retains its intended wall time and UTC offset");
+
+    var invalidEditorStore = new ReminderStore(Path.Combine(temp, "editor-validation"));
+    var invalidEditorItem = invalidEditorStore.Add("Unchanged", DateTimeOffset.UtcNow.AddHours(2));
+    var diskBeforeInvalidEdit = File.ReadAllText(
+        Path.Combine(temp, "editor-validation", "reminders.json"));
+    bool invalidEditorEditRejected = false;
+    try { invalidEditorStore.Edit(invalidEditorItem, new string('a', 121),
+        DateTimeOffset.UtcNow.AddHours(3), RepeatPattern.None); }
+    catch (ArgumentException) { invalidEditorEditRejected = true; }
+    Check(invalidEditorEditRejected &&
+          invalidEditorItem.Title == "Unchanged" &&
+          File.ReadAllText(Path.Combine(temp, "editor-validation", "reminders.json"))
+            == diskBeforeInvalidEdit,
+        "invalid edited name keeps both in-memory occurrence and saved JSON untouched");
+
+    Check(PetPingDataRoot.DefaultDirectory.EndsWith(
+        Path.DirectorySeparatorChar + "PetPing-Experimental", StringComparison.Ordinal),
+        "experimental preview is compiled with its own local data directory");
+    Check(ReminderStore.DefaultDataDirectory == PetPingDataRoot.DefaultDirectory,
+        "experimental reminder store never defaults to v0.17 production data");
+
+    // R2 reliability: reconcile a deterministic clock while simulating
+    // long scheduler gaps, lock/sleep, reentrant UI and filesystem faults.
+    var pulseFolder = Path.Combine(temp, "due-processor");
+    var pulseStore = new ReminderStore(pulseFolder);
+    var pulseAt = DateTimeOffset.UtcNow.AddHours(1);
+    var closePulse = pulseStore.Add("Deliver after delayed tick", pulseAt.AddMinutes(10));
+    var missedPulse = pulseStore.Add("Expired during downtime", pulseAt.AddMinutes(11));
+    var futurePulse = pulseStore.Add("Not due yet", pulseAt.AddMinutes(12));
+    closePulse.DueAt = pulseAt.AddMinutes(-1);
+    missedPulse.DueAt = pulseAt.AddMinutes(-20);
+    pulseStore.Save();
+
+    var pulse = new ReminderDueProcessor(pulseStore);
+    int deliveredPulses = 0, missedPulses = 0, pulseChanged = 0, callbackFaults = 0;
+    pulse.ReminderDue += r =>
+    {
+        deliveredPulses++;
+        pulse.CheckNow(pulseAt); // must be ignored rather than nested/duplicated
+        throw new InvalidOperationException("UI temporarily unavailable");
+    };
+    pulse.RemindersMissed += n => missedPulses += n;
+    pulse.Changed += () => pulseChanged++;
+    pulse.SchedulerFault += (code, error) =>
+    {
+        if (code == "presentation_failed") callbackFaults++;
+    };
+    pulse.CheckNow(pulseAt);
+    Check(pulse.LastCheckedAt == pulseAt &&
+          closePulse.Status == ReminderStatus.Delivered &&
+          missedPulse.Status == ReminderStatus.Missed &&
+          futurePulse.Status == ReminderStatus.Pending,
+        "tick reconciliation commits recent due, flags downtime miss and leaves future untouched");
+    Check(deliveredPulses == 1 && missedPulses == 1 &&
+          pulseChanged == 2 && callbackFaults == 1,
+        "UI presentation exception and recursive tick do not duplicate delivery");
+    Check(new ReminderStore(pulseFolder).Reminders.Single(r => r.Id == closePulse.Id).Status
+             == ReminderStatus.Delivered &&
+          new ReminderStore(pulseFolder).Reminders.Single(r => r.Id == missedPulse.Id).Status
+             == ReminderStatus.Missed,
+        "due and missed decisions reach disk before callbacks");
+    pulse.CheckNow(pulseAt);
+    Check(deliveredPulses == 1 && missedPulses == 1 && pulseChanged == 2,
+        "repeated tick is idempotent after committed delivery");
+
+    // A presentation callback may remove an item already in the tick's
+    // snapshot. The processor must revalidate presence and status.
+    var mutationFolder = Path.Combine(temp, "callback-mutation");
+    var mutationStore = new ReminderStore(mutationFolder);
+    var firstMutation = mutationStore.Add("First popup", pulseAt.AddMinutes(1));
+    var secondMutation = mutationStore.Add("Second popup", pulseAt.AddMinutes(2));
+    firstMutation.DueAt = pulseAt.AddSeconds(-90);
+    secondMutation.DueAt = pulseAt.AddSeconds(-80);
+    mutationStore.Save();
+    var mutationProcessor = new ReminderDueProcessor(mutationStore);
+    int mutationCount = 0;
+    mutationProcessor.ReminderDue += _ =>
+    {
+        mutationCount++;
+        mutationStore.Delete(secondMutation);
+    };
+    mutationProcessor.CheckNow(pulseAt);
+    Check(mutationCount == 1 && mutationStore.Reminders.Count == 1 &&
+          firstMutation.Status == ReminderStatus.Delivered,
+        "due snapshot safely skips reminders deleted by a presentation callback");
+
+    // Storage retry is deterministic and has a 30-second cooldown; in-memory
+    // Pending and on-disk JSON are unchanged throughout failed commits.
+    var retryFolder = Path.Combine(temp, "due-processor-retry");
+    var retryStore = new ReminderStore(retryFolder);
+    var retryPending = retryStore.Add("Retry failed disk write", pulseAt.AddMinutes(3));
+    retryPending.DueAt = pulseAt.AddMinutes(-2);
+    retryStore.Save();
+    var retryTempPath = Path.Combine(retryFolder, "reminders.json.tmp");
+    var retryBeforeJson = File.ReadAllText(Path.Combine(retryFolder, "reminders.json"));
+    Directory.CreateDirectory(retryTempPath);
+    var retry = new ReminderDueProcessor(retryStore);
+    int retryFaults = 0, retryDeliveries = 0;
+    retry.SchedulerFault += (code, error) =>
+    {
+        if (code == "store_update_failed") retryFaults++;
+        throw new Exception("Even error reporting can fail");
+    };
+    retry.ReminderDue += _ => retryDeliveries++;
+    retry.CheckNow(pulseAt);
+    Check(retryFaults == 1 && retryDeliveries == 0 &&
+          retryPending.Status == ReminderStatus.Pending &&
+          retry.RetryAfter == pulseAt.Add(ReminderDueProcessor.StorageRetryDelay) &&
+          File.ReadAllText(Path.Combine(retryFolder, "reminders.json")) == retryBeforeJson,
+        "disk failure fails closed, rolls back, and schedules bounded retry");
+    Directory.Delete(retryTempPath);
+    retry.CheckNow(pulseAt.AddSeconds(20));
+    Check(retryDeliveries == 0 && retryPending.Status == ReminderStatus.Pending,
+        "scheduler honors storage-failure cooldown after disk becomes available");
+    retry.CheckNow(pulseAt.AddSeconds(30));
+    Check(retryDeliveries == 1 && retryFaults == 1 &&
+          retryPending.Status == ReminderStatus.Delivered &&
+          new ReminderStore(retryFolder).Reminders.Single().Status ==
+              ReminderStatus.Delivered,
+        "exact retry boundary delivers once and persists even if fault observer threw");
+
+    // A missed weekly series calculates its successor using the same event
+    // instant that established the missed decision, not UtcNow inside Store.
+    var offlineFolder = Path.Combine(temp, "due-processor-weekly-offline");
+    var offlineStore = new ReminderStore(offlineFolder);
+    var offlineFirst = offlineStore.Add("Weekly across long downtime",
+        DateTimeOffset.UtcNow.AddHours(3), RepeatPattern.Weekly, TimeZoneInfo.Utc.Id);
+    var afterOffline = DateTimeOffset.UtcNow.AddDays(21);
+    var offline = new ReminderDueProcessor(offlineStore);
+    offline.CheckNow(afterOffline);
+    var offlineNext = offlineStore.Reminders.Single(r =>
+        r.Id != offlineFirst.Id && r.SeriesId == offlineFirst.SeriesId);
+    Check(offlineFirst.Status == ReminderStatus.Missed &&
+          offlineFirst.FinishedAt == afterOffline &&
+          offlineNext.DueAt > afterOffline &&
+          offlineStore.Reminders.Count == 2,
+        "missed weekly reminder skips backlog and advances strictly after reconciliation clock");
+    offline.CheckNow(afterOffline);
+    Check(offlineStore.Reminders.Count == 2 &&
+          new ReminderStore(offlineFolder).Reminders.Count == 2,
+        "second offline reconciliation preserves one-successor recurrence after restart");
+
+    // User-driven read-only export must never alter source or overwrite
+    // previous backups, and refuses corrupt on-disk primary data.
+    var exportSourceFolder = Path.Combine(temp, "export-source");
+    var exportTargetFolder = Path.Combine(temp, "user-chosen-backups");
+    var exportStore = new ReminderStore(exportSourceFolder);
+    exportStore.Add("Keep my morning reminder", DateTimeOffset.UtcNow.AddHours(5));
+    var currentJson = Path.Combine(exportSourceFolder, "reminders.json");
+    var originalJson = File.ReadAllText(currentJson);
+    var exported1 = exportStore.ExportVerifiedBackup(exportTargetFolder);
+    Check(File.Exists(exported1) && File.ReadAllText(exported1) == originalJson &&
+          File.ReadAllText(currentJson) == originalJson,
+        "verified export matches the active saved reminders without changing them");
+    exportStore.Add("Added after first export", DateTimeOffset.UtcNow.AddHours(6));
+    var exported2 = exportStore.ExportVerifiedBackup(exportTargetFolder);
+    Check(exported1 != exported2 && File.Exists(exported1) && File.Exists(exported2) &&
+          new ReminderStore(exportSourceFolder).Reminders.Count == 2 &&
+          System.Text.Json.JsonSerializer.Deserialize<List<Reminder>>(
+              File.ReadAllText(exported1), new JsonSerializerOptions
+              {
+                  Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+              })?.Count == 1 &&
+          System.Text.Json.JsonSerializer.Deserialize<List<Reminder>>(
+              File.ReadAllText(exported2), new JsonSerializerOptions
+              {
+                  Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+              })?.Count == 2,
+        "repeated exports never overwrite earlier snapshots or delete newer reminders");
+    bool sameFolderExportRefused = false;
+    try { exportStore.ExportVerifiedBackup(exportSourceFolder); }
+    catch (ArgumentException) { sameFolderExportRefused = true; }
+    Check(sameFolderExportRefused,
+        "backup export refuses the active PetPing data folder as destination");
+    var previouslyExported = File.ReadAllText(exported2);
+    File.WriteAllText(currentJson, "damaged-json-do-not-export");
+    bool corruptExportRefused = false;
+    try { exportStore.ExportVerifiedBackup(exportTargetFolder); }
+    catch (JsonException) { corruptExportRefused = true; }
+    Check(corruptExportRefused && File.ReadAllText(currentJson) ==
+          "damaged-json-do-not-export" && File.ReadAllText(exported2) == previouslyExported &&
+          Directory.GetFiles(exportTargetFolder, "*.json").Length == 2,
+        "corrupt source is not exported or overwritten and prior good backups survive");
+    var neverSavedStore = new ReminderStore(Path.Combine(temp, "no-export-yet"));
+    bool emptyStoreExportRefused = false;
+    try { neverSavedStore.ExportVerifiedBackup(exportTargetFolder); }
+    catch (InvalidOperationException) { emptyStoreExportRefused = true; }
+    Check(emptyStoreExportRefused,
+        "first-run store without a saved JSON file cannot falsely report export success");
+
+    // Cat Idle V1: exact approved sprite timeline, Full/Gentle/Off and
+    // predictable transitions without loading WPF or image codecs in tests.
+    Check(CatIdlePlaybackRules.LoopMilliseconds == 6000 &&
+          CatIdlePlaybackRules.FrameAt(0, PetMotion.Full) == "open" &&
+          CatIdlePlaybackRules.FrameAt(1850, PetMotion.Full) == "half" &&
+          CatIdlePlaybackRules.FrameAt(2090, PetMotion.Full) == "closed" &&
+          CatIdlePlaybackRules.FrameAt(2240, PetMotion.Full) == "half" &&
+          CatIdlePlaybackRules.FrameAt(2450, PetMotion.Full) == "open",
+        "cat idle first blink follows the approved six-second timeline");
+    Check(CatIdlePlaybackRules.FrameAt(4810, PetMotion.Full) == "half" &&
+          CatIdlePlaybackRules.FrameAt(5000, PetMotion.Full) == "closed" &&
+          CatIdlePlaybackRules.FrameAt(5150, PetMotion.Full) == "half" &&
+          CatIdlePlaybackRules.FrameAt(5510, PetMotion.Full) == "happy" &&
+          CatIdlePlaybackRules.FrameAt(5750, PetMotion.Full) == "open",
+        "cat idle second blink and happy expression respect frame boundaries");
+    Check(CatIdlePlaybackRules.FrameAt(6020, PetMotion.Full) == "open" &&
+          CatIdlePlaybackRules.FrameAt(7850, PetMotion.Full) == "half" &&
+          CatIdlePlaybackRules.FrameAt(-50, PetMotion.Full) == "open",
+        "cat idle loop wraps after six seconds including safe negative-time normalization");
+    Check(CatIdlePlaybackRules.FrameAt(5520, PetMotion.Gentle) == "open" &&
+          CatIdlePlaybackRules.FrameAt(2050, PetMotion.Gentle) == "closed" &&
+          CatIdlePlaybackRules.FrameAt(2050, PetMotion.Off) == "open" &&
+          CatIdlePlaybackRules.BreathingScale(800, PetMotion.Gentle) == 1 &&
+          CatIdlePlaybackRules.BreathingScale(800, PetMotion.Off) == 1 &&
+          CatIdlePlaybackRules.BreathingScale(1600, PetMotion.Full) > 1,
+        "cat motion preferences allow Full breathing, Gentle blinking and Off static");
+    Check(CatIdlePlaybackRules.FrameAt(0, PetMotion.Full, speaking:true) == "happy" &&
+          CatIdlePlaybackRules.FrameAt(190, PetMotion.Full, speaking:true) == "open" &&
+          CatIdlePlaybackRules.FrameAt(0, PetMotion.Off, speaking:true) == "open" &&
+          CatIdlePlaybackRules.FrameAt(0, PetMotion.Full, respondingDone:true) == "happy" &&
+          CatIdlePlaybackRules.FrameAt(0, PetMotion.Full, respondingSnooze:true) == "closed",
+        "cat speaking/reaction expressions stay deterministic and motion-aware");
+    Check(CatWalkPlaybackRules.FrameCount == 4 &&
+          CatWalkPlaybackRules.FrameAt(0, PetMotion.Full) == 0 &&
+          CatWalkPlaybackRules.FrameAt(149, PetMotion.Full) == 0 &&
+          CatWalkPlaybackRules.FrameAt(150, PetMotion.Full) == 1 &&
+          CatWalkPlaybackRules.FrameAt(300, PetMotion.Full) == 2 &&
+          CatWalkPlaybackRules.FrameAt(450, PetMotion.Full) == 3 &&
+          CatWalkPlaybackRules.FrameAt(600, PetMotion.Full) == 0,
+        "premium cat walk: four keyframes cycle without missed or duplicate frame indices");
+    Check(CatWalkPlaybackRules.FrameAt(299, PetMotion.Gentle) == 0 &&
+          CatWalkPlaybackRules.FrameAt(300, PetMotion.Gentle) == 1 &&
+          CatWalkPlaybackRules.FrameAt(600, PetMotion.Gentle) == 2 &&
+          CatWalkPlaybackRules.FrameAt(1200, PetMotion.Gentle) == 0,
+        "premium cat walking Gentle mode uses a slower step timeline");
+    Check(CatWalkPlaybackRules.FrameAt(1000, PetMotion.Off) == 0 &&
+          CatWalkPlaybackRules.FrameAt(-200, PetMotion.Full) >= 0,
+        "premium cat walking Off mode stays on static first frame");
+    bool invalidWalkMotionRejected = false;
+    try { CatWalkPlaybackRules.FrameAt(500, (PetMotion)100); }
+    catch (ArgumentOutOfRangeException) { invalidWalkMotionRejected = true; }
+    Check(invalidWalkMotionRejected,
+        "premium cat walking refuses invalid motion enum values");
+    // Premium Cat Talking: drive word pulses from the local Windows TTS
+    // timeline, never from untagged/cancelled sessions. Phonemes are not
+    // available, so we use bounded word-cue beats and a low-frequency fallback.
+    Check(CatTalkPlaybackRules.FrameAt(1000, 1000, 1, PetMotion.Full) == "open" &&
+          CatTalkPlaybackRules.FrameAt(1135, 1000, 1, PetMotion.Full) == "rest" &&
+          CatTalkPlaybackRules.FrameAt(1255, 1000, 3, PetMotion.Full) == "happy" &&
+          CatTalkPlaybackRules.FrameAt(1255, 1000, 2, PetMotion.Full) == "open" &&
+          CatTalkPlaybackRules.FrameAt(1355, 1000, 2, PetMotion.Full) == "rest",
+        "premium cat talking follows word onset with distinct mouth/expression states");
+    Check(CatTalkPlaybackRules.FrameAt(2000, -1, 0, PetMotion.Full) ==
+              CatTalkPlaybackRules.FrameAt(2000, 0, 10, PetMotion.Full) &&
+          CatTalkPlaybackRules.FrameAt(0, -1, 0, PetMotion.Full) == "open" &&
+          CatTalkPlaybackRules.FrameAt(230, -1, 0, PetMotion.Full) == "rest",
+        "cat talking cycles gently without speech progress events from installed voice");
+    Check(CatTalkPlaybackRules.FrameAt(0, 0, 1, PetMotion.Gentle) == "open" &&
+          CatTalkPlaybackRules.FrameAt(160, 0, 3, PetMotion.Gentle) == "rest" &&
+          CatTalkPlaybackRules.FrameAt(1500, -1, 0, PetMotion.Off) == "open",
+        "cat talking honors Gentle and Off accessibility motion preferences");
+    Check(CatTalkPlaybackRules.FrameAt(300, 500, 1, PetMotion.Full) ==
+              CatTalkPlaybackRules.FrameAt(300, -1, 1, PetMotion.Full) &&
+          CatTalkPlaybackRules.FrameAt(-100, -1, 0, PetMotion.Full) == "open",
+        "future/stale word cue and negative animation clock fall back without crashing");
+    bool rejectTalkInvalidMotion = false;
+    try { CatTalkPlaybackRules.FrameAt(10, 0, 1, (PetMotion)999); }
+    catch (ArgumentOutOfRangeException) { rejectTalkInvalidMotion = true; }
+    Check(rejectTalkInvalidMotion, "cat talking rejects unknown motion settings");
+    // Cat V1 acceptance gate: a completed/snoozed or stopped actor must
+    // ignore queued speech events and must never begin walking again.
+    var catSequence = CatAnimationFlowRules.Next(CatStage.Stopped, CatStageEvent.Reset);
+    Check(catSequence == CatStage.Idle,
+        "Cat V1 starts in Idle after applying an approved profile");
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.BeginWalk);
+    Check(catSequence == CatStage.Walking &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStarted) ==
+              CatStage.Walking,
+        "Cat V1 walking does not prematurely animate words from queued speech");
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.Arrive);
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStarted);
+    Check(catSequence == CatStage.Talking &&
+          CatAnimationFlowRules.CanAnimateSpeech(catSequence),
+        "Cat V1 arrival enables Talking from Idle and only then accepts word cues");
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStopped);
+    Check(catSequence == CatStage.Idle &&
+          !CatAnimationFlowRules.CanAnimateSpeech(catSequence),
+        "Cat V1 speech stop returns to quiet Idle with no stray mouth pulses");
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStarted);
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.Done);
+    Check(catSequence == CatStage.Done &&
+          CatAnimationFlowRules.IsTerminal(catSequence) &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStarted) == catSequence &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStopped) == catSequence &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.BeginWalk) == catSequence &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.Snooze) == catSequence,
+        "Done locks the cat in its reaction despite late word/voice/walk callbacks");
+    var snoozeSequence = CatAnimationFlowRules.Next(CatStage.Idle, CatStageEvent.Snooze);
+    Check(snoozeSequence == CatStage.Snoozed &&
+          CatAnimationFlowRules.Next(snoozeSequence, CatStageEvent.SpeechStarted) == snoozeSequence &&
+          CatAnimationFlowRules.Next(snoozeSequence, CatStageEvent.Done) == snoozeSequence,
+        "Snooze remains sleepy and ignores a late voice-start or Done action");
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.Stop);
+    Check(catSequence == CatStage.Stopped &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStarted) == catSequence &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.Done) == catSequence &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.Arrive) == catSequence,
+        "Closing cat fully blocks stale speech or response callbacks");
+    Check(CatAnimationFlowRules.Next(catSequence, CatStageEvent.Reset) == CatStage.Idle,
+        "Applying the next reminder resets a stopped cat to a fresh Idle stage");
+    Check(CatAnimationFlowRules.Next(CatStage.Idle, CatStageEvent.SpeechStopped) == CatStage.Idle &&
+          CatAnimationFlowRules.Next(CatStage.Idle, CatStageEvent.Arrive) == CatStage.Idle &&
+          CatAnimationFlowRules.Next(CatStage.Talking, CatStageEvent.Snooze) == CatStage.Snoozed,
+        "Cat V1 tolerates duplicate stop/arrival and advances to Snooze from Talking");
+    bool rejectedCatStage = false;
+    try { CatAnimationFlowRules.Next((CatStage)100, CatStageEvent.Done); }
+    catch (ArgumentOutOfRangeException) { rejectedCatStage = true; }
+    Check(rejectedCatStage, "Cat V1 rejects invalid stage values");
+    bool rejectedCatEvent = false;
+    try { CatAnimationFlowRules.Next(CatStage.Idle, (CatStageEvent)100); }
+    catch (ArgumentOutOfRangeException) { rejectedCatEvent = true; }
+    Check(rejectedCatEvent, "Cat V1 rejects unsupported transition events");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;

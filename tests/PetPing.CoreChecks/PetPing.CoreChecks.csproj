@@ -2,20 +2,31 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    <DefineConstants>$(DefineConstants);PETPING_EXPERIMENTAL</DefineConstants>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../desktop/PetPing.Windows/Models/Reminder.cs" Link="Reminder.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Models/CustomRepeatOptions.cs" Link="CustomRepeatOptions.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/ReminderRules.cs" Link="ReminderRules.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/ReminderDueProcessor.cs" Link="ReminderDueProcessor.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/SnoozePolicy.cs" Link="SnoozePolicy.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/ReminderEditorRules.cs" Link="ReminderEditorRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/RecurrenceRules.cs" Link="RecurrenceRules.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/AdvancedRepeatRules.cs" Link="AdvancedRepeatRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/ReminderInboxRules.cs" Link="ReminderInboxRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/DashboardSummaryRules.cs" Link="DashboardSummaryRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/ReminderStore.cs" Link="ReminderStore.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/PetPingDataRoot.cs" Link="PetPingDataRoot.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/DiagnosticsLog.cs" Link="DiagnosticsLog.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/PetAppearanceSettings.cs" Link="PetAppearanceSettings.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/PetProfileSettings.cs" Link="PetProfileSettings.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/PetAnimationRules.cs" Link="PetAnimationRules.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/CatIdlePlaybackRules.cs" Link="CatIdlePlaybackRules.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/CatWalkPlaybackRules.cs" Link="CatWalkPlaybackRules.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/CatTalkPlaybackRules.cs" Link="CatTalkPlaybackRules.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/CatAnimationFlowRules.cs" Link="CatAnimationFlowRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/PetWalkRules.cs" Link="PetWalkRules.cs" />
   </ItemGroup>
 </Project>
