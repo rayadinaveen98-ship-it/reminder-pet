@@ -24,3 +24,11 @@ All four RGBA files must exist at **164×218** before activation. The Windows im
 - Manually install the artwork ZIP, restart experimental build, and check Home, My Pets, Studio and an actual 485×352 floating reminder at 100/125/150/200% DPI. Test front-back asset cutoff, sudden vector-to-sprite transition, battery/CPU use, window focus, speaking and reaction cleanup.
 - Approve true walking frames and speaking-mouth layer before expanding the sprite renderer to those states. No production release until real-device acceptance.
 - `main` remains v0.17. The experimental version uses separate `%LOCALAPPDATA%\PetPing-Experimental`; user-created reminders are never imported automatically.
+
+## Approved sprite digest manifest (SHA-256)
+- `Cat_Idle_open_164x218.png`: `6a9f209152dd0a37cae5326ba1220b4469720ec49abf68a0a2fcca07a9b6d5d0`
+- `Cat_Idle_half_164x218.png`: `3bc33645dad425427aee7023243dcd699104acbda0a671e0c3025b048f989ae2`
+- `Cat_Idle_closed_164x218.png`: `28a67adb44ad653fa8ac903183a343e61b43febdc5efa27b3109175789cdf78a`
+- `Cat_Idle_happy_164x218.png`: `5aa1204f33c89c6d2cc0720114a00b8324972f975b4ef6dd6ac4c8ad13d595ae`
+
+These hashes cover the separate original-sprite files inside the user ZIP. They are not hashes of the GitHub installer artifacts.
