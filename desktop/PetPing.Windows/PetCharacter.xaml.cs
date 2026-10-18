@@ -149,6 +149,12 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
         // the existing walking rig without showing a sitting cat sliding.
         if (_catSpriteEnabled)
         {
+            if (active && CatIdleOverlay.WalkAvailable)
+            {
+                ShowCatSprite(true);
+                CatIdleOverlay.SetWalking(true);
+                return; // no older cat rig flashes during actual walking
+            }
             ShowCatSprite(!active);
             if (!active) CatIdleOverlay.SetIdle();
         }
