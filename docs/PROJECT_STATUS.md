@@ -2,6 +2,15 @@
 
 _Last updated: 2026-10-18. This file is canonical and is updated as work is committed._
 
+## LATEST DECISION — 2026-10-18: STOP WALKING EXPERIMENTS
+User tested Cat V1 and V2 on Windows, rejected both walking experiments as unnatural, and explicitly chose to keep existing pet characters as-is. **Do not reintroduce walking/gait/desktop-crossing animation without another explicit request.**
+
+- Clean candidate: [PR #33](https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/33), branch `release/v0.18-static-companions-final-candidate`, head `74be78eb5a1e3c7d7451f216fca39f46d77edee2`. Popup now appears at destination without walking and without body float; `PetCharacter.Walk` API deleted; Cat no longer preloads old walking frames. Keep the locked premium orange cat's idle/talking appearance, existing Dog and Bunny, and reminder/voice/Done/Snooze functionality.
+- **Verified Windows CI: 213 core checks passed** with executable and Inno installer and stable/experimental data preservation: https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/39110201955
+- Generated conversation installer package: `PetPing_v018_Final_Original_Pets_No_Walking_Installer.zip` (49.8 MiB; 5 approved Cat Idle/Talking images; `INSTALL_PETPING_NO_WALK.cmd` copies art before unsigned Inno installer). Portable: `PetPing_v018_Final_Original_Pets_No_Walking_Portable.zip` (66.6 MiB, includes the 5 images in Assets/CatIdle). Neither includes V1/V2 walking frames.
+- Rejected walking draft PR #28, #31 and #32 are closed/unmerged; no visual Cat V2 artifacts shipped. **Stable production main remains v0.17.** No unreviewed migration of v0.18 experimental data to production and no claims of signed release or real-device QA of this exact installer.
+- Product acceptance: appearance/voice/reminder actions are preserved; user requested installer, real laptop confirmation still advised. Source change details: `docs/V018_FINAL_STATIC_COMPANIONS.md` on PR #33.
+
 ## Identity
 - Repository: `rayadinaveen98-ship-it/reminder-pet`. Keep the GitHub name **reminder-pet**.
 - Working product codename: PetPing (not final branding).
