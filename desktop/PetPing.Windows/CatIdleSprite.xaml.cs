@@ -19,12 +19,15 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     private readonly DispatcherTimer _timer;
     private readonly Stopwatch _clock = new();
     private readonly Dictionary<string, BitmapImage> _frames = [];
+    private readonly Dictionary<int, BitmapImage> _walkFrames = [];
+    private bool _walking;
     private PetMotion _motion = PetMotion.Full;
     private bool _speaking;
     private bool _done;
     private bool _snooze;
     private string _current = "";
     public bool Available => _frames.Count == 4;
+    public bool WalkAvailable => _walkFrames.Count == CatWalkPlaybackRules.FrameCount;
 
     public CatIdleSprite()
     {
@@ -69,6 +72,7 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
                 }
                 _frames.Clear();
                 foreach (var (key, frame) in loaded) _frames.Add(key, frame);
+                LoadWalkingFrames(folder);
                 UpdateImage("open");
                 return true;
             }
@@ -82,6 +86,57 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
             }
         }
         return false;
+    }
+
+    private void LoadWalkingFrames(string folder)
+    {
+        // Walk art is optional: full idle quality and old vector walking still
+        // work when a user has only the four original idle PNGs.
+        var frames = new Dictionary<int, BitmapImage>();
+        try
+        {
+            for (var i = 0; i < CatWalkPlaybackRules.FrameCount; i++)
+            {
+                var path = Path.Combine(folder, $"Cat_Walk_{i}_164x218.png");
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(path, UriKind.Absolute);
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.EndInit();
+                if (bitmap.PixelWidth != 164 || bitmap.PixelHeight != 218)
+                    throw new InvalidDataException("Walking sprite dimensions do not match.");
+                bitmap.Freeze();
+                frames.Add(i, bitmap);
+            }
+            _walkFrames.Clear();
+            foreach (var (key, image) in frames) _walkFrames.Add(key, image);
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException
+            or NotSupportedException or InvalidOperationException
+            or System.Runtime.InteropServices.COMException or ArgumentException
+            or FormatException)
+        {
+            _walkFrames.Clear();
+        }
+    }
+
+    public bool SetWalking(bool walking)
+    {
+        if (walking && !WalkAvailable) return false;
+        _walking = walking;
+        _done = _snooze = _speaking = false;
+        if (_walking)
+        {
+            _clock.Restart();
+            if (IsVisible && _motion != PetMotion.Off) _timer.Start();
+        }
+        else
+        {
+            _clock.Restart();
+            if (IsVisible && _motion != PetMotion.Off) _timer.Start();
+        }
+        Tick();
+        return true;
     }
 
     public void SetMotion(PetMotion motion)
@@ -100,6 +155,7 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
 
     public void SetResponse(bool completed)
     {
+        _walking = false;
         _done = completed;
         _snooze = !completed;
         Pause();
@@ -108,6 +164,7 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
 
     public void SetIdle()
     {
+        _walking = false;
         _speaking = _done = _snooze = false;
         _current = "";
         IdleShift.Y = 0;
@@ -135,12 +192,26 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     {
         if (!Available) return;
         var elapsed = _clock.ElapsedMilliseconds;
-        UpdateImage(CatIdlePlaybackRules.FrameAt(elapsed, _motion, _speaking, _done, _snooze));
-        var breathe = _speaking || _done || _snooze
+        if (_walking && WalkAvailable)
+            UpdateWalkImage(CatWalkPlaybackRules.FrameAt(elapsed, _motion));
+        else
+            UpdateImage(CatIdlePlaybackRules.FrameAt(elapsed, _motion, _speaking, _done, _snooze));
+        var breathe = _walking || _speaking || _done || _snooze
             ? 1.0 : CatIdlePlaybackRules.BreathingScale(elapsed, _motion);
         BreathingScale.ScaleX = BreathingScale.ScaleY = breathe;
-        IdleShift.Y = _motion == PetMotion.Full && !_speaking && !_done && !_snooze
+        IdleShift.Y = _motion == PetMotion.Full && !_walking && !_speaking && !_done && !_snooze
             ? Math.Sin(elapsed / 3200.0 * 2 * Math.PI) * 1.5 : 0;
+    }
+
+    private void UpdateWalkImage(int index)
+    {
+        var key = "walk" + index;
+        if (_current == key) return;
+        if (_walkFrames.TryGetValue(index, out var image))
+        {
+            CatFrame.Source = image;
+            _current = key;
+        }
     }
 
     private void UpdateImage(string key)
