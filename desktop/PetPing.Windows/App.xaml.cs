@@ -57,6 +57,13 @@ public partial class App : System.Windows.Application
                     if (_petWindow?.SpeechSessionId == session)
                         _petWindow.SetSpeaking(speaking);
                 }));
+            _voice.SessionWordStarted += session =>
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_petWindow?.SpeechSessionId == session &&
+                        _petWindow.AwaitingResponse)
+                        _petWindow.OnSpeechWord();
+                }));
             _voice.SessionSpeechFinished += session =>
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
