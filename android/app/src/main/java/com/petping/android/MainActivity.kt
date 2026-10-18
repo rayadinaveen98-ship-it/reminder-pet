@@ -146,7 +146,7 @@ class MainActivity : ComponentActivity() {
     private fun requestExactAccess() {
         if (Build.VERSION.SDK_INT >= 31 && !ReminderScheduler.hasExactAccess(this)) {
             runCatching {
-                startActivity(Intent(AlarmManager.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                startActivity(Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
                     Uri.parse("package:$packageName")))
             }.onFailure { error = "Find Alarms & reminders in Android Settings for PetPing." }
         } else refresh()
