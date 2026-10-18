@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.PetPing" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#F9F6F3</item>
+        <item name="android:navigationBarColor">#F9F6F3</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
