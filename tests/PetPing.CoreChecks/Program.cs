@@ -1465,6 +1465,37 @@ try
     catch (ArgumentOutOfRangeException) { badCatMotion = true; }
     Check(badCatLeg && badCatMotion,
         "Cat V2 gait rejects unsupported limb or motion enum inputs");
+    // V2 in-app motion-study playback: true 32 authored frames rather than
+    // the previous 4 barely rotated full-body images.
+    Check(CatV2WalkPlaybackRules.FrameCount == 32 &&
+          CatV2WalkPlaybackRules.SourceWidth == 640 &&
+          CatV2WalkPlaybackRules.SourceHeight == 850 &&
+          CatV2WalkPlaybackRules.PreviewDecodeHeight == 218,
+        "Cat V2 desktop gait declares 32 original transparent 640x850 study frames");
+    Check(CatV2WalkPlaybackRules.FrameAt(0,PetMotion.Full) == 0 &&
+          CatV2WalkPlaybackRules.FrameAt(31,PetMotion.Full) == 0 &&
+          CatV2WalkPlaybackRules.FrameAt(32,PetMotion.Full) == 1 &&
+          CatV2WalkPlaybackRules.FrameAt(500,PetMotion.Full) == 16 &&
+          CatV2WalkPlaybackRules.FrameAt(999,PetMotion.Full) == 31 &&
+          CatV2WalkPlaybackRules.FrameAt(1000,PetMotion.Full) == 0,
+        "Cat V2 32-frame 1000ms Full gait samples boundaries correctly");
+    Check(Enumerable.Range(0,32)
+          .Select(i=>CatV2WalkPlaybackRules.FrameAt(i*1000/32,PetMotion.Full))
+          .Distinct().Count() == 32,
+        "Cat V2 Full preview reaches each distinct authored frame per second");
+    Check(CatV2WalkPlaybackRules.FrameAt(700,PetMotion.Gentle) == 16 &&
+          CatV2WalkPlaybackRules.FrameAt(1399,PetMotion.Gentle) == 31 &&
+          CatV2WalkPlaybackRules.FrameAt(1400,PetMotion.Gentle) == 0 &&
+          CatV2WalkPlaybackRules.FrameAt(1000,PetMotion.Off) == 0,
+        "Cat V2 Gentle walks slower and Off remains on planted contact frame");
+    Check(CatV2WalkPlaybackRules.FrameAt(-1,PetMotion.Full) == 31 &&
+          CatV2WalkPlaybackRules.FrameAt(-1000,PetMotion.Full) == 0 &&
+          CatV2WalkPlaybackRules.FrameAt(long.MaxValue,PetMotion.Full) is >=0 and <32,
+        "Cat V2 frame picker normalizes negative or very long-running clock");
+    bool badV2Motion = false;
+    try { CatV2WalkPlaybackRules.FrameAt(1,(PetMotion)999); }
+    catch(ArgumentOutOfRangeException) { badV2Motion = true; }
+    Check(badV2Motion, "Cat V2 animation rejects unsupported motion modes");
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
