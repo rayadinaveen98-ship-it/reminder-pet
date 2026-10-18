@@ -17,6 +17,7 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
     private PetMotion _requestedMotion = PetMotion.Full;
     public bool UsingPremiumCat => _catSpriteEnabled;
     public bool UsingPremiumWalk => _catSpriteEnabled && CatIdleOverlay.WalkAvailable;
+    public bool UsingV2GaitStudy => _catSpriteEnabled && CatIdleOverlay.WalkV2Available;
     public bool UsingPremiumTalk => _catSpriteEnabled && CatIdleOverlay.TalkAvailable;
 
     public PetCharacter()
