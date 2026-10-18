@@ -1,6 +1,6 @@
 # Reminder Pet — Project status & chat handoff
 
-_Last updated: 2026-10-17. This file is canonical and is updated as work is committed._
+_Last updated: 2026-10-18. This file is canonical and is updated as work is committed._
 
 ## Identity
 - Repository: `rayadinaveen98-ship-it/reminder-pet`. Keep the GitHub name **reminder-pet**.
@@ -31,6 +31,8 @@ _Last updated: 2026-10-17. This file is canonical and is updated as work is comm
 
 ## Active milestone
 **Windows v0.17 unsigned DESIGN PREVIEW — GitHub verified, physical user acceptance pending.**
+- **PREMIUM CAT WALKING V1 — WINDOWS CI GREEN / DRAFT ONLY:** PR #28 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/28 is stacked on Cat Idle PR #27 and reliability PR #26. Native WPF now animates 4 approved 164×218 walking keyframes when present and switches to approved 4-frame Idle without displaying older vector during the popup entrance. Full/Gentle/Off are deterministic; app explicitly identifies itself as `PetPing Experimental — Premium Cat Art V1` and shows My Pets art-load diagnostics. Packaged art next to EXE takes precedence over stale profile sprites. **CI successful:** https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/39100683208, 197 core checks, WPF build, experimental installer and data-preservation smoke. Two user-ready ZIPs were generated in the conversation: `PetPing_CatV1_Idle_Walking_Experimental_Installer.zip` (49.9 MiB, with EXE and artwork copier) and `PetPing_CatV1_Idle_Walking_Experimental_Portable.zip` (66.7 MiB, with 8 images in `Assets/CatIdle`). **Important:** raw GitHub CI artifacts do not contain the 8 art images; do not promise they do. Original normal `main` app/source v0.17 and user data unaffected. This is still a 2.5D four-frame prototype, not full leg rigging. Real Windows laptop acceptance and Talking animation remain pending. See `docs/V018_CAT_WALKING_PREVIEW.md` on PR #28.
+
 
 - **CAT IDLE V1 PREMIUM SPRITE PREVIEW — WINDOWS CI GREEN, NOT MERGED:** draft PR #27 https://github.com/rayadinaveen98-ship-it/reminder-pet/pull/27 targets the experimental reliability PR #26. Reuses user's locked Cat V1 master and approved four idle expressions as **optional external 164×218 transparent PNGs** loaded from `%LOCALAPPDATA%\PetPing-Experimental\CatIdle`; no original PNGs were committed to GitHub. Native WPF `CatIdleSprite` with cached frozen bitmaps, deterministic 6-second expression timeline, breathing and Full/Gentle/Off. Wires to original `PetCharacter` across Home/My Pets/Studio/actual reminder popup; Dog/Bunny and different palettes/accessories stay on old vector rig. **Missing images fall back safely**. Windows CI https://github.com/rayadinaveen98-ship-it/reminder-pet/actions/runs/39098674382 **PASSED** 193 core checks, Windows compilation, experimental installer and saved-data-preservation. An independent user downloadable `PetPing_Cat_Idle_Windows_Integration_Kit.zip` contains PNGs/sidecar installation script; only it supplies the new art. **Known visual jump** while walking (old vector cat before new idle sprite), no rigged talking/lip sync, no actual laptop QA yet. See `docs/V018_CAT_IDLE_SPRITE_PROTOTYPE.md` on PR #27. Production main v0.17 is unchanged.
 
