@@ -139,7 +139,11 @@ public partial class PetWindow : Window
             Arrive();
         };
         BeginAnimation(LeftProperty, walk);
-        Character.Walk(_motion == PetMotion.Full);
+        // Gentle mode still walks with the low-motion premium 4-frame cat;
+        // preserve the older Dog/Bunny and classic-vector reduced-motion
+        // behavior rather than introducing extra movement for those species.
+        Character.Walk(_motion == PetMotion.Full ||
+            (_motion == PetMotion.Gentle && Character.UsingPremiumWalk));
     }
 
     private void Arrive()
