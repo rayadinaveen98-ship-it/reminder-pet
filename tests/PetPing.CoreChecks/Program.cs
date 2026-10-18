@@ -1324,6 +1324,32 @@ try
     catch (ArgumentOutOfRangeException) { invalidWalkMotionRejected = true; }
     Check(invalidWalkMotionRejected,
         "premium cat walking refuses invalid motion enum values");
+    // Premium Cat Talking: drive word pulses from the local Windows TTS
+    // timeline, never from untagged/cancelled sessions. Phonemes are not
+    // available, so we use bounded word-cue beats and a low-frequency fallback.
+    Check(CatTalkPlaybackRules.FrameAt(1000, 1000, 1, PetMotion.Full) == "open" &&
+          CatTalkPlaybackRules.FrameAt(1135, 1000, 1, PetMotion.Full) == "rest" &&
+          CatTalkPlaybackRules.FrameAt(1255, 1000, 3, PetMotion.Full) == "happy" &&
+          CatTalkPlaybackRules.FrameAt(1255, 1000, 2, PetMotion.Full) == "open" &&
+          CatTalkPlaybackRules.FrameAt(1355, 1000, 2, PetMotion.Full) == "rest",
+        "premium cat talking follows word onset with distinct mouth/expression states");
+    Check(CatTalkPlaybackRules.FrameAt(2000, -1, 0, PetMotion.Full) ==
+              CatTalkPlaybackRules.FrameAt(2000, 0, 10, PetMotion.Full) &&
+          CatTalkPlaybackRules.FrameAt(0, -1, 0, PetMotion.Full) == "open" &&
+          CatTalkPlaybackRules.FrameAt(230, -1, 0, PetMotion.Full) == "rest",
+        "cat talking cycles gently without speech progress events from installed voice");
+    Check(CatTalkPlaybackRules.FrameAt(0, 0, 1, PetMotion.Gentle) == "open" &&
+          CatTalkPlaybackRules.FrameAt(160, 0, 3, PetMotion.Gentle) == "rest" &&
+          CatTalkPlaybackRules.FrameAt(1500, -1, 0, PetMotion.Off) == "open",
+        "cat talking honors Gentle and Off accessibility motion preferences");
+    Check(CatTalkPlaybackRules.FrameAt(300, 500, 1, PetMotion.Full) ==
+              CatTalkPlaybackRules.FrameAt(300, -1, 1, PetMotion.Full) &&
+          CatTalkPlaybackRules.FrameAt(-100, -1, 0, PetMotion.Full) == "open",
+        "future/stale word cue and negative animation clock fall back without crashing");
+    bool rejectTalkInvalidMotion = false;
+    try { CatTalkPlaybackRules.FrameAt(10, 0, 1, (PetMotion)999); }
+    catch (ArgumentOutOfRangeException) { rejectTalkInvalidMotion = true; }
+    Check(rejectTalkInvalidMotion, "cat talking rejects unknown motion settings");
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;

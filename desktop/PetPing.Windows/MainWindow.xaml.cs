@@ -242,7 +242,9 @@ public partial class MainWindow : Window
         if (p.Species == PetSpecies.Cat)
         {
             PremiumCatArtStatus.Text = StudioCharacter.UsingPremiumWalk
-                ? "Premium Cat V1 is ready: Idle and Walking artwork loaded."
+                ? StudioCharacter.UsingPremiumTalk
+                    ? "Premium Cat V1 is ready: Idle, Walking and Talking artwork loaded."
+                    : "Premium Cat V1: Idle and Walking loaded. Optional Talking mouth sprite missing."
                 : StudioCharacter.UsingPremiumCat
                     ? "Premium Cat Idle is ready. Walking artwork is missing."
                     : p.Palette != PetPalette.Apricot || p.Accessory != PetAccessory.None

@@ -17,6 +17,7 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
     private PetMotion _requestedMotion = PetMotion.Full;
     public bool UsingPremiumCat => _catSpriteEnabled;
     public bool UsingPremiumWalk => _catSpriteEnabled && CatIdleOverlay.WalkAvailable;
+    public bool UsingPremiumTalk => _catSpriteEnabled && CatIdleOverlay.TalkAvailable;
 
     public PetCharacter()
     {
@@ -224,6 +225,12 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
         { AutoReverse = true };
         LeftBlink.BeginAnimation(ScaleTransform.ScaleYProperty, animation);
         RightBlink.BeginAnimation(ScaleTransform.ScaleYProperty, animation);
+    }
+
+    public void OnSpeechWord()
+    {
+        if (_catSpriteEnabled && CatIdleOverlay.IsVisible)
+            CatIdleOverlay.OnSpeechWord();
     }
 
     public void SetSpeaking(bool speaking, bool animate)
