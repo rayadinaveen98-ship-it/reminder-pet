@@ -255,14 +255,19 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
     public int React(bool completed, PetMotion motion)
     {
         var plan = PetAnimationRules.Reaction(_profile, completed, motion);
-        Stop();
         if (_catSpriteEnabled)
         {
+            // Keep the stage alive until the user response is displayed.
+            // Calling Stop() here would make Done/Snooze an invalid
+            // transition and leave the sprite showing its previous mouth.
+            _effectsGeneration++;
+            ResetCharacterMotion();
+            EffectStage.Children.Clear();
             ShowCatSprite(true);
             CatIdleOverlay.SetMotion(motion);
+            CatIdleOverlay.SetResponse(completed);
             if (motion != PetMotion.Off)
             {
-                CatIdleOverlay.SetResponse(completed);
                 if (completed && motion == PetMotion.Full &&
                     _profile.DoneAction == PetDoneAction.Hop)
                     PetFloat.BeginAnimation(TranslateTransform.YProperty,
@@ -272,6 +277,7 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
             }
             return plan.DurationMilliseconds;
         }
+        Stop();
         if (motion == PetMotion.Off) return plan.DurationMilliseconds;
         var shortMotion = motion == PetMotion.Gentle;
         var speed = shortMotion ? 210 : 310;
@@ -387,7 +393,7 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
 
     public void Stop()
     {
-        CatIdleOverlay.Pause();
+        CatIdleOverlay.StopAnimation();
         _effectsGeneration++;
         ResetCharacterMotion();
         MouthSpeak.BeginAnimation(OpacityProperty, null);
