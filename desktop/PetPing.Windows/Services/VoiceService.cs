@@ -18,6 +18,8 @@ public sealed class VoiceService : IDisposable
     public event Action<Exception>? SpeechFailed;
     public event Action<bool>? SpeakingChanged;
     public event Action<Guid, bool>? SessionSpeakingChanged;
+    // Pure timing cue: do not expose spoken reminder text in UI events.
+    public event Action<Guid>? SessionWordStarted;
     public event Action<Guid>? SessionSpeechFinished;
 
     public VoiceService()
@@ -33,6 +35,17 @@ public sealed class VoiceService : IDisposable
                 {
                     try { SpeakingChanged?.Invoke(true); } catch { }
                     try { SessionSpeakingChanged?.Invoke(id, true); } catch { }
+                }
+            };
+            // SpeakProgress is emitted by the real Windows voice as each
+            // word begins. Matching the currently active session excludes
+            // cancelled / previous reminders and protects user privacy.
+            _speaker.SpeakProgress += (_, args) =>
+            {
+                var session = CurrentSessionFor(args.Prompt);
+                if (session is { } id)
+                {
+                    try { SessionWordStarted?.Invoke(id); } catch { }
                 }
             };
             _speaker.SpeakCompleted += (_, args) =>
