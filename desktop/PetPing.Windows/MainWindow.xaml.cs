@@ -237,6 +237,18 @@ public partial class MainWindow : Window
         PetsCatCharacter.Apply(_petProfiles.Get(PetSpecies.Cat));
         PetsDogCharacter.Apply(_petProfiles.Get(PetSpecies.Dog));
         PetsBunnyCharacter.Apply(_petProfiles.Get(PetSpecies.Bunny));
+        PremiumCatArtStatus.Visibility = p.Species == PetSpecies.Cat
+            ? Visibility.Visible : Visibility.Collapsed;
+        if (p.Species == PetSpecies.Cat)
+        {
+            PremiumCatArtStatus.Text = StudioCharacter.UsingPremiumWalk
+                ? "Premium Cat V1 is ready: Idle and Walking artwork loaded."
+                : StudioCharacter.UsingPremiumCat
+                    ? "Premium Cat Idle is ready. Walking artwork is missing."
+                    : p.Palette != PetPalette.Apricot || p.Accessory != PetAccessory.None
+                        ? "Premium Cat V1 currently uses Apricot fur with no added accessory. Your custom style uses the classic character."
+                        : "Premium cat artwork is missing. Install the complete Cat Art Preview package, then restart PetPing Experimental.";
+        }
         CatChoiceStatus.Text = p.Species == PetSpecies.Cat ? "Active" : "Available";
         DogChoiceStatus.Text = p.Species == PetSpecies.Dog ? "Active" : "Available";
         BunnyChoiceStatus.Text = p.Species == PetSpecies.Bunny ? "Active" : "Available";
