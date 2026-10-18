@@ -1271,6 +1271,38 @@ try
     Check(emptyStoreExportRefused,
         "first-run store without a saved JSON file cannot falsely report export success");
 
+    // Cat Idle V1: exact approved sprite timeline, Full/Gentle/Off and
+    // predictable transitions without loading WPF or image codecs in tests.
+    Check(CatIdlePlaybackRules.LoopMilliseconds == 6000 &&
+          CatIdlePlaybackRules.FrameAt(0, PetMotion.Full) == "open" &&
+          CatIdlePlaybackRules.FrameAt(1850, PetMotion.Full) == "half" &&
+          CatIdlePlaybackRules.FrameAt(2090, PetMotion.Full) == "closed" &&
+          CatIdlePlaybackRules.FrameAt(2240, PetMotion.Full) == "half" &&
+          CatIdlePlaybackRules.FrameAt(2450, PetMotion.Full) == "open",
+        "cat idle first blink follows the approved six-second timeline");
+    Check(CatIdlePlaybackRules.FrameAt(4810, PetMotion.Full) == "half" &&
+          CatIdlePlaybackRules.FrameAt(5000, PetMotion.Full) == "closed" &&
+          CatIdlePlaybackRules.FrameAt(5150, PetMotion.Full) == "half" &&
+          CatIdlePlaybackRules.FrameAt(5510, PetMotion.Full) == "happy" &&
+          CatIdlePlaybackRules.FrameAt(5750, PetMotion.Full) == "open",
+        "cat idle second blink and happy expression respect frame boundaries");
+    Check(CatIdlePlaybackRules.FrameAt(6020, PetMotion.Full) == "open" &&
+          CatIdlePlaybackRules.FrameAt(7850, PetMotion.Full) == "half" &&
+          CatIdlePlaybackRules.FrameAt(-50, PetMotion.Full) == "open",
+        "cat idle loop wraps after six seconds including safe negative-time normalization");
+    Check(CatIdlePlaybackRules.FrameAt(5520, PetMotion.Gentle) == "open" &&
+          CatIdlePlaybackRules.FrameAt(2050, PetMotion.Gentle) == "closed" &&
+          CatIdlePlaybackRules.FrameAt(2050, PetMotion.Off) == "open" &&
+          CatIdlePlaybackRules.BreathingScale(800, PetMotion.Gentle) == 1 &&
+          CatIdlePlaybackRules.BreathingScale(800, PetMotion.Off) == 1 &&
+          CatIdlePlaybackRules.BreathingScale(1600, PetMotion.Full) > 1,
+        "cat motion preferences allow Full breathing, Gentle blinking and Off static");
+    Check(CatIdlePlaybackRules.FrameAt(0, PetMotion.Full, speaking:true) == "happy" &&
+          CatIdlePlaybackRules.FrameAt(190, PetMotion.Full, speaking:true) == "open" &&
+          CatIdlePlaybackRules.FrameAt(0, PetMotion.Off, speaking:true) == "open" &&
+          CatIdlePlaybackRules.FrameAt(0, PetMotion.Full, respondingDone:true) == "happy" &&
+          CatIdlePlaybackRules.FrameAt(0, PetMotion.Full, respondingSnooze:true) == "closed",
+        "cat speaking/reaction expressions stay deterministic and motion-aware");
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
