@@ -47,6 +47,7 @@ public partial class PetWindow : Window
         _motion = motion;
         _profile = profile ?? new PetProfile();
         Character.Apply(_profile);
+        Character.SetMotion(_motion);
         ReminderTitle.Text = reminder.Title;
         ReminderTitle.ToolTip = reminder.Title;
         System.Windows.Automation.AutomationProperties.SetName(
