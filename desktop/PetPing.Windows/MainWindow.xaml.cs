@@ -241,15 +241,11 @@ public partial class MainWindow : Window
             ? Visibility.Visible : Visibility.Collapsed;
         if (p.Species == PetSpecies.Cat)
         {
-            PremiumCatArtStatus.Text = StudioCharacter.UsingPremiumWalk
-                ? StudioCharacter.UsingPremiumTalk
-                    ? "Premium Cat V1 is ready: Idle, Walking and Talking artwork loaded."
-                    : "Premium Cat V1: Idle and Walking loaded. Optional Talking mouth sprite missing."
-                : StudioCharacter.UsingPremiumCat
-                    ? "Premium Cat Idle is ready. Walking artwork is missing."
-                    : p.Palette != PetPalette.Apricot || p.Accessory != PetAccessory.None
-                        ? "Premium Cat V1 currently uses Apricot fur with no added accessory. Your custom style uses the classic character."
-                        : "Premium cat artwork is missing. Install the complete Cat Art Preview package, then restart PetPing Experimental.";
+            PremiumCatArtStatus.Text = StudioCharacter.UsingPremiumCat
+                ? "Premium Cat artwork ready. Walking removed; the companion stays in place."
+                : p.Palette != PetPalette.Apricot || p.Accessory != PetAccessory.None
+                    ? "Your original custom cat appearance is preserved. Walking is disabled."
+                    : "The premium cat artwork is unavailable; the original cat remains. Walking is disabled.";
         }
         CatChoiceStatus.Text = p.Species == PetSpecies.Cat ? "Active" : "Available";
         DogChoiceStatus.Text = p.Species == PetSpecies.Dog ? "Active" : "Available";
