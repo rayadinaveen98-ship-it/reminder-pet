@@ -174,7 +174,9 @@ public partial class PetWindow : Window
 
     public void SetSpeaking(bool speaking)
     {
-        if (!_arrived || _closing || _reacting) return;
+        // A queued SpeechStarted event can reach the Dispatcher just after
+        // Mute was clicked. Never restart the cat's mouth once muted.
+        if (!_arrived || _closing || _reacting || (_muted && speaking)) return;
         Character.SetSpeaking(speaking, _motion == PetMotion.Full);
     }
 
