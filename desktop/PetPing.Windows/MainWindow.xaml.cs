@@ -241,7 +241,9 @@ public partial class MainWindow : Window
             ? Visibility.Visible : Visibility.Collapsed;
         if (p.Species == PetSpecies.Cat)
         {
-            PremiumCatArtStatus.Text = StudioCharacter.UsingPremiumWalk
+            PremiumCatArtStatus.Text = StudioCharacter.UsingV2GaitStudy
+                ? "CAT V2 MOTION STUDY ACTIVE — 32 articulated walking frames loaded. This is an experimental 2.5D gait, NOT final 3D character art."
+                : StudioCharacter.UsingPremiumWalk
                 ? StudioCharacter.UsingPremiumTalk
                     ? "Premium Cat V1 is ready: Idle, Walking and Talking artwork loaded."
                     : "Premium Cat V1: Idle and Walking loaded. Optional Talking mouth sprite missing."
