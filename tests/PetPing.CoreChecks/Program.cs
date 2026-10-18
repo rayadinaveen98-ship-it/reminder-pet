@@ -1350,6 +1350,60 @@ try
     try { CatTalkPlaybackRules.FrameAt(10, 0, 1, (PetMotion)999); }
     catch (ArgumentOutOfRangeException) { rejectTalkInvalidMotion = true; }
     Check(rejectTalkInvalidMotion, "cat talking rejects unknown motion settings");
+    // Cat V1 acceptance gate: a completed/snoozed or stopped actor must
+    // ignore queued speech events and must never begin walking again.
+    var catSequence = CatAnimationFlowRules.Next(CatStage.Stopped, CatStageEvent.Reset);
+    Check(catSequence == CatStage.Idle,
+        "Cat V1 starts in Idle after applying an approved profile");
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.BeginWalk);
+    Check(catSequence == CatStage.Walking &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStarted) ==
+              CatStage.Walking,
+        "Cat V1 walking does not prematurely animate words from queued speech");
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.Arrive);
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStarted);
+    Check(catSequence == CatStage.Talking &&
+          CatAnimationFlowRules.CanAnimateSpeech(catSequence),
+        "Cat V1 arrival enables Talking from Idle and only then accepts word cues");
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStopped);
+    Check(catSequence == CatStage.Idle &&
+          !CatAnimationFlowRules.CanAnimateSpeech(catSequence),
+        "Cat V1 speech stop returns to quiet Idle with no stray mouth pulses");
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStarted);
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.Done);
+    Check(catSequence == CatStage.Done &&
+          CatAnimationFlowRules.IsTerminal(catSequence) &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStarted) == catSequence &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStopped) == catSequence &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.BeginWalk) == catSequence &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.Snooze) == catSequence,
+        "Done locks the cat in its reaction despite late word/voice/walk callbacks");
+    var snoozeSequence = CatAnimationFlowRules.Next(CatStage.Idle, CatStageEvent.Snooze);
+    Check(snoozeSequence == CatStage.Snoozed &&
+          CatAnimationFlowRules.Next(snoozeSequence, CatStageEvent.SpeechStarted) == snoozeSequence &&
+          CatAnimationFlowRules.Next(snoozeSequence, CatStageEvent.Done) == snoozeSequence,
+        "Snooze remains sleepy and ignores a late voice-start or Done action");
+    catSequence = CatAnimationFlowRules.Next(catSequence, CatStageEvent.Stop);
+    Check(catSequence == CatStage.Stopped &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.SpeechStarted) == catSequence &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.Done) == catSequence &&
+          CatAnimationFlowRules.Next(catSequence, CatStageEvent.Arrive) == catSequence,
+        "Closing cat fully blocks stale speech or response callbacks");
+    Check(CatAnimationFlowRules.Next(catSequence, CatStageEvent.Reset) == CatStage.Idle,
+        "Applying the next reminder resets a stopped cat to a fresh Idle stage");
+    Check(CatAnimationFlowRules.Next(CatStage.Idle, CatStageEvent.SpeechStopped) == CatStage.Idle &&
+          CatAnimationFlowRules.Next(CatStage.Idle, CatStageEvent.Arrive) == CatStage.Idle &&
+          CatAnimationFlowRules.Next(CatStage.Talking, CatStageEvent.Snooze) == CatStage.Snoozed,
+        "Cat V1 tolerates duplicate stop/arrival and advances to Snooze from Talking");
+    bool rejectedCatStage = false;
+    try { CatAnimationFlowRules.Next((CatStage)100, CatStageEvent.Done); }
+    catch (ArgumentOutOfRangeException) { rejectedCatStage = true; }
+    Check(rejectedCatStage, "Cat V1 rejects invalid stage values");
+    bool rejectedCatEvent = false;
+    try { CatAnimationFlowRules.Next(CatStage.Idle, (CatStageEvent)100); }
+    catch (ArgumentOutOfRangeException) { rejectedCatEvent = true; }
+    Check(rejectedCatEvent, "Cat V1 rejects unsupported transition events");
+
     var path = Path.Combine(temp, "reminders.json");
     File.WriteAllText(path, "corrupted not-json");
     bool rejected = false;
