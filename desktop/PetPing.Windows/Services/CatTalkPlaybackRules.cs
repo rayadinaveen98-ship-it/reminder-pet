@@ -26,15 +26,15 @@ public static class CatTalkPlaybackRules
         {
             var dt = elapsedMs - lastWordAtMs;
             if (dt < 135) return "open";
-            if (dt < 255) return "half";
+            if (dt < 255) return "rest";
             if (motion == PetMotion.Full && dt < 355 && wordCounter % 3 == 0)
                 return "happy";
             if (dt < 355) return "open";
-            return "half";
+            return "rest";
         }
 
         var phase = (elapsedMs % FallbackCycleMs + FallbackCycleMs) % FallbackCycleMs;
-        if (motion == PetMotion.Gentle) return phase < 245 ? "open" : "half";
-        return phase < 175 ? "open" : phase < 320 ? "half" : "open";
+        if (motion == PetMotion.Gentle) return phase < 245 ? "open" : "rest";
+        return phase < 175 ? "open" : phase < 320 ? "rest" : "open";
     }
 }
