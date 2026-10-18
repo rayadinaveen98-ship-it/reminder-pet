@@ -74,7 +74,8 @@ public partial class CatIdleSprite : UserControl
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
                 or NotSupportedException or InvalidOperationException
-                or System.Runtime.InteropServices.COMException or ArgumentException)
+                or System.Runtime.InteropServices.COMException or ArgumentException
+                or FormatException)
             {
                 _frames.Clear();
                 _current = "";
