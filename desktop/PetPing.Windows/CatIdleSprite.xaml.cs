@@ -23,6 +23,8 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     private bool _walking;
     private PetMotion _motion = PetMotion.Full;
     private bool _speaking;
+    private long _lastSpokenWordAt = -1;
+    private int _spokenWords;
     private bool _done;
     private bool _snooze;
     private string _current = "";
@@ -127,6 +129,8 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
         if (walking && !WalkAvailable) return false;
         _walking = walking;
         _done = _snooze = _speaking = false;
+        _spokenWords = 0;
+        _lastSpokenWordAt = -1;
         if (_walking)
         {
             _clock.Restart();
@@ -151,13 +155,33 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
 
     public void SetSpeaking(bool speaking)
     {
-        _speaking = speaking;
+        if (_speaking != speaking)
+        {
+            _speaking = speaking;
+            _spokenWords = 0;
+            _lastSpokenWordAt = -1;
+            if (speaking && !_clock.IsRunning) _clock.Start();
+        }
+        Tick();
+    }
+
+    /// <summary>
+    /// Called on the dispatcher when the active Windows TTS voice starts a
+    /// word. This is not a phoneme / viseme callback.
+    /// </summary>
+    public void OnSpeechWord()
+    {
+        if (!Available || !_speaking || _walking || _done || _snooze) return;
+        _lastSpokenWordAt = _clock.ElapsedMilliseconds;
+        _spokenWords++;
         Tick();
     }
 
     public void SetResponse(bool completed)
     {
         _walking = false;
+        _speaking = false;
+        _lastSpokenWordAt = -1;
         _done = completed;
         _snooze = !completed;
         Pause();
@@ -167,6 +191,8 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
     public void SetIdle()
     {
         _walking = false;
+        _spokenWords = 0;
+        _lastSpokenWordAt = -1;
         _speaking = _done = _snooze = false;
         _current = "";
         IdleShift.Y = 0;
@@ -196,8 +222,11 @@ public partial class CatIdleSprite : System.Windows.Controls.UserControl
         var elapsed = _clock.ElapsedMilliseconds;
         if (_walking && WalkAvailable)
             UpdateWalkImage(CatWalkPlaybackRules.FrameAt(elapsed, _motion));
+        else if (_speaking)
+            UpdateImage(CatTalkPlaybackRules.FrameAt(elapsed, _lastSpokenWordAt,
+                _spokenWords, _motion));
         else
-            UpdateImage(CatIdlePlaybackRules.FrameAt(elapsed, _motion, _speaking, _done, _snooze));
+            UpdateImage(CatIdlePlaybackRules.FrameAt(elapsed, _motion, false, _done, _snooze));
         var breathe = _walking || _speaking || _done || _snooze
             ? 1.0 : CatIdlePlaybackRules.BreathingScale(elapsed, _motion);
         BreathingScale.ScaleX = BreathingScale.ScaleY = breathe;
