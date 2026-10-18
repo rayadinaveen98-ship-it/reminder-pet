@@ -165,6 +165,13 @@ public partial class PetWindow : Window
         Character.Blink();
     }
 
+    // Routed only from the active SpeechSessionId on the WPF dispatcher.
+    public void OnSpeechWord()
+    {
+        if (!_arrived || _closing || _reacting || _muted) return;
+        Character.OnSpeechWord();
+    }
+
     public void SetSpeaking(bool speaking)
     {
         if (!_arrived || _closing || _reacting) return;
