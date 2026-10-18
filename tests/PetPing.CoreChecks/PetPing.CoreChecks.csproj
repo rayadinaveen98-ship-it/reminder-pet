@@ -25,6 +25,7 @@
     <Compile Include="../../desktop/PetPing.Windows/Services/PetAnimationRules.cs" Link="PetAnimationRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/CatIdlePlaybackRules.cs" Link="CatIdlePlaybackRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/CatWalkPlaybackRules.cs" Link="CatWalkPlaybackRules.cs" />
+    <Compile Include="../../desktop/PetPing.Windows/Services/CatTalkPlaybackRules.cs" Link="CatTalkPlaybackRules.cs" />
     <Compile Include="../../desktop/PetPing.Windows/Services/PetWalkRules.cs" Link="PetWalkRules.cs" />
   </ItemGroup>
 </Project>
