@@ -226,6 +226,12 @@ public partial class PetCharacter : System.Windows.Controls.UserControl
         RightBlink.BeginAnimation(ScaleTransform.ScaleYProperty, animation);
     }
 
+    public void OnSpeechWord()
+    {
+        if (_catSpriteEnabled && CatIdleOverlay.IsVisible)
+            CatIdleOverlay.OnSpeechWord();
+    }
+
     public void SetSpeaking(bool speaking, bool animate)
     {
         if (_catSpriteEnabled && CatIdleOverlay.IsVisible)
