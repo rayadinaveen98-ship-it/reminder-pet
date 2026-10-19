@@ -20,6 +20,12 @@ Premium illustrated 2D storybook, not flat emojis or exaggerated 3D/game assets.
 * Puppy first. Cat and butterfly should be separately authored **after** puppy movement and voice pass device review.
 * Earlier walking V1/V2 were explicitly rejected as unnatural. Do not reuse those gait frames or quietly put them back into the stable version.
 
+## Original Puppy 01 rig study preview
+
+![Original Puppy 01 SVG rig study](./puppy-side-rig.svg)
+
+> This is an initial editable **vector draft**, not the cinematic reference illustration or finished walking animation. The premium final art and motion poses are pending.
+
 ## Artwork in this folder
 * `puppy-side-rig.svg`: original editable SVG **3/4 side-view character design study**, transparent background, independently labeled layers.
 * `art-review.html`: local no-dependency page to inspect the rig against different wallpapers and visual scales.
