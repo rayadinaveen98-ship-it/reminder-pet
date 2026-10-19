@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 440" role="img" aria-label="Navin's Pet original puppy character rig, profile three-quarter view">
+<title>Navin's Pet • Puppy 01 • Side/three-quarter character rig</title>
+<desc>Original layered vector puppy proof for art direction and joint placement, not a final animated sprite.</desc>
+<defs>
+  <linearGradient id="fur" x1="0" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#F7BD6F"/><stop offset=".53" stop-color="#EFA14F"/><stop offset="1" stop-color="#D9843D"/></linearGradient>
+  <linearGradient id="headFur" x1="0" y1=".1" x2="1" y2="1"><stop offset="0" stop-color="#FFDA94"/><stop offset=".53" stop-color="#F7B965"/><stop offset="1" stop-color="#E99A4E"/></linearGradient>
+  <linearGradient id="cream" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#FFF9E9"/><stop offset="1" stop-color="#F6E0BC"/></linearGradient>
+  <linearGradient id="ear" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#BE743F"/><stop offset="1" stop-color="#9F552F"/></linearGradient>
+  <radialGradient id="iris"><stop stop-color="#5E3826"/><stop offset=".83" stop-color="#33231F"/><stop offset="1" stop-color="#201C1B"/></radialGradient>
+  <filter id="shadow"><feGaussianBlur stdDeviation="7"/></filter>
+</defs>
+<!-- Contact plane is an optional independent layer, never animated with body. -->
+<g id="ground-shadow" opacity=".25"><ellipse cx="285" cy="387" rx="179" ry="13" fill="#8D6B55" filter="url(#shadow)"/></g>
+<!-- Joint origin approximately (172,227); tail follows spine with a 2-3 frame drag. -->
+<g id="tail" data-pivot-x="169" data-pivot-y="236">
+ <path d="M178 248 C126 238 108 197 119 169 C128 148 146 157 151 171 C151 145 130 125 111 136 C80 154 79 208 121 246 C138 265 161 272 181 271Z" fill="url(#fur)" stroke="#BD6D37" stroke-width="5" stroke-linejoin="round"/>
+ <path d="M122 145 Q108 148 101 170 Q95 198 126 229 C114 211 125 195 141 199 C149 174 132 159 122 145Z" fill="url(#cream)"/>
+ <path d="M128 165 Q120 188 143 209" fill="none" stroke="#FFE0AC" stroke-width="6" stroke-linecap="round"/>
+</g>
+<!-- Far hind leg should draw behind torso. -->
+<g id="hind-leg-far" data-pivot-x="220" data-pivot-y="280">
+ <path d="M220 255 C188 281 196 322 204 366 C207 379 224 384 242 379 L269 377 Q280 374 273 362 L247 349 Q242 310 263 283Z" fill="#CC7939" stroke="#AB602F" stroke-width="4"/>
+ <path d="M219 364 Q242 361 264 372" fill="none" stroke="#9F5F35" stroke-width="3"/>
+</g>
+<!-- Torso extends from hip x155 to shoulder x378. -->
+<g id="body" data-pivot-x="290" data-pivot-y="258">
+ <path d="M159 267 C158 226 190 204 246 195 C307 188 370 197 394 223 C419 250 411 310 370 337 C325 360 222 349 180 326 C162 315 155 294 159 267Z" fill="url(#fur)" stroke="#B96937" stroke-width="5"/>
+ <path d="M274 213 C322 197 361 213 379 246 C391 279 366 310 343 325 C316 343 276 331 265 297 C259 260 267 226 274 213Z" fill="url(#cream)"/>
+ <path d="M170 252 C188 220 224 211 256 208" fill="none" stroke="#FFD994" stroke-width="13" stroke-linecap="round" opacity=".75"/>
+ <path d="M175 310 C201 338 255 344 285 345" fill="none" stroke="#B66C3F" stroke-width="5" opacity=".3"/>
+</g>
+<!-- Rear near paw shows pronounced planted heel. -->
+<g id="hind-leg-near" data-pivot-x="210" data-pivot-y="290">
+ <path d="M200 274 C182 298 188 337 191 362 C191 375 197 380 218 382 L251 382 C264 380 268 366 254 361 L234 350 C235 327 245 313 252 294Z" fill="url(#fur)" stroke="#AF6A39" stroke-width="4"/>
+ <path d="M193 363 C208 353 239 356 253 371" fill="none" stroke="#FFE2B1" stroke-width="6" stroke-linecap="round"/>
+ <path d="M231 368 L230 379 M243 368 L244 379" stroke="#BB7E4F" stroke-width="3" stroke-linecap="round"/>
+</g>
+<!-- Foreleg far; shoulder pivot enables swing without moving head. -->
+<g id="foreleg-far" data-pivot-x="350" data-pivot-y="280">
+ <path d="M346 265 C336 298 345 341 345 365 C343 378 351 381 370 382 L393 382 C406 377 403 367 394 360 L377 348 L378 273Z" fill="#DB8745" stroke="#B36D3B" stroke-width="4"/>
+ <path d="M354 363 Q370 359 391 371" fill="none" stroke="#FFF1D4" stroke-width="7" stroke-linecap="round"/>
+</g>
+<!-- Foreleg near: large cream mitten, true foot planted near y381. -->
+<g id="foreleg-near" data-pivot-x="381" data-pivot-y="281">
+ <path d="M368 262 C357 291 367 330 374 359 C374 375 385 384 408 383 L429 383 C443 380 443 364 431 359 L417 352 C410 327 411 297 416 276Z" fill="url(#fur)" stroke="#B56E3F" stroke-width="4"/>
+ <path d="M375 340 C380 356 397 360 412 354 C422 351 433 357 434 370 C425 382 390 381 383 375 C374 369 374 348 375 340Z" fill="url(#cream)"/>
+ <path d="M410 369 L411 381 M422 367 L423 378" stroke="#CCAC87" stroke-width="3" stroke-linecap="round"/>
+</g>
+<!-- Head separately animated, pivot at neckline x392 y233. -->
+<g id="head" data-pivot-x="390" data-pivot-y="227">
+ <g id="ear-back" data-pivot-x="427" data-pivot-y="144">
+   <path d="M420 154 C425 111 456 91 470 106 C479 116 475 158 460 185Z" fill="url(#ear)" stroke="#AD6537" stroke-width="5"/>
+   <path d="M438 150 C448 125 456 119 462 120 Q468 142 451 169Z" fill="#EAA994"/>
+ </g>
+ <path d="M331 200 C327 155 355 122 401 120 C454 110 501 141 505 194 C511 251 476 296 425 304 C377 313 336 280 331 235Z" fill="url(#headFur)" stroke="#BD713D" stroke-width="5"/>
+ <!-- Cream face blaze should retain recognizability at small sizes. -->
+ <path d="M410 126 C420 132 421 160 420 186 C435 191 446 207 442 233 C422 242 395 234 382 216 C390 185 393 143 410 126Z" fill="#FFEDC9" opacity=".95"/>
+ <path d="M368 236 C374 275 412 294 437 303 C467 300 500 267 504 230 C483 217 458 228 442 248 C412 226 391 229 368 236Z" fill="url(#cream)"/>
+ <!-- ear near overlaps face silhouette -->
+ <g id="ear-near" data-pivot-x="347" data-pivot-y="144">
+  <path d="M356 144 C332 125 305 143 308 179 C310 205 321 224 335 221 C352 207 361 184 356 144Z" fill="url(#ear)" stroke="#AA5F36" stroke-width="5"/>
+  <path d="M332 158 C321 167 323 193 332 203 C341 186 344 169 332 158Z" fill="#E6A086" opacity=".9"/>
+ </g>
+ <!-- eyes: no pupil direction animation hardcoded; eye layer distinct -->
+ <g id="eyes">
+   <ellipse cx="379" cy="199" rx="20" ry="24" fill="#FFFFFF"/>
+   <ellipse cx="459" cy="194" rx="23" ry="27" fill="#FFFFFF"/>
+   <ellipse cx="385" cy="201" rx="13" ry="18" fill="url(#iris)"/>
+   <ellipse cx="462" cy="196" rx="15" ry="20" fill="url(#iris)"/>
+   <ellipse cx="391" cy="194" rx="5" ry="7" fill="#FFF" opacity=".97"/>
+   <ellipse cx="468" cy="189" rx="6" ry="8" fill="#FFF" opacity=".97"/>
+   <ellipse cx="379" cy="212" rx="3" ry="3" fill="#FFF" opacity=".6"/>
+ </g>
+ <path d="M363 175 Q382 165 392 174 M443 168 Q463 159 476 170" fill="none" stroke="#9F5D35" stroke-width="5" stroke-linecap="round"/>
+ <ellipse cx="369" cy="237" rx="17" ry="11" fill="#EFAE8A" opacity=".5"/>
+ <ellipse cx="481" cy="233" rx="19" ry="11" fill="#EFAE8A" opacity=".42"/>
+ <!-- rounded muzzle and nose -->
+ <path d="M429 236 C441 221 467 219 481 237 C484 255 469 268 446 264 C433 264 425 255 429 236Z" fill="#FFF5DC"/>
+ <path d="M441 238 C441 226 463 224 472 233 C478 245 463 251 452 249 C445 248 442 244 441 238Z" fill="#48322E"/>
+ <ellipse cx="450" cy="234" rx="8" ry="4" fill="#FFFFFF" opacity=".7" transform="rotate(-14 450 234)"/>
+ <path d="M457 247 L457 259" stroke="#865742" stroke-width="3" stroke-linecap="round"/>
+ <!-- selectable mouth shapes; default shown is gentle smile -->
+ <g id="mouth-idle"><path d="M437 260 Q455 278 474 258" fill="none" stroke="#7F4B43" stroke-width="4" stroke-linecap="round"/></g>
+ <g id="mouth-talk-small" display="none"><ellipse cx="455" cy="269" rx="10" ry="7" fill="#7B4545"/><ellipse cx="456" cy="272" rx="5" ry="3" fill="#EC958E"/></g>
+ <g id="mouth-talk-open" display="none"><path d="M437 261 Q451 296 471 267 Q460 257 437 261Z" fill="#7E3C48"/><path d="M448 281 Q458 277 465 282" fill="none" stroke="#EE9A9B" stroke-width="8" stroke-linecap="round"/></g>
+ <g id="mouth-happy" display="none"><path d="M436 263 Q454 301 477 261" fill="#773D42" stroke="#844A3F" stroke-width="3"/><path d="M444 282 Q455 276 469 283" fill="none" stroke="#F8B4A3" stroke-width="8" stroke-linecap="round"/></g>
+ </g>
+<!-- collar and tag separate from body; no third-party logo -->
+<g id="collar"><path d="M366 275 Q387 307 425 300" fill="none" stroke="#AE5548" stroke-width="13" stroke-linecap="round"/>
+<path d="M370 280 Q387 303 423 296" fill="none" stroke="#E78A70" stroke-width="4" opacity=".7"/>
+<circle cx="399" cy="309" r="14" fill="#E9B75E" stroke="#B9833D" stroke-width="3"/><path d="M392 307 Q398 300 404 307 M391 314 Q399 321 407 312" fill="none" stroke="#8D6634" stroke-width="2.5" stroke-linecap="round"/>
+</g>
+</svg>
